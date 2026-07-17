@@ -1,0 +1,16 @@
+# Xcode
+build/
+DerivedData/
+*.xcuserstate
+*.xcscmblueprint
+xcuserdata/
+
+# Swift Package Manager local checkout caches (not Package.resolved — keep that for reproducible builds)
+.build/
+.swiftpm/xcode/package.xcworkspace/xcuserdata/
+
+# Firebase config — regenerate per environment from Firebase Console, don't commit
+GoogleService-Info.plist
+
+# macOS
+.DS_Store
