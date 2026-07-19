@@ -1,0 +1,47 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isMaster() {
+      return isSignedIn() &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "master";
+    }
+
+    function isClientBooking() {
+      return isSignedIn() &&
+        resource.data.status == "available" &&
+        request.resource.data.status == "pending" &&
+        request.resource.data.clientId == request.auth.uid &&
+        request.resource.data.bookedServiceId in resource.data.offeredServiceIds;
+    }
+
+    function isClientCanceling() {
+      return isSignedIn() &&
+        resource.data.clientId == request.auth.uid &&
+        request.resource.data.status == "available" &&
+        !('clientId' in request.resource.data) &&
+        !('bookedServiceId' in request.resource.data);
+    }
+
+    match /users/{uid} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && request.auth.uid == uid;
+    }
+
+    match /services/{serviceId} {
+      allow read: if isSignedIn();
+      allow write: if isMaster();
+    }
+
+    match /blocks/{blockId} {
+      allow read: if isSignedIn();
+      allow create: if isMaster();
+      allow delete: if isMaster();
+      allow update: if isMaster() || isClientBooking() || isClientCanceling();
+    }
+  }
+}
