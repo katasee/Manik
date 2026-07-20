@@ -6,6 +6,12 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    function hasValidBlockFormat() {
+      return request.resource.data.date.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$') &&
+        request.resource.data.startTime.matches('^([01][0-9]|2[0-3]):[0-5][0-9]$') &&
+        request.resource.data.endTime.matches('^([01][0-9]|2[0-3]):[0-5][0-9]$');
+    }
+
     function isMaster() {
       return isSignedIn() &&
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "master";
@@ -16,7 +22,11 @@ service cloud.firestore {
         resource.data.status == "available" &&
         request.resource.data.status == "pending" &&
         request.resource.data.clientId == request.auth.uid &&
-        request.resource.data.bookedServiceId in resource.data.offeredServiceIds;
+        request.resource.data.bookedServiceId in resource.data.offeredServiceIds &&
+        request.resource.data.date == resource.data.date &&
+        request.resource.data.startTime == resource.data.startTime &&
+        request.resource.data.endTime == resource.data.endTime &&
+        request.resource.data.offeredServiceIds == resource.data.offeredServiceIds;
     }
 
     function isClientCanceling() {
@@ -24,12 +34,19 @@ service cloud.firestore {
         resource.data.clientId == request.auth.uid &&
         request.resource.data.status == "available" &&
         !('clientId' in request.resource.data) &&
-        !('bookedServiceId' in request.resource.data);
+        !('bookedServiceId' in request.resource.data) &&
+        request.resource.data.date == resource.data.date &&
+        request.resource.data.startTime == resource.data.startTime &&
+        request.resource.data.endTime == resource.data.endTime &&
+        request.resource.data.offeredServiceIds == resource.data.offeredServiceIds;
     }
 
     match /users/{uid} {
-      allow read: if isSignedIn();
-      allow write: if isSignedIn() && request.auth.uid == uid;
+      allow read: if isMaster() || request.auth.uid == uid;
+      allow create: if isSignedIn() && request.auth.uid == uid
+        && request.resource.data.role == "client";
+      allow update: if isSignedIn() && request.auth.uid == uid
+        && request.resource.data.role == resource.data.role;
     }
 
     match /services/{serviceId} {
@@ -39,9 +56,9 @@ service cloud.firestore {
 
     match /blocks/{blockId} {
       allow read: if isSignedIn();
-      allow create: if isMaster();
+      allow create: if isMaster() && hasValidBlockFormat();
       allow delete: if isMaster();
-      allow update: if isMaster() || isClientBooking() || isClientCanceling();
+      allow update: if (isMaster() && hasValidBlockFormat()) || isClientBooking() || isClientCanceling();
     }
   }
 }

@@ -18,9 +18,10 @@ final class FirebaseAuthRepository: AuthRepository {
             name: name,
             email: email
         )
-        try db.collection("users")
+        let encoded = try Firestore.Encoder().encode(profile)
+        try await db.collection("users")
             .document(result.user.uid)
-            .setData(from: profile)
+            .setData(encoded)
     }
 
     func signIn(email: String, password: String) async throws {

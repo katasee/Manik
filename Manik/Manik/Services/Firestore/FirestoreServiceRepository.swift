@@ -14,12 +14,20 @@ final class FirestoreServiceRepository: ServiceRepository {
     }
 
     func add(_ service: Service) async throws {
-        _ = try db.collection("services").addDocument(from: service)
+        let encoded = try Firestore.Encoder().encode(service)
+        _ = try await db.collection("services").addDocument(data: encoded)
     }
 
     func update(_ service: Service) async throws {
-        guard let id = service.id else { return }
-        try db.collection("services").document(id).setData(from: service)
+        guard let id = service.id else {
+            throw NSError(
+                domain: "ServiceRepository",
+                code: 400,
+                userInfo: [NSLocalizedDescriptionKey: "Cannot update a service without an id"]
+            )
+        }
+        let encoded = try Firestore.Encoder().encode(service)
+        try await db.collection("services").document(id).setData(encoded)
     }
 
     func delete(id: String) async throws {

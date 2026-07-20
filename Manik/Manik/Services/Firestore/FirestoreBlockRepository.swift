@@ -14,7 +14,8 @@ final class FirestoreBlockRepository: BlockRepository {
     }
 
     func addBlock(_ block: Block) async throws {
-        _ = try db.collection("blocks").addDocument(from: block)
+        let encoded = try Firestore.Encoder().encode(block)
+        _ = try await db.collection("blocks").addDocument(data: encoded)
     }
 
     func book(
