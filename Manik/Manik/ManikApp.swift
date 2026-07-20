@@ -9,7 +9,7 @@ struct ManikApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            AuthView(onAuthenticated: {})
         }
     }
 }
