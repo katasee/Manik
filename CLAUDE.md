@@ -66,15 +66,15 @@ throw NSError(
 
 Same for declaring a function with 3+ parameters. Under 3 arguments, keep it on one line.
 
-## Firebase SDK gotcha
+## Firebase SDK
 
-The Firebase iOS SDK is added as a **local Swift package reference** pointing at
-`~/Developer/firebase-ios-sdk` (see `XCLocalSwiftPackageReference` in `project.pbxproj`), not a
-normal remote SPM dependency. This is a workaround: Firebase >= 12.15.0 requires Swift tools
-version 6.1, which needs Xcode 16.3+, and this project is on Xcode 16.1. If Xcode gets upgraded to
-16.3+, this can be switched back to a normal `https://github.com/firebase/firebase-ios-sdk` remote
-package dependency pinned with "Up to Next Major Version". Until then, anyone building this project
-on a different machine needs `firebase-ios-sdk` checked out at that same path.
+The Firebase iOS SDK is a normal remote Swift package dependency
+(`https://github.com/firebase/firebase-ios-sdk`, "Up to Next Major Version"), providing the
+`FirebaseAuth` and `FirebaseFirestore` products to the `Manik` target. Requires Xcode 16.3+ (Swift
+tools version 6.1); the project now builds on Xcode 16.4. (Earlier this was a local Swift package
+reference pointing at a machine-specific `~/Developer/firebase-ios-sdk` checkout, needed because
+Firebase >= 12.15.0 requires Swift tools 6.1 and the project was still on Xcode 16.1 — that
+workaround is gone now that Xcode is updated.)
 
 `GoogleService-Info.plist` is gitignored (regenerate from Firebase Console per environment) but
 must exist on disk in `Manik/Manik/` for the app to run — Xcode's synchronized-folder project
