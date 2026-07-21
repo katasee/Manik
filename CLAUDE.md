@@ -24,10 +24,20 @@ that changes scope, not just this file.
 
 **MVVM + Repository pattern, dependency injection via initializers — no singletons of our own.**
 
-- `Manik/Manik/Models/` — plain Codable structs (`UserProfile`, `Service`, `Block`). `Service` and
-  `Block` use `@DocumentID var id: String?` (Firestore assigns it, don't encode it yourself).
-  `UserProfile.id` is `uid`, since that collection is keyed by the Firebase Auth uid rather than an
-  auto-generated document ID.
+- ViewModels use the **`@Observable` macro** (Swift Observation, iOS 17+), not the older
+  `ObservableObject`/`@Published` pair — plain `var` properties, no `@Published`. Views hold them
+  with `@State private var viewModel = SomeViewModel()`, not `@StateObject`. Deployment target is
+  iOS 17.2 so this is available everywhere; don't reach for `ObservableObject` out of habit.
+- Views/ViewModels are organized **by feature, not by layer** — e.g. `Manik/Manik/Auth/` holds
+  `AuthView.swift` and `AuthViewModel.swift` together, rather than spreading them across generic
+  top-level `Views/`/`ViewModels` folders. A model only lives inside a feature folder if it's
+  genuinely private to that feature; anything referenced from more than one feature belongs in
+  `Manik/Manik/Models/` instead — that's where `UserProfile`, `Service`, and `Block` live, since all
+  three get read from both the master and client cabinets (e.g. a client's name shown in the
+  master's requests list), not just from the screen that created them.
+  `Service`/`Block` use `@DocumentID var id: String?` (Firestore assigns it, don't encode it
+  yourself). `UserProfile.id` is `uid`, since that collection is keyed by the Firebase Auth uid
+  rather than an auto-generated document ID.
 - `Block.date`/`startTime`/`endTime` are plain `String` (`yyyy-MM-dd`/`HH:mm`) but must never be
   produced by an inline `DateFormatter` — always go through `Manik/Manik/Utilities/DateFormat.swift`
   (`DateFormat.date`/`DateFormat.time`), which pins `en_US_POSIX` locale and the salon's fixed
@@ -69,6 +79,10 @@ that changes scope, not just this file.
   `bookedServiceId` to be a member of `offeredServiceIds` *and* pin `date`/`startTime`/`endTime`/
   `offeredServiceIds` to stay unchanged — a client's write can only touch `status`/`clientId`/
   `bookedServiceId`, never reschedule the slot itself.
+- Two `PBXFileSystemSynchronizedRootGroup`s feed the `Manik` target: `Manik/Manik/` (app source) and
+  `Manik/Assets/` (build resources that aren't Swift source living next to feature code — currently
+  just `Manik/Assets/Font/`). Both are auto-picked-up like the `GoogleService-Info.plist` case above;
+  dropping a file into either tree is enough, no manual "Add Files" step.
 - One fixed master account, no multi-tenancy. Role lives in `users/{uid}.role` and is set manually
   in the Firebase Console after sign-up (there's no admin UI for granting the master role).
   `firestore.rules` protects this: a user can only self-create their `users/{uid}` doc with
@@ -91,6 +105,23 @@ throw NSError(
 ```
 
 Same for declaring a function with 3+ parameters. Under 3 arguments, keep it on one line.
+
+User-facing strings never sit as bare literals in a View — they go in
+`Manik/Manik/Localizable.xcstrings` (String Catalog) under a `feature.kind.name` key
+(e.g. `auth.field.email`, `auth.action.signUp`) and get pulled in via `String(localized: "key")`.
+Exception: the "Manik" wordmark/brand name — it's not translated, leave it as a literal. Add the
+key to the catalog in the same change that introduces the string; don't leave it dangling for a
+later pass.
+
+Text never uses the system font — always go through `Font.elmsSans(_:_:)`
+(`Manik/Assets/Font/Extension+ElmsSans.swift`), e.g. `.font(.elmsSans(.bold, 32))`, never
+`.font(.system(...))`, `.font(.title)`, `.bold()`, or similar. Pick the closest weight from
+`ElmsSans` (`regular`/`medium`/`semiBold`/`bold`, in `Manik/Assets/Font/ElmsSansWeight.swift`)
+instead of layering SwiftUI's own `.fontWeight()` on top. The four `.ttf` files sit next to these
+two Swift files in `Manik/Assets/Font/` and are registered by hand in `Info.plist` under
+`UIAppFonts` — adding a new weight means dropping the `.ttf` in that folder *and* adding its
+filename to `UIAppFonts`, or `Font.custom` silently falls back to the system font with no warning
+or crash.
 
 ## Firebase SDK
 
