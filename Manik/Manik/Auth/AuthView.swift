@@ -3,7 +3,7 @@ import SwiftUI
 struct AuthView: View {
     @State private var viewModel = AuthViewModel()
     @FocusState private var focusedField: AuthFocusField?
-    var onAuthenticated: () -> Void
+    var onAuthenticated: () async -> Void
 
     var body: some View {
         ScrollView {
@@ -84,7 +84,7 @@ struct AuthView: View {
     private func handleSubmit() {
         Task {
             if await viewModel.submit() {
-                onAuthenticated()
+                await onAuthenticated()
             }
         }
     }
