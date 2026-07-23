@@ -4,23 +4,33 @@ struct MasterRootView: View {
     let profile: UserProfile
     let onSignOut: () -> Void
 
+    @State private var selectedTab: MasterTab = .schedule
+
     var body: some View {
-        VStack(spacing: 16) {
-            Text("master.placeholder.title")
-                .font(.elmsSans(.bold, 24))
-                .foregroundStyle(Color.textPrimary)
+        ZStack(alignment: .bottom) {
+            VStack(spacing: 16) {
+                Text("master.placeholder.title")
+                    .font(.elmsSans(.bold, 24))
+                    .foregroundStyle(Color.textPrimary)
 
-            Text(profile.name)
-                .font(.elmsSans(.regular, 16))
-                .foregroundStyle(Color.textSecondary)
+                Text(selectedTab.titleKey)
+                    .font(.elmsSans(.medium, 16))
+                    .foregroundStyle(Color.textSecondary)
 
-            Button(action: onSignOut) {
-                Text("common.action.signOut")
-                    .font(.elmsSans(.bold, 14.5))
+                Text(profile.name)
+                    .font(.elmsSans(.regular, 16))
+                    .foregroundStyle(Color.textSecondary)
+
+                Button(action: onSignOut) {
+                    Text("common.action.signOut")
+                        .font(.elmsSans(.bold, 14.5))
+                }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(Color.background)
+
+            CustomTabBar(kind: .master(selection: $selectedTab, badge: { _ in nil }))
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color.background)
     }
 }
 
