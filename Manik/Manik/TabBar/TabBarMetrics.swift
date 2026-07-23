@@ -3,13 +3,12 @@ import SwiftUI
 enum TabBarMetrics {
     enum Size {
         static let capsuleHeight: CGFloat = 56
+        /// Also doubles as every TabBarButton's fixed tap-target size — already exceeds
+        /// Apple's HIG 44×44 minimum, so no separate frame call is needed.
         static let activeCircleDiameter: CGFloat = 64
         static let activeCircleLift: CGFloat = 18
         static let iconSize: CGFloat = 22
         static let badgeDiameter: CGFloat = 18
-        /// Apple's HIG minimum tap target; `activeCircleDiameter` (64) already exceeds this,
-        /// so every `TabBarButton` — active or not — clears it without a separate frame call.
-        static let minTapArea: CGFloat = 44
     }
 
     enum Spacing {

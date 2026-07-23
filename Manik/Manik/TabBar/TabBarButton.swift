@@ -51,7 +51,7 @@ struct TabBarButton: View {
     }
 
     private var liftOffset: CGFloat {
-        (isActive && !reduceMotion) ? -TabBarMetrics.Size.activeCircleLift : 0
+        isActive ? -TabBarMetrics.Size.activeCircleLift : 0
     }
 }
 
