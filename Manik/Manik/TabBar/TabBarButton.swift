@@ -11,7 +11,11 @@ struct TabBarButton: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        Button(titleKey, systemImage: systemImage, action: action)
+        Button(
+            titleKey,
+            systemImage: systemImage,
+            action: action
+        )
             .labelStyle(.iconOnly)
             .font(.system(size: TabBarMetrics.Size.iconSize, weight: .medium))
             .foregroundStyle(iconColor)
@@ -26,6 +30,7 @@ struct TabBarButton: View {
             }
             .animation(TabBarMetrics.AnimationStyle.selection, value: isActive)
             .accessibilityAddTraits(isActive ? [.isSelected] : [])
+            .accessibilityValue(badge.map(String.init) ?? "")
     }
 
     @ViewBuilder
