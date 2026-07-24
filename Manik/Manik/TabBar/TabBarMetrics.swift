@@ -2,20 +2,24 @@ import SwiftUI
 
 enum TabBarMetrics {
     enum Size {
-        static let capsuleHeight: CGFloat = 56
-        /// Also doubles as every TabBarButton's fixed tap-target size — already exceeds
-        /// Apple's HIG 44×44 minimum, so no separate frame call is needed.
-        static let activeCircleDiameter: CGFloat = 64
-        static let activeCircleLift: CGFloat = 18
-        static let iconSize: CGFloat = 22
-        static let badgeDiameter: CGFloat = 18
+        static let capsuleHeight: Double = 70
+        static let activeCircleDiameter: Double = 70
+        static let activeCircleLift: Double = 25
+        static let iconSize: Double = 24
+        static let badgeDiameter: Double = 14
+        static let captionFontSize: Double = 9
     }
 
     enum Spacing {
-        static let tabSpacing: CGFloat = 4
-        static let innerHorizontalPadding: CGFloat = 12
-        static let capsuleHorizontalPadding: CGFloat = 24
-        static let bottomInset: CGFloat = 12
+        static let tabSpacing: Double = 4
+        static let innerHorizontalPadding: Double = 12
+        static let capsuleHorizontalPadding: Double = 20
+        static let bottomInset: Double = 8
+    }
+
+    enum Offset {
+        static let badgeX: Double = 9
+        static let badgeY: Double = -7
     }
 
     enum Opacity {

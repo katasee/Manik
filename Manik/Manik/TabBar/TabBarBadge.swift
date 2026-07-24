@@ -9,12 +9,11 @@ struct TabBarBadge: View {
             .foregroundStyle(.white)
             .frame(minWidth: TabBarMetrics.Size.badgeDiameter, minHeight: TabBarMetrics.Size.badgeDiameter)
             .background(Color.badge, in: .circle)
-            .accessibilityHidden(true)
     }
 }
 
 #Preview {
     TabBarBadge(count: 2)
         .padding()
-        .background(Color.tabBarBackground)
+        .background(Color.ink)
 }

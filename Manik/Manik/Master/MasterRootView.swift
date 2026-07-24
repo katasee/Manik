@@ -11,7 +11,7 @@ struct MasterRootView: View {
             VStack(spacing: 16) {
                 Text("master.placeholder.title")
                     .font(.elmsSans(.bold, 24))
-                    .foregroundStyle(Color.textPrimary)
+                    .foregroundStyle(Color.ink)
 
                 Text(selectedTab.titleKey)
                     .font(.elmsSans(.medium, 16))

@@ -20,6 +20,18 @@ data model, screen flows, out-of-scope list — lives in
 `docs/superpowers/specs/2026-07-15-manik-mvp-design.md`; keep it in sync with any product decision
 that changes scope, not just this file.
 
+**Current implementation status and the ordered next-steps checklist live in `docs/plan.md`.**
+Check it at the start of a session to see what's done and what's next, and update it (check off /
+add / reorder steps) whenever that changes — it's what lets work resume consistently from any
+machine or terminal, not just this conversation.
+
+**Don't edit `docs/plan.md` or a feature's `docs/superpowers/specs/`/`docs/superpowers/plans/`
+files after every small back-and-forth while a feature is still being worked on** (e.g. a follow-up
+tweak, a rename, a "why do we need this file" question mid-implementation). Batch those doc
+sync-ups to once, at the end, when the feature itself is actually settled — editing docs on every
+turn multiplies unrelated diff churn and burns time out of proportion to keeping the doc
+turn-by-turn current.
+
 ## Architecture
 
 **MVVM + Repository pattern, dependency injection via initializers — no singletons of our own.**

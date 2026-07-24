@@ -1,5 +1,10 @@
 import SwiftUI
 
+enum CabinetKind {
+    case master(selection: Binding<MasterTab>, badge: (MasterTab) -> Int?)
+    case client(selection: Binding<ClientTab>)
+}
+
 struct CustomTabBar: View {
     let kind: CabinetKind
 
@@ -38,7 +43,7 @@ struct CustomTabBar: View {
         }
         .padding(.horizontal, TabBarMetrics.Spacing.innerHorizontalPadding)
         .frame(height: TabBarMetrics.Size.capsuleHeight)
-        .background(Color.tabBarBackground, in: .capsule)
+        .background(Color.ink, in: .capsule)
         .padding(.horizontal, TabBarMetrics.Spacing.capsuleHorizontalPadding)
         .padding(.bottom, TabBarMetrics.Spacing.bottomInset)
     }

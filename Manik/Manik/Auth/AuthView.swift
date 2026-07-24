@@ -73,7 +73,7 @@ struct AuthView: View {
     private var title: some View {
         Text("appTitle")
             .font(.elmsSans(.bold, AuthMetrics.FontSize.title))
-            .foregroundStyle(Color.textPrimary)
+            .foregroundStyle(Color.ink)
 
         Text("auth.tagline")
             .font(.elmsSans(.regular, AuthMetrics.FontSize.tagline))
@@ -108,7 +108,7 @@ struct AuthView: View {
         }
         .buttonStyle(.plain)
         .foregroundStyle(.white)
-        .background(Color.textPrimary, in: .capsule)
+        .background(Color.ink, in: .capsule)
         .brandShadow()
         .disabled(viewModel.isLoading || !viewModel.canSubmit)
         .opacity(viewModel.isLoading || !viewModel.canSubmit ? AuthMetrics.disabledOpacity : 1)

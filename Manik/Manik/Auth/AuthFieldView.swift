@@ -54,7 +54,7 @@ struct AuthFieldView: View {
             .textInputAutocapitalization(autocapitalization)
             .autocorrectionDisabled(autocorrectionDisabled)
             .font(.elmsSans(.regular, AuthMetrics.FontSize.fieldValue))
-            .foregroundStyle(Color.textPrimary)
+            .foregroundStyle(Color.ink)
             .padding(AuthMetrics.Spacing.fieldPadding)
             .background(Color.fieldBackground, in: .rect(cornerRadius: AuthMetrics.CornerRadius.field))
             .overlay(

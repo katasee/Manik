@@ -4,6 +4,9 @@
     "" : {
 
     },
+    "%lld" : {
+
+    },
     "appTitle" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -177,6 +180,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Кабінет майстра"
+          }
+        }
+      }
+    },
+    "tabBar.tab.account" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Account"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Акаунт"
           }
         }
       }

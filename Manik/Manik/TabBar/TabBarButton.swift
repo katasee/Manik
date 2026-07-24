@@ -7,57 +7,61 @@ struct TabBarButton: View {
     let badge: Int?
     let namespace: Namespace.ID
     let action: () -> Void
-
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-
+    
     var body: some View {
-        Button(
-            titleKey,
-            systemImage: systemImage,
-            action: action
-        )
-            .labelStyle(.iconOnly)
+        Button(action: action) {
+            VStack(spacing: 4) {
+                image
+                    .overlay(alignment: .topTrailing) {
+                        if let badge {
+                            TabBarBadge(count: badge)
+                                .offset(x: TabBarMetrics.Offset.badgeX, y: TabBarMetrics.Offset.badgeY)
+                        }
+                    }
+                
+                title
+            }
+        }
+        .offset(y: liftOffset)
+        .animation(TabBarMetrics.AnimationStyle.selection, value: isActive)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+    
+    private var image: some View {
+        Image(systemName: systemImage)
             .font(.system(size: TabBarMetrics.Size.iconSize, weight: .medium))
             .foregroundStyle(iconColor)
-            .frame(width: TabBarMetrics.Size.activeCircleDiameter, height: TabBarMetrics.Size.activeCircleDiameter)
-            .background(activeBackground)
-            .offset(y: liftOffset)
-            .overlay(alignment: .topTrailing) {
-                if let badge {
-                    TabBarBadge(count: badge)
-                        .offset(x: 4, y: -4)
-                }
-            }
-            .animation(TabBarMetrics.AnimationStyle.selection, value: isActive)
-            .accessibilityAddTraits(isActive ? [.isSelected] : [])
-            .accessibilityValue(badge.map(String.init) ?? "")
+            .frame(
+                width: isActive ? TabBarMetrics.Size.activeCircleDiameter : TabBarMetrics.Size.iconSize,
+                height: isActive ? TabBarMetrics.Size.activeCircleDiameter : TabBarMetrics.Size.iconSize
+            )
+            .background(
+                TabBarActiveIndicator(isActive: isActive, namespace: namespace)
+            )
     }
-
-    @ViewBuilder
-    private var activeBackground: some View {
-        if reduceMotion {
-            Circle()
-                .fill(Color.tabBarActiveBackground)
-                .opacity(isActive ? 1 : 0)
-        } else if isActive {
-            Circle()
-                .fill(Color.tabBarActiveBackground)
-                .matchedGeometryEffect(id: "activeTabCircle", in: namespace)
-        }
+    
+    private var title: some View {
+        Text(titleKey)
+            .font(.elmsSans(.medium, TabBarMetrics.Size.captionFontSize))
+            .foregroundStyle(captionColor)
     }
-
+    
     private var iconColor: Color {
-        isActive ? Color.textPrimary : Color.tabBarActiveBackground.opacity(TabBarMetrics.Opacity.inactiveIcon)
+        isActive ? Color.ink : Color.background.opacity(TabBarMetrics.Opacity.inactiveIcon)
     }
-
-    private var liftOffset: CGFloat {
+    
+    private var captionColor: Color {
+        isActive ? Color.background : Color.background.opacity(TabBarMetrics.Opacity.inactiveIcon)
+    }
+    
+    private var liftOffset: Double {
         isActive ? -TabBarMetrics.Size.activeCircleLift : 0
     }
 }
 
 #Preview {
     @Previewable @Namespace var namespace
-
+    
     HStack(spacing: TabBarMetrics.Spacing.tabSpacing) {
         TabBarButton(
             systemImage: "calendar",
@@ -86,6 +90,7 @@ struct TabBarButton: View {
     }
     .padding(.horizontal, TabBarMetrics.Spacing.innerHorizontalPadding)
     .frame(height: TabBarMetrics.Size.capsuleHeight)
-    .background(Color.tabBarBackground, in: .capsule)
+    .background(Color.ink, in: .capsule)
     .padding()
 }
+
