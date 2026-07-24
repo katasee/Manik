@@ -161,9 +161,10 @@ git commit -m "Add UserRepository for resolving a user's profile by uid"
 **Interfaces:**
 - Produces string-catalog keys consumed by later tasks:
   `schedule.status.pending`, `schedule.status.confirmed`,
-  `schedule.client.loading`, `schedule.client.fallback`, `schedule.service.unknown`.
+  `schedule.client.loading`, `schedule.client.fallback`, `schedule.service.unknown`,
+  `schedule.slot.addFreeTime`.
 
-- [ ] **Step 1: Add the five keys**
+- [ ] **Step 1: Add the six keys**
 
 Open `Manik/Manik/Localizable/Localizable.xcstrings` and add these entries to the
 `"strings"` object (keep existing entries as-is, insert alphabetically alongside the
@@ -251,6 +252,22 @@ re-sort):
         }
       }
     },
+    "schedule.slot.addFreeTime" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+ Add free time"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+ Додати вільний час"
+          }
+        }
+      }
+    },
 ```
 
 - [ ] **Step 2: Build**
@@ -275,10 +292,13 @@ git commit -m "Add localization keys for Schedule screen"
 
 **Interfaces:**
 - Produces: `ScheduleMetrics.workingHours: Range<Int>`,
-  `ScheduleMetrics.Size.{hourHeight,hourLabelWidth,dayCellSize}`,
+  `ScheduleMetrics.Size.{hourHeight,hourLabelWidth,dayCellSize,dashedBorderWidth}`,
   `ScheduleMetrics.Spacing.{daySpacing,cardHorizontalPadding,cardVerticalPadding,timelineHorizontalPadding}`,
   `ScheduleMetrics.CornerRadius.card`, `ScheduleMetrics.AnimationStyle.daySelection`.
-  Every later task in this plan reads these instead of hardcoding numbers.
+  Every later task in this plan reads these instead of hardcoding numbers. Corner radius
+  (16) and the dashed border width (1.5) match the "Календар майстра" mockup screen
+  (`.bookedcard`/`.addslot` in the mockup's CSS both use `border-radius: 16px`;
+  `.addslot` uses `border: 1.5px dashed`).
 
 - [ ] **Step 1: Create the file**
 
@@ -292,6 +312,7 @@ enum ScheduleMetrics {
         static let hourHeight: CGFloat = 64
         static let hourLabelWidth: CGFloat = 48
         static let dayCellSize: CGFloat = 44
+        static let dashedBorderWidth: CGFloat = 1.5
     }
 
     enum Spacing {
@@ -302,7 +323,7 @@ enum ScheduleMetrics {
     }
 
     enum CornerRadius {
-        static let card: CGFloat = 10
+        static let card: CGFloat = 16
     }
 
     enum AnimationStyle {
@@ -476,7 +497,7 @@ git commit -m "Add fake repositories and sample data for Schedule previews"
 - Consumes: `ScheduleMetrics` (Task 4), `DateFormat.weekdayLetter`/`DateFormat.dayNumber`
   (Task 1), `Color.ink`/`Color.surface`/`Color.textSecondary` (existing assets).
 - Produces: `struct WeekDayStrip: View { init(selectedDate: Binding<Date>) }` — consumed
-  by `ScheduleView` in Task 11.
+  by `ScheduleView` in Task 12.
 
 - [ ] **Step 1: Create the file**
 
@@ -598,7 +619,7 @@ git commit -m "Add WeekDayStrip component"
 - Consumes: `Block` (existing model, needs `.status: BlockStatus`),
   `ScheduleMetrics`, `Color.statusPending`/`Color.statusConfirmed`/`Color.surface`/`Color.ink`/`Color.textSecondary`.
 - Produces: `struct ScheduleBlockCard: View { init(block: Block, clientName: String, serviceName: String, action: @escaping () -> Void) }`
-  — consumed by `HourlyTimelineView` in Task 9.
+  — consumed by `HourlyTimelineView` in Task 10.
 
 - [ ] **Step 1: Create the file**
 
@@ -722,7 +743,7 @@ git commit -m "Add ScheduleBlockCard component"
 **Interfaces:**
 - Consumes: `Block`, `ScheduleMetrics`-adjacent colors (`Color.statusPending`/`Color.statusConfirmed`/`Color.ink`/`Color.textSecondary`).
 - Produces: `struct ScheduleBlockDetailSheet: View { init(block: Block, clientName: String, serviceName: String) }`
-  — consumed by `ScheduleView` in Task 11.
+  — consumed by `ScheduleView` in Task 12.
 
 - [ ] **Step 1: Create the file**
 
@@ -816,13 +837,75 @@ git commit -m "Add ScheduleBlockDetailSheet component"
 
 ---
 
-### Task 9: Build `HourlyTimelineView`
+### Task 9: Build `ScheduleEmptySlot`
+
+**Files:**
+- Create: `Manik/Manik/Master/Schedule/ScheduleEmptySlot.swift`
+
+**Interfaces:**
+- Consumes: `ScheduleMetrics` (Task 4), `Color.textSecondary`/`Color.surface`
+  (existing assets), the `schedule.slot.addFreeTime` key (Task 3).
+- Produces: `struct ScheduleEmptySlot: View` (no parameters) — consumed by
+  `HourlyTimelineView` in Task 10. Purely decorative per the "Календар майстра" mockup's
+  `.addslot` element — matches the design spec's view-only scope, so it carries no tap
+  action.
+
+- [ ] **Step 1: Create the file**
+
+```swift
+import SwiftUI
+
+struct ScheduleEmptySlot: View {
+    var body: some View {
+        Text("schedule.slot.addFreeTime")
+            .font(.elmsSans(.semiBold, 12.5))
+            .foregroundStyle(Color.textSecondary)
+            .frame(maxWidth: .infinity)
+            .padding(ScheduleMetrics.Spacing.cardVerticalPadding + 1)
+            .overlay(
+                RoundedRectangle(cornerRadius: ScheduleMetrics.CornerRadius.card)
+                    .strokeBorder(
+                        Color.surface,
+                        style: StrokeStyle(lineWidth: ScheduleMetrics.Size.dashedBorderWidth, dash: [5, 4])
+                    )
+            )
+    }
+}
+
+#Preview {
+    ScheduleEmptySlot()
+        .padding()
+        .background(Color.background)
+}
+```
+
+- [ ] **Step 2: Build**
+
+Run: `cd Manik && xcodebuild -scheme Manik -destination 'generic/platform=iOS Simulator' build`
+Expected: `BUILD SUCCEEDED`
+
+- [ ] **Step 3: Manually verify the preview**
+
+Open the `#Preview` for `ScheduleEmptySlot.swift`. Expected: a pill-shaped dashed
+outline with centered text "+ Додати вільний час" in muted gray, no fill.
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add Manik/Manik/Master/Schedule/ScheduleEmptySlot.swift
+git commit -m "Add ScheduleEmptySlot component"
+```
+
+---
+
+### Task 10: Build `HourlyTimelineView`
 
 **Files:**
 - Create: `Manik/Manik/Master/Schedule/HourlyTimelineView.swift`
 
 **Interfaces:**
-- Consumes: `Block`, `ScheduleMetrics`, `ScheduleBlockCard` (Task 7).
+- Consumes: `Block`, `ScheduleMetrics`, `ScheduleBlockCard` (Task 7),
+  `ScheduleEmptySlot` (Task 9).
 - Produces:
   ```swift
   struct HourlyTimelineView: View {
@@ -834,7 +917,15 @@ git commit -m "Add ScheduleBlockDetailSheet component"
       )
   }
   ```
-  consumed by `ScheduleView` in Task 11.
+  consumed by `ScheduleView` in Task 12.
+
+**Empty-slot rule (per user decision):** for each full working hour, if no
+`pending`/`confirmed` block overlaps that hour's `[hourStart, hourStart+60)` minute
+range at all, render a `ScheduleEmptySlot` for that whole hour. If a block overlaps the
+hour even partially, skip the placeholder for that hour entirely — the block's own
+proportional card already covers it, and any leftover fragment of the hour not covered
+by the block (e.g. the last 30 minutes after an 08:00–09:30 block, before the next full
+free hour at 10:00–11:00) is left blank, with no placeholder and no card.
 
 - [ ] **Step 1: Create the file**
 
@@ -851,6 +942,16 @@ struct HourlyTimelineView: View {
         ScrollView {
             ZStack(alignment: .top) {
                 hourGrid
+
+                ForEach(Array(ScheduleMetrics.workingHours), id: \.self) { hour in
+                    if isHourFree(hour) {
+                        ScheduleEmptySlot()
+                            .padding(.leading, cardLeadingPadding)
+                            .padding(.trailing, ScheduleMetrics.Spacing.timelineHorizontalPadding)
+                            .frame(height: ScheduleMetrics.Size.hourHeight, alignment: .top)
+                            .offset(y: hourOffset(hour))
+                    }
+                }
 
                 ForEach(visibleBlocks) { block in
                     ScheduleBlockCard(
@@ -903,6 +1004,20 @@ struct HourlyTimelineView: View {
         return parts[0] * 60 + parts[1]
     }
 
+    private func isHourFree(_ hour: Int) -> Bool {
+        let hourStart = hour * 60
+        let hourEnd = hourStart + 60
+        return !visibleBlocks.contains { block in
+            let blockStart = minutes(from: block.startTime)
+            let blockEnd = minutes(from: block.endTime)
+            return blockStart < hourEnd && blockEnd > hourStart
+        }
+    }
+
+    private func hourOffset(_ hour: Int) -> CGFloat {
+        CGFloat(hour - ScheduleMetrics.workingHours.lowerBound) * ScheduleMetrics.Size.hourHeight
+    }
+
     private func offset(for block: Block) -> CGFloat {
         let workStartMinutes = ScheduleMetrics.workingHours.lowerBound * 60
         let startMinutes = minutes(from: block.startTime)
@@ -941,21 +1056,25 @@ Expected: `BUILD SUCCEEDED`
 - [ ] **Step 3: Manually verify the preview**
 
 Open the `#Preview` for `HourlyTimelineView.swift`. Expected: hour labels `08:00`
-through `21:00` down the left side with a divider line per hour, a green "confirmed"
-card spanning roughly 1.5 hour-rows starting at the 10:00 line, an orange "pending"
-card spanning roughly 1.5 hour-rows starting at the 14:00 line, and the `available`
-sample block (12:00–13:00) does not render any card.
+through `21:00` down the left side with a divider line per hour; a dashed
+"+ Додати вільний час" placeholder filling every hour row that the sample blocks don't
+touch (08:00–10:00, 11:00–12:00, 13:00–14:00, 16:00–21:00); a green "confirmed" card
+spanning roughly 1.5 hour-rows starting at the 10:00 line with no placeholder drawn for
+10:00 or 11:00; an orange "pending" card spanning roughly 1.5 hour-rows starting at the
+14:00 line with no placeholder for 14:00 or 15:00; the `available` sample block
+(12:00–13:00) renders neither a card nor suppresses the 12:00 placeholder (it's not in
+`visibleBlocks`, so 12:00 still shows the dashed placeholder).
 
 - [ ] **Step 4: Commit**
 
 ```bash
 git add Manik/Manik/Master/Schedule/HourlyTimelineView.swift
-git commit -m "Add HourlyTimelineView component"
+git commit -m "Add HourlyTimelineView component with empty-slot placeholders"
 ```
 
 ---
 
-### Task 10: Build `ScheduleViewModel`
+### Task 11: Build `ScheduleViewModel`
 
 **Files:**
 - Create: `Manik/Manik/Master/Schedule/ScheduleViewModel.swift`
@@ -986,7 +1105,7 @@ git commit -m "Add HourlyTimelineView component"
       func serviceName(for block: Block) -> String
   }
   ```
-  consumed by `ScheduleView` in Task 11. `isLoading` is `true` until both the first
+  consumed by `ScheduleView` in Task 12. `isLoading` is `true` until both the first
   blocks snapshot and the first services snapshot have arrived — `ScheduleView` shows a
   full-screen spinner while it's `true`, per the design spec's "Перший лоад" requirement.
 
@@ -1098,18 +1217,18 @@ git commit -m "Add ScheduleViewModel"
 
 ---
 
-### Task 11: Build `ScheduleView` (composition root)
+### Task 12: Build `ScheduleView` (composition root)
 
 **Files:**
 - Create: `Manik/Manik/Master/Schedule/ScheduleView.swift`
 
 **Interfaces:**
-- Consumes: `ScheduleViewModel` (Task 10), `WeekDayStrip` (Task 6),
-  `HourlyTimelineView` (Task 9), `ScheduleBlockDetailSheet` (Task 8),
+- Consumes: `ScheduleViewModel` (Task 11), `WeekDayStrip` (Task 6),
+  `HourlyTimelineView` (Task 10), `ScheduleBlockDetailSheet` (Task 8),
   `FakeBlockRepository`/`FakeServiceRepository`/`FakeUserRepository`/`SchedulePreviewData`
   (Task 5, `#Preview` only).
 - Produces: `struct ScheduleView: View { init(viewModel: ScheduleViewModel = ScheduleViewModel()) }`
-  — consumed by `MasterRootView` in Task 12.
+  — consumed by `MasterRootView` in Task 13.
 
 - [ ] **Step 1: Create the file**
 
@@ -1195,13 +1314,13 @@ git commit -m "Add ScheduleView composition root"
 
 ---
 
-### Task 12: Wire `ScheduleView` into `MasterRootView`
+### Task 13: Wire `ScheduleView` into `MasterRootView`
 
 **Files:**
 - Modify: `Manik/Manik/Master/MasterRootView.swift:9-34`
 
 **Interfaces:**
-- Consumes: `ScheduleView` (Task 11), `MasterTab` (existing enum with
+- Consumes: `ScheduleView` (Task 12), `MasterTab` (existing enum with
   `.schedule`/`.requests`/`.stats` cases), `CustomTabBar`/`CabinetKind.master` (existing).
 
 - [ ] **Step 1: Replace the body to route `.schedule` to `ScheduleView`**
@@ -1279,7 +1398,7 @@ git commit -m "Wire ScheduleView into the master's Schedule tab"
 
 ---
 
-### Task 13: Full-app verification and plan/docs cleanup
+### Task 14: Full-app verification and plan/docs cleanup
 
 **Files:**
 - Modify: `docs/plan.md` (check off the completed "Master — Розклад" step)
