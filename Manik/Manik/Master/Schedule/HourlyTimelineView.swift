@@ -16,6 +16,7 @@ struct HourlyTimelineView: View {
             .padding(.horizontal, ScheduleMetrics.Spacing.timelineHorizontalPadding)
             .padding(.vertical, ScheduleMetrics.Spacing.rowSpacing)
         }
+        .scrollIndicators(.hidden)
     }
 }
 
