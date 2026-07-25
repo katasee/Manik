@@ -35,6 +35,9 @@ struct ClientRootView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(Color.background)
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                Color.clear.frame(height: TabBarMetrics.Size.reservedClearance)
+            }
 
             CustomTabBar(kind: .client(selection: $selectedTab))
         }

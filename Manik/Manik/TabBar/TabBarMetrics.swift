@@ -8,6 +8,8 @@ enum TabBarMetrics {
         static let iconSize: Double = 24
         static let badgeDiameter: Double = 14
         static let captionFontSize: Double = 9
+        static let activeCircleOverhang: Double = activeCircleLift + captionFontSize
+        static let reservedClearance: Double = capsuleHeight + activeCircleOverhang + TabBarMetrics.Spacing.bottomInset
     }
 
     enum Spacing {

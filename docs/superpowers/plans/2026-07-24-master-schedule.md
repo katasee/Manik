@@ -6,6 +6,51 @@
 over an 08:00–22:00 hourly timeline showing `pending`/`confirmed` blocks as
 proportional-height cards, tappable into a read-only detail sheet.
 
+**Slice scope (this PR = the Schedule *shell* only):** After building the full read-only
+view we deliberately shrank this PR to just the static screen shown in the mockup: a
+"Розклад" title, the horizontal week-day strip, and a vertical 08:00–21:00 timeline where
+**every** hour is a label on its own row with a "+ Додати вільний час" (`DashedSlot`) in
+the gap below it. **No block rendering, no cards, no detail sheet, no data loading** in this
+PR. `DashedSlot` is a tappable button whose action is empty here — a **deliberate no-op**,
+not a bug; wiring it to actually create a slot is the first follow-up slice.
+
+The block-rendering work described in the tasks below (`ScheduleBlockCard`,
+`ScheduleBlockDetailSheet`, `ScheduleViewModel`, `SchedulePreviewData`, `UserRepository`/
+`FirestoreUserRepository`, and the block-integrated `HourlyTimelineView`/`ScheduleView`)
+was built, then **git-stashed** for reuse in later slices rather than deleted:
+
+```
+git stash list   # "schedule block components for future slices: ..."
+```
+
+Pop it (`git stash pop`) when starting Slice 2/3 below. On reuse it needs a few shared-file
+fixups that were reverted to keep this PR minimal: `Block.startMinutes`/`endMinutes`, the
+`schedule.status.*`/`schedule.client.*`/`schedule.service.*` catalog keys, and
+`ScheduleMetrics.Size.cardBorderWidth`. Rationale: prefer small vertical slices that each
+work end-to-end over one large horizontally-layered PR where only viewing functions.
+
+**What actually ships in this PR:**
+- `Master/Schedule/` — `ScheduleView` (title + week strip + timeline, `@State selectedDate`,
+  no view model), `HourlyTimelineView` (an hour label per row with a `DashedSlot` in the gap
+  below it, no block logic), `ScheduleMetrics` (trimmed to `workingHours`, `hourLabelWidth`,
+  `rowSpacing`, `timelineHorizontalPadding`).
+- `Assets/UICommons/` (reusable, feature-agnostic, decoupled from `ScheduleMetrics` via their
+  own private `Layout` constants) — `WeekDayStrip` (week-day date picker) and `DashedSlot`
+  (tappable dashed-outline labeled slot; caller passes label + action, so the
+  `schedule.slot.addFreeTime` string stays in `HourlyTimelineView`).
+- `DateFormat` split into **storage** formatters (`date`/`time`, pinned `en_US_POSIX` so
+  Firestore strings never vary by device) and **display** formatters
+  (`dayNumber`/`weekdayLetter`/`monthYear`, `Locale.current` so on-screen dates follow the
+  app's language — the app is multilingual via the String Catalog, not Ukrainian-hardcoded).
+- Catalog keys: `schedule.title`, `schedule.slot.addFreeTime`, `tabBar.tab.schedule`.
+- Tab-bar fix (`TabBar/`): scrollable content was hidden behind the floating bar. Fixed by
+  reserving space with a `Color.clear` `.safeAreaInset(edge: .bottom)` of
+  `TabBarMetrics.Size.reservedClearance` (`capsuleHeight + activeCircleOverhang + bottomInset`)
+  in both cabinet roots, while the bar stays a `ZStack` overlay so its `matchedGeometryEffect`
+  switch animation keeps a stable identity and stays smooth.
+
+Reusable UI components live in `Assets/UICommons/`, not the feature folder.
+
 **Architecture:** MVVM. A new `ScheduleViewModel` subscribes to the existing
 `observeBlocks()`/`observeServices()` `AsyncStream`s and filters client-side by the
 selected date (no repository changes). A new `UserRepository` protocol +
@@ -70,9 +115,9 @@ enum DateFormat {
     static let time = formatter("HH:mm")
     static let dayNumber = formatter("d")
     static let weekdayLetter: DateFormatter = {
-        let formatter = formatter("EEEEE")
-        formatter.locale = Locale(identifier: "uk_UA")
-        return formatter
+        let dateFormatter = formatter("EEEEE")
+        dateFormatter.locale = Locale(identifier: "uk_UA")
+        return dateFormatter
     }()
 
     static let salonTimeZone = TimeZone(identifier: "Europe/Warsaw") ?? .current
@@ -1431,3 +1476,58 @@ next up.
 git add docs/plan.md
 git commit -m "Mark Master Schedule screen done in docs/plan.md"
 ```
+
+---
+
+## In the stash (built, set aside for reuse — NOT in this PR)
+
+The tasks below (roughly Tasks 2, 5, 7, 8, 10, 11, 12 as they touch blocks) were fully
+built, then stashed via `git stash` for Slices 2–3 rather than shipped. When popping the
+stash, mind these decisions that were baked into that code:
+
+- **`Block.startMinutes`/`Block.endMinutes`** — `"HH:mm"` → minutes parsing lives on the
+  `Block` model as two computed properties (removed 4× duplication vs a private
+  `minutes(from:)` in the view). Reverted out of this PR; re-add on reuse. Geometry math
+  (offset/height in points) stays in the view — it depends on `ScheduleMetrics`.
+- **`ScheduleView.init` (stashed block version) has no default `viewModel` value** —
+  a default value that constructs a `@MainActor`-isolated `ScheduleViewModel` from the
+  non-isolated `init` fails to compile; call sites pass `ScheduleViewModel()` explicitly
+  from their `@MainActor` context. (This PR's shipped `ScheduleView` has no view model at
+  all — it uses `@State private var selectedDate`.)
+- **`ScheduleBlockCard` (stashed)** — fills its allotted timeline height
+  (`.frame(maxHeight: .infinity, alignment: .topLeading)`), solid status-colored border
+  (`ScheduleMetrics.Size.cardBorderWidth`, reverted out of this PR), and shows
+  `"<service> · <start>–<end>"`.
+- **Cleanup TODO on reuse:** `Text("\(serviceName) · \(timeRange)")` made Xcode
+  auto-extract a `"%@ · %@"` key into `Localizable.xcstrings`. Rework to an `HStack` of two
+  `Text`s or a proper `schedule.card.serviceTime` format key so the catalog isn't polluted
+  by an auto-extracted positional key.
+- **`ScheduleMetrics` was trimmed after stashing** — the shipped `ScheduleMetrics` no longer
+  has `Size.hourHeight`/`dayCellSize`/`cardBorderWidth`/`dashedBorderWidth`,
+  `Spacing.daySpacing`/`cardHorizontalPadding`/`cardVerticalPadding`, `CornerRadius`, or
+  `AnimationStyle`. The stashed block-integrated `HourlyTimelineView` (proportional cards via
+  `offset`/`height` on `hourHeight`) references several of these, so restore the constants it
+  needs when popping the stash. Also re-add the `schedule.status.*`/`schedule.client.*`/
+  `schedule.service.*` catalog keys the stashed card/detail/VM use.
+
+---
+
+## Follow-up slices (each a separate small, functional PR)
+
+Per "small vertical slices over horizontal layers": do **not** fold these back into this
+PR. Each gets its own short plan when started, and each must ship a working write path
+(repository call + error handling + live refresh via the existing `observe*` streams),
+not another inert UI shell.
+
+- **Slice 2 — Create free-time slot.** Give the `DashedSlot` "+ Додати вільний час" a real
+  action (it already takes an `action` closure, currently empty): pick start/end + offered
+  services → `addBlock(...)` → new `available` slot appears via `observeBlocks()`. Needs a
+  small slot-composer UI and `DateFormat`-formatted `date`/`startTime`/`endTime`.
+- **Slice 3 — Manage a request.** From a `pending` block's detail sheet, add
+  "Підтвердити"/"Відхилити" → `confirm(blockId:)`/`decline(blockId:)` → status updates
+  live. Extends `ScheduleBlockDetailSheet` (currently read-only) with actions.
+- **Slice 4 (optional) — Cancel a confirmed block.** `cancel(blockId:)` from the detail
+  sheet, returning the slot to `available`.
+
+Each slice above is intentionally sized to one working capability the master can actually
+perform end-to-end.
