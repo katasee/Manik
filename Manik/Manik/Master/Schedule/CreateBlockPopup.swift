@@ -38,11 +38,13 @@ struct CreateBlockPopup: View {
             }
 
             CreateBlockFieldRow(labelKey: "schedule.createSlot.startLabel") {
-                MinuteIntervalTimePicker(date: $viewModel.startTime, minuteInterval: 15)
+                DatePicker("", selection: $viewModel.startTime, displayedComponents: .hourAndMinute)
+                    .labelsHidden()
             }
 
             CreateBlockFieldRow(labelKey: "schedule.createSlot.endLabel") {
-                MinuteIntervalTimePicker(date: $viewModel.endTime, minuteInterval: 15)
+                DatePicker("", selection: $viewModel.endTime, displayedComponents: .hourAndMinute)
+                    .labelsHidden()
             }
 
             Color.surface
