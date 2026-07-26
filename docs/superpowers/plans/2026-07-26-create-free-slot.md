@@ -36,7 +36,9 @@ already exist).
 
 - Build gate: `cd Manik && xcodebuild -scheme Manik -destination 'generic/platform=iOS Simulator' build`
   must succeed (`BUILD SUCCEEDED`). Per project convention, don't run this after every
-  single task — it's called out explicitly at checkpoint tasks below (3, 6, 8).
+  single task — it's called out explicitly at checkpoint tasks below (3, 4, 5, 6, 8). Tasks
+  1, 2, and 7 skip it: 1 and 2 are data-only/unused-until-later changes, and 7 leaves the
+  target non-compiling on its own (see the note at the end of Task 7).
 - **No test target/linter/formatter.** Verification is (a) the build gate, (b) for tasks
   that add a `#Preview`, a manual-inspection description of exactly what should render in
   Xcode's canvas.
@@ -359,6 +361,8 @@ git commit -m "Add MinuteIntervalTimePicker to UICommons"
 ### Task 4: Add fake repositories + sample services for previews
 
 **Files:**
+- Create: `Manik/Manik/Master/Schedule/FakeBlockRepository.swift`
+- Create: `Manik/Manik/Master/Schedule/FakeServiceRepository.swift`
 - Create: `Manik/Manik/Master/Schedule/SchedulePreviewData.swift`
 
 **Interfaces:**
@@ -371,14 +375,13 @@ git commit -m "Add MinuteIntervalTimePicker to UICommons"
 This intentionally does **not** include `FakeUserRepository`/`profiles`/sample `blocks`
 from the stashed PR5 plan — those depend on `UserRepository`, which doesn't exist yet on
 this branch and isn't needed until the next step (rendering blocks). Keeping this file
-scoped to only what this PR uses.
+scoped to only what this PR uses. Split into three files (rather than one) so each type
+gets its own file, per project convention.
 
-- [ ] **Step 1: Create the file**
+- [ ] **Step 1: Create `FakeBlockRepository.swift`**
 
 ```swift
 #if DEBUG
-import Foundation
-
 struct FakeBlockRepository: BlockRepository {
     var blocks: [Block] = []
 
@@ -399,7 +402,13 @@ struct FakeBlockRepository: BlockRepository {
         bookedServiceId: String
     ) async throws {}
 }
+#endif
+```
 
+- [ ] **Step 2: Create `FakeServiceRepository.swift`**
+
+```swift
+#if DEBUG
 struct FakeServiceRepository: ServiceRepository {
     let services: [Service]
 
@@ -413,7 +422,13 @@ struct FakeServiceRepository: ServiceRepository {
     func update(_ service: Service) async throws {}
     func delete(id: String) async throws {}
 }
+#endif
+```
 
+- [ ] **Step 3: Create `SchedulePreviewData.swift`**
+
+```swift
+#if DEBUG
 enum SchedulePreviewData {
     static let services: [Service] = [
         Service(id: "svc-hybrid", name: "Манікюр гібридний (гель-лак)", durationMinutes: 90, price: 800),
@@ -425,14 +440,19 @@ enum SchedulePreviewData {
 #endif
 ```
 
-- [ ] **Step 2: Commit**
+- [ ] **Step 4: Build**
+
+Run: `cd Manik && xcodebuild -scheme Manik -destination 'generic/platform=iOS Simulator' build`
+Expected: `BUILD SUCCEEDED`
+
+- [ ] **Step 5: Commit**
 
 ```bash
+git add Manik/Manik/Master/Schedule/FakeBlockRepository.swift
+git add Manik/Manik/Master/Schedule/FakeServiceRepository.swift
 git add Manik/Manik/Master/Schedule/SchedulePreviewData.swift
 git commit -m "Add fake repositories and sample services for Schedule previews"
 ```
-
-(No build check — deferred to Task 6, which is the first file that actually uses these.)
 
 ---
 
@@ -449,8 +469,11 @@ git commit -m "Add fake repositories and sample services for Schedule previews"
   `init(date: Date, startHour: Int, services: [Service], blockRepository: BlockRepository = FirestoreBlockRepository())`,
   properties `date: Date`, `startTime: Date`, `endTime: Date`,
   `selectedServiceIds: Set<String>`, `services: [Service]` (read-only, passed through from
-  init), `errorMessage: String?`, `isSaving: Bool`, computed `canSubmit: Bool`, and
-  `func submit() async -> Bool` — all consumed by `CreateBlockPopup` (Task 6).
+  init), `errorMessage: String?`, `isSaving: Bool`, computed `canSubmit: Bool`,
+  `func isSelected(_ service: Service) -> Bool`, `func toggleSelection(of service: Service)`,
+  and `func submit() async -> Bool` — all consumed by `CreateBlockPopup` (Task 6). Selection
+  logic lives here (not as a `Binding(get:set:)` built in the view body) so the view stays
+  pure layout.
 
 - [ ] **Step 1: Create the file**
 
@@ -493,6 +516,20 @@ final class CreateBlockViewModel {
 
     var canSubmit: Bool {
         endTime > startTime && !selectedServiceIds.isEmpty
+    }
+
+    func isSelected(_ service: Service) -> Bool {
+        guard let id = service.id else { return false }
+        return selectedServiceIds.contains(id)
+    }
+
+    func toggleSelection(of service: Service) {
+        guard let id = service.id else { return }
+        if selectedServiceIds.contains(id) {
+            selectedServiceIds.remove(id)
+        } else {
+            selectedServiceIds.insert(id)
+        }
     }
 
     func submit() async -> Bool {
@@ -544,20 +581,110 @@ git commit -m "Add CreateBlockViewModel"
 
 ---
 
-### Task 6: Add `CreateBlockPopup`
+### Task 6: Add `CreateBlockFieldRow`, `ServicesChecklist`, and `CreateBlockPopup`
 
 **Files:**
+- Create: `Manik/Manik/Master/Schedule/CreateBlockFieldRow.swift`
+- Create: `Manik/Manik/Master/Schedule/ServicesChecklist.swift`
 - Create: `Manik/Manik/Master/Schedule/CreateBlockPopup.swift`
 
 **Interfaces:**
 - Consumes: `CreateBlockViewModel` (Task 5), `MinuteIntervalTimePicker` (Task 3),
   `ScheduleMetrics.CreatePopup.*` (Task 2), `SchedulePreviewData`/`FakeBlockRepository`
   (Task 4), string keys from Task 1.
-- Produces: `struct CreateBlockPopup: View` with
+- Produces: `struct CreateBlockFieldRow<Control: View>: View` with
+  `init(labelKey: LocalizedStringKey, control: () -> Control)`; `struct ServicesChecklist: View`
+  with `init(services: [Service], isSelected: (Service) -> Bool, onToggle: (Service) -> Void)`;
+  `struct CreateBlockPopup: View` with
   `init(date: Date, startHour: Int, services: [Service], blockRepository: BlockRepository = FirestoreBlockRepository(), onDismiss: @escaping () -> Void)`
-  — consumed by `ScheduleView` (Task 8).
+  — the latter consumed by `ScheduleView` (Task 8).
 
-- [ ] **Step 1: Create the file**
+`CreateBlockFieldRow` and `ServicesChecklist` are split into their own files/types instead
+of being computed properties on `CreateBlockPopup`: the three date/time rows were
+near-duplicates of each other (good DRY candidate for one reusable row), and
+`ServicesChecklist` takes plain data + closures rather than the view model directly — the
+same "presentational piece, not the view model" pattern already used for
+`ScheduleBlockCard`/`ScheduleBlockDetailSheet`.
+
+- [ ] **Step 1: Create `CreateBlockFieldRow.swift`**
+
+```swift
+import SwiftUI
+
+struct CreateBlockFieldRow<Control: View>: View {
+    let labelKey: LocalizedStringKey
+    @ViewBuilder let control: Control
+
+    var body: some View {
+        HStack {
+            Text(labelKey)
+                .font(.elmsSans(.semiBold, 15))
+                .foregroundStyle(Color.ink)
+            Spacer()
+            control
+        }
+    }
+}
+
+#Preview {
+    CreateBlockFieldRow(labelKey: "schedule.createSlot.dateLabel") {
+        DatePicker("", selection: .constant(Date.now), displayedComponents: .date)
+            .labelsHidden()
+    }
+    .padding()
+    .background(Color.background)
+}
+```
+
+- [ ] **Step 2: Create `ServicesChecklist.swift`**
+
+This renders each service as a full-row `Button` (not a `Toggle`) so selection state lives
+in the view model rather than a `Binding(get:set:)` built in the view body, and so each row
+gets an explicit 44pt minimum tap height. It also reads as a checkbox list (checkmark icon)
+rather than an iOS switch, matching the checkbox look asked for — SwiftUI has no native
+checkbox toggle style on iOS (that's macOS-only).
+
+```swift
+import SwiftUI
+
+struct ServicesChecklist: View {
+    let services: [Service]
+    let isSelected: (Service) -> Bool
+    let onToggle: (Service) -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            ForEach(services) { service in
+                Button {
+                    onToggle(service)
+                } label: {
+                    HStack {
+                        Text(service.name)
+                        Spacer()
+                        Image(systemName: isSelected(service) ? "checkmark.square.fill" : "square")
+                    }
+                    .frame(minHeight: 44)
+                }
+            }
+        }
+        .font(.elmsSans(.regular, 15))
+        .foregroundStyle(Color.ink)
+        .buttonStyle(.plain)
+    }
+}
+
+#Preview {
+    ServicesChecklist(
+        services: SchedulePreviewData.services,
+        isSelected: { _ in false },
+        onToggle: { _ in }
+    )
+    .padding()
+    .background(Color.background)
+}
+```
+
+- [ ] **Step 3: Create `CreateBlockPopup.swift`**
 
 ```swift
 import SwiftUI
@@ -594,15 +721,29 @@ struct CreateBlockPopup: View {
 
     private var card: some View {
         VStack(alignment: .leading, spacing: ScheduleMetrics.CreatePopup.rowSpacing) {
-            dateRow
-            startRow
-            endRow
+            CreateBlockFieldRow(labelKey: "schedule.createSlot.dateLabel") {
+                DatePicker("", selection: $viewModel.date, displayedComponents: .date)
+                    .labelsHidden()
+            }
+
+            CreateBlockFieldRow(labelKey: "schedule.createSlot.startLabel") {
+                MinuteIntervalTimePicker(date: $viewModel.startTime, minuteInterval: 15)
+            }
+
+            CreateBlockFieldRow(labelKey: "schedule.createSlot.endLabel") {
+                MinuteIntervalTimePicker(date: $viewModel.endTime, minuteInterval: 15)
+            }
 
             Color.surface
                 .frame(height: 1)
 
             servicesHeader
-            servicesList
+
+            ServicesChecklist(
+                services: viewModel.services,
+                isSelected: viewModel.isSelected,
+                onToggle: viewModel.toggleSelection
+            )
 
             if let errorMessage = viewModel.errorMessage {
                 Text(errorMessage)
@@ -616,69 +757,10 @@ struct CreateBlockPopup: View {
         .background(Color.background, in: .rect(cornerRadius: ScheduleMetrics.CreatePopup.cornerRadius))
     }
 
-    private var dateRow: some View {
-        HStack {
-            rowLabel("schedule.createSlot.dateLabel")
-            Spacer()
-            DatePicker("", selection: $viewModel.date, displayedComponents: .date)
-                .labelsHidden()
-        }
-    }
-
-    private var startRow: some View {
-        HStack {
-            rowLabel("schedule.createSlot.startLabel")
-            Spacer()
-            MinuteIntervalTimePicker(date: $viewModel.startTime, minuteInterval: 15)
-        }
-    }
-
-    private var endRow: some View {
-        HStack {
-            rowLabel("schedule.createSlot.endLabel")
-            Spacer()
-            MinuteIntervalTimePicker(date: $viewModel.endTime, minuteInterval: 15)
-        }
-    }
-
-    private func rowLabel(_ key: LocalizedStringKey) -> some View {
-        Text(key)
-            .font(.elmsSans(.semiBold, 15))
-            .foregroundStyle(Color.ink)
-    }
-
     private var servicesHeader: some View {
         Text("schedule.createSlot.servicesHeader")
             .font(.elmsSans(.bold, 16))
             .foregroundStyle(Color.ink)
-    }
-
-    private var servicesList: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            ForEach(viewModel.services) { service in
-                Toggle(service.name, isOn: isSelected(service))
-                    .font(.elmsSans(.regular, 15))
-                    .foregroundStyle(Color.ink)
-                    .toggleStyle(.switch)
-            }
-        }
-    }
-
-    private func isSelected(_ service: Service) -> Binding<Bool> {
-        Binding(
-            get: {
-                guard let id = service.id else { return false }
-                return viewModel.selectedServiceIds.contains(id)
-            },
-            set: { isOn in
-                guard let id = service.id else { return }
-                if isOn {
-                    viewModel.selectedServiceIds.insert(id)
-                } else {
-                    viewModel.selectedServiceIds.remove(id)
-                }
-            }
-        )
     }
 
     private var buttons: some View {
@@ -686,6 +768,7 @@ struct CreateBlockPopup: View {
             Button("schedule.createSlot.cancel", action: onDismiss)
                 .font(.elmsSans(.semiBold, 15))
                 .foregroundStyle(Color.textSecondary)
+                .frame(minHeight: 44)
 
             Spacer()
 
@@ -699,8 +782,8 @@ struct CreateBlockPopup: View {
                 }
             }
             .foregroundStyle(.white)
+            .frame(minHeight: 44)
             .padding(.horizontal, 20)
-            .padding(.vertical, 10)
             .background(Color.ink, in: .capsule)
             .disabled(viewModel.isSaving || !viewModel.canSubmit)
             .opacity(viewModel.isSaving || !viewModel.canSubmit ? 0.4 : 1)
@@ -721,7 +804,7 @@ struct CreateBlockPopup: View {
     Color.background
         .overlay {
             CreateBlockPopup(
-                date: Date(),
+                date: .now,
                 startHour: 17,
                 services: SchedulePreviewData.services,
                 blockRepository: FakeBlockRepository(),
@@ -731,22 +814,27 @@ struct CreateBlockPopup: View {
 }
 ```
 
-- [ ] **Step 2: Build**
+- [ ] **Step 4: Build**
 
 Run: `cd Manik && xcodebuild -scheme Manik -destination 'generic/platform=iOS Simulator' build`
 Expected: `BUILD SUCCEEDED`
 
-- [ ] **Step 3: Manual preview check**
+- [ ] **Step 5: Manual preview check**
 
 Open the `#Preview` for `CreateBlockPopup.swift`. Expected: a dimmed background behind a
 centered rounded card showing "Дата" (today, tappable), "Початок" (17:00, tappable wheel
-snapping to :00/:15/:30/:45), "Кінець" (17:30), a "Послуги" header with 4 toggles (all
-off), and "Скасувати"/"Створити" — "Створити" should render disabled/dimmed since no
-service is toggled on yet. Toggle one on — "Створити" should become enabled.
+snapping to :00/:15/:30/:45), "Кінець" (17:30), a "Послуги" header with 4 checkbox-style
+rows (all unchecked), and "Скасувати"/"Створити" — "Створити" should render disabled/dimmed
+since no service is checked yet. Tap a service row — its icon should switch to a filled
+checkmark square and "Створити" should become enabled. Also open the `#Preview`s for
+`CreateBlockFieldRow.swift` and `ServicesChecklist.swift` individually — each should render
+correctly on its own.
 
-- [ ] **Step 4: Commit**
+- [ ] **Step 6: Commit**
 
 ```bash
+git add Manik/Manik/Master/Schedule/CreateBlockFieldRow.swift
+git add Manik/Manik/Master/Schedule/ServicesChecklist.swift
 git add Manik/Manik/Master/Schedule/CreateBlockPopup.swift
 git commit -m "Add CreateBlockPopup"
 ```
@@ -812,32 +900,43 @@ target won't compile between these two tasks. Build gate is at Task 8.)
 
 ---
 
-### Task 8: Wire `ScheduleView` — load services, present the popup, pass the callback down
+### Task 8: Add `CreateBlockContext` and wire `ScheduleView` to load services and present the popup
 
 **Files:**
+- Create: `Manik/Manik/Master/Schedule/CreateBlockContext.swift`
 - Modify: `Manik/Manik/Master/Schedule/ScheduleView.swift`
 
 **Interfaces:**
 - Consumes: `ServiceRepository.observeServices() -> AsyncStream<[Service]>` (existing),
   `HourlyTimelineView(onTapHour:)` (Task 7), `CreateBlockPopup(date:startHour:services:onDismiss:)`
   (Task 6).
-- Produces: nothing consumed by later tasks — this is the last task in this plan.
+- Produces: `struct CreateBlockContext: Identifiable` (`date: Date`, `startHour: Int`).
+  Nothing here is consumed by later tasks — this is the last task in this plan.
 
-- [ ] **Step 1: Replace the file contents**
+- [ ] **Step 1: Create `CreateBlockContext.swift`**
+
+`CreateBlockContext` gets its own file rather than living alongside `ScheduleView` in the
+same file, per the one-type-per-file convention.
 
 ```swift
-import SwiftUI
+import Foundation
 
-private struct CreateBlockContext: Identifiable {
+struct CreateBlockContext: Identifiable {
     let id = UUID()
     let date: Date
     let startHour: Int
 }
+```
+
+- [ ] **Step 2: Replace `ScheduleView.swift`'s contents**
+
+```swift
+import SwiftUI
 
 struct ScheduleView: View {
     private let serviceRepository: ServiceRepository
 
-    @State private var selectedDate = Date()
+    @State private var selectedDate = Date.now
     @State private var services: [Service] = []
     @State private var creatingBlockContext: CreateBlockContext?
 
@@ -900,22 +999,22 @@ struct ScheduleView: View {
 }
 ```
 
-- [ ] **Step 2: Build**
+- [ ] **Step 3: Build**
 
 Run: `cd Manik && xcodebuild -scheme Manik -destination 'generic/platform=iOS Simulator' build`
 Expected: `BUILD SUCCEEDED`
 
-- [ ] **Step 3: Manual preview check**
+- [ ] **Step 4: Manual preview check**
 
 Open the `#Preview` for `ScheduleView.swift`. Expected: the familiar week strip + hourly
 timeline. Tap any hour's "+ Додати вільний час". Expected: `CreateBlockPopup` appears
 centered, dimmed backdrop behind it, pre-filled with today's date and that hour as start
 time, 4 services listed (from `SchedulePreviewData`). Tap "Скасувати" — popup closes, no
-crash. Tap an hour again, toggle a service on, tap "Створити" — popup closes (the fake
+crash. Tap an hour again, check a service, tap "Створити" — popup closes (the fake
 repository's `addBlock` is a no-op, so nothing else changes, which is expected — the real
 `FirestoreBlockRepository` is only exercised by the shipped app, not the preview).
 
-- [ ] **Step 4: Manual on-device/simulator check**
+- [ ] **Step 5: Manual on-device/simulator check**
 
 Run the app in the iOS Simulator (master account), open the "Розклад" tab, tap "+ Додати
 вільний час" on some hour, select at least one service, tap "Створити". Open Firebase
@@ -923,9 +1022,10 @@ Console → Firestore → `blocks` collection. Expected: a new document with `st
 "available"`, `date`/`startTime`/`endTime` matching what was picked, and
 `offeredServiceIds` containing the selected service's document ID(s).
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 6: Commit**
 
 ```bash
+git add Manik/Manik/Master/Schedule/CreateBlockContext.swift
 git add Manik/Manik/Master/Schedule/ScheduleView.swift
 git commit -m "Wire ScheduleView to load services and present CreateBlockPopup"
 ```
