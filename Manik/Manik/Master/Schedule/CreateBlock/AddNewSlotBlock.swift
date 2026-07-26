@@ -24,12 +24,11 @@ struct AddNewSlotBlock: View {
         ZStack {
             Rectangle()
                 .fill(.ultraThinMaterial)
+                .opacity(0.6)
                 .ignoresSafeArea()
-                .transition(.identity)
 
             card
                 .padding(.horizontal, ScheduleMetrics.Spacing.timelineHorizontalPadding)
-                .transition(.opacity.combined(with: .scale(scale: 0.92)))
         }
     }
 
