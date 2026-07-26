@@ -38,7 +38,7 @@ struct ScheduleView: View {
             }
         }
         .fullScreenCover(item: $creatingBlockContext) { context in
-            CreateBlockPopup(
+            AddNewSlotBlock(
                 date: context.date,
                 startHour: context.startHour,
                 services: services,

@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct CreateBlockPopup: View {
+struct AddNewSlotBlock: View {
     @State private var viewModel: CreateBlockViewModel
     let onDismiss: () -> Void
 
@@ -126,7 +126,7 @@ struct CreateBlockPopup: View {
 #Preview {
     Color.background
         .overlay {
-            CreateBlockPopup(
+            AddNewSlotBlock(
                 date: .now,
                 startHour: 17,
                 services: SchedulePreviewData.services,
