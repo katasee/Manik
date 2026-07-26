@@ -40,7 +40,6 @@ struct MasterRootView: View {
                         }
                     }
                 )
-                .transition(.opacity.combined(with: .scale(scale: 0.92)))
                 .zIndex(1)
             }
         }
