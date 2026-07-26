@@ -2,13 +2,17 @@ import SwiftUI
 
 struct ScheduleView: View {
     private let serviceRepository: ServiceRepository
+    let onCreateSlotRequested: (CreateBlockContext) -> Void
 
     @State private var selectedDate = Date.now
     @State private var services: [Service] = []
-    @State private var creatingBlockContext: CreateBlockContext?
 
-    init(serviceRepository: ServiceRepository = FirestoreServiceRepository()) {
+    init(
+        serviceRepository: ServiceRepository = FirestoreServiceRepository(),
+        onCreateSlotRequested: @escaping (CreateBlockContext) -> Void
+    ) {
         self.serviceRepository = serviceRepository
+        self.onCreateSlotRequested = onCreateSlotRequested
     }
 
     var body: some View {
@@ -27,7 +31,9 @@ struct ScheduleView: View {
                 .frame(height: 1)
 
             HourlyTimelineView { hour in
-                creatingBlockContext = CreateBlockContext(date: selectedDate, startHour: hour)
+                onCreateSlotRequested(
+                    CreateBlockContext(date: selectedDate, startHour: hour, services: services)
+                )
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -36,15 +42,6 @@ struct ScheduleView: View {
             for await updatedServices in serviceRepository.observeServices() {
                 services = updatedServices
             }
-        }
-        .fullScreenCover(item: $creatingBlockContext) { context in
-            AddNewSlotBlock(
-                date: context.date,
-                startHour: context.startHour,
-                services: services,
-                onDismiss: { creatingBlockContext = nil }
-            )
-            .presentationBackground(.clear)
         }
     }
 
@@ -62,5 +59,8 @@ struct ScheduleView: View {
 }
 
 #Preview {
-    ScheduleView(serviceRepository: FakeServiceRepository(services: SchedulePreviewData.services))
+    ScheduleView(
+        serviceRepository: FakeServiceRepository(services: SchedulePreviewData.services),
+        onCreateSlotRequested: { _ in }
+    )
 }
