@@ -25,9 +25,15 @@ final class CreateBlockViewModel {
         self.services = services
         self.blockRepository = blockRepository
 
-        let start = Self.calendar.date(bySettingHour: startHour, minute: 0, second: 0, of: date) ?? date
+        let calendar = Self.calendar
+        let start = calendar.date(
+            bySettingHour: startHour,
+            minute: 0,
+            second: 0,
+            of: date
+        ) ?? date
         self.startTime = start
-        self.endTime = Self.calendar.date(
+        self.endTime = calendar.date(
             byAdding: .minute,
             value: ScheduleMetrics.CreatePopup.defaultDurationMinutes,
             to: start
