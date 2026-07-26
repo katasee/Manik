@@ -2,6 +2,21 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
+> **Status: executed and shipped, then substantially revised in follow-up tweaks after the
+> final review.** This file is a historical record of the original 8-task execution (all
+> tasks completed, reviewed clean, merged into `feature/pr-7-createFreeSlot`) — it is
+> **not** kept in sync with the shipped code turn-by-turn. Several things changed after
+> this plan finished: `CreateBlockPopup` → `AddNewSlotBlock`; `MinuteIntervalTimePicker`
+> → plain `DatePicker` → manual `TextField` "HH:mm" entry (the UIKit wrapper below was
+> deleted entirely); presentation moved from `.fullScreenCover` to a custom `ZStack`
+> overlay owned by `MasterRootView`, with `.ultraThinMaterial` backdrop + `.brandShadow()`
+> instead of a flat black scrim; default duration changed from 30 to 60 minutes; files
+> reorganized into `Master/Schedule/CreateBlock/` + `Services/Fakes/`; tap-outside-to-dismiss
+> was added (originally decided against). **For what's actually shipped, read
+> `docs/superpowers/specs/2026-07-26-create-free-slot-design.md` instead** — that spec is
+> kept current. Keep the code samples below as-is; they document what Task N originally
+> asked for, not the current state.
+
 **Goal:** Make the punctured "+ Додати вільний час" (`DashedSlot`) in the master's Schedule
 timeline actually create a `Block` — tapping it opens a centered popup (date + start + end
 + services checklist) that writes a new `available` block to Firestore.

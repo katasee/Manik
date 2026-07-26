@@ -13,8 +13,10 @@ struct ServicesChecklist: View {
                 } label: {
                     HStack {
                         Text(service.name)
+                            .font(.elmsSans(.regular, 15))
                         Spacer()
-                        Image(systemName: isSelected(service) ? "checkmark.square.fill" : "square")
+                        Image(systemName: isSelected(service) ? "checkmark.circle.fill" : "circle")
+                            .font(.system(size: 24))
                     }
                     .frame(minHeight: 44)
                 }

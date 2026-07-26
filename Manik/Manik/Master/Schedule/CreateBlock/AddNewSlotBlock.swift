@@ -22,10 +22,13 @@ struct AddNewSlotBlock: View {
 
     var body: some View {
         ZStack {
-            Rectangle()
-                .fill(.ultraThinMaterial)
-                .opacity(0.6)
-                .ignoresSafeArea()
+            Button(action: onDismiss) {
+                Rectangle()
+                    .opacity(0.5)
+            }
+            .buttonStyle(.plain)
+            .ignoresSafeArea()
+            .accessibilityLabel(Text("schedule.createSlot.cancel"))
 
             card
                 .padding(.horizontal, ScheduleMetrics.Spacing.timelineHorizontalPadding)
@@ -40,13 +43,15 @@ struct AddNewSlotBlock: View {
             }
 
             fieldRow("schedule.createSlot.startLabel") {
-                DatePicker("", selection: $viewModel.startTime, displayedComponents: .hourAndMinute)
-                    .labelsHidden()
+                TextField("", text: $viewModel.startTimeText)
+                    .keyboardType(.numbersAndPunctuation)
+                    .multilineTextAlignment(.trailing)
             }
 
             fieldRow("schedule.createSlot.endLabel") {
-                DatePicker("", selection: $viewModel.endTime, displayedComponents: .hourAndMinute)
-                    .labelsHidden()
+                TextField("", text: $viewModel.endTimeText)
+                    .keyboardType(.numbersAndPunctuation)
+                    .multilineTextAlignment(.trailing)
             }
 
             Color.surface
@@ -70,6 +75,8 @@ struct AddNewSlotBlock: View {
         }
         .padding(ScheduleMetrics.CreatePopup.cardPadding)
         .background(Color.background, in: .rect(cornerRadius: ScheduleMetrics.CreatePopup.cornerRadius))
+        .compositingGroup()
+        .brandShadow()
     }
 
     private func fieldRow(_ labelKey: LocalizedStringKey, @ViewBuilder control: () -> some View) -> some View {

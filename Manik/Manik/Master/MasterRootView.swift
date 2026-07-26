@@ -12,11 +12,22 @@ struct MasterRootView: View {
             Group {
                 switch selectedTab {
                 case .schedule:
+                    #if DEBUG
+                    ScheduleView(
+                        serviceRepository: FakeServiceRepository(services: SchedulePreviewData.services),
+                        onCreateSlotRequested: { context in
+                            withAnimation(.easeOut(duration: 0.2)) {
+                                creatingBlockContext = context
+                            }
+                        }
+                    )
+                    #else
                     ScheduleView(onCreateSlotRequested: { context in
                         withAnimation(.easeOut(duration: 0.2)) {
                             creatingBlockContext = context
                         }
                     })
+                    #endif
                 case .requests, .stats:
                     placeholder
                 }

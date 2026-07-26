@@ -16,6 +16,6 @@ enum ScheduleMetrics {
         static let cornerRadius: CGFloat = 20
         static let cardPadding: CGFloat = 20
         static let rowSpacing: CGFloat = 16
-        static let defaultDurationMinutes = 30
+        static let defaultDurationMinutes = 60
     }
 }
