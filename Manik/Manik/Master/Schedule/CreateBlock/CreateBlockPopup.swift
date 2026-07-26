@@ -32,17 +32,17 @@ struct CreateBlockPopup: View {
 
     private var card: some View {
         VStack(alignment: .leading, spacing: ScheduleMetrics.CreatePopup.rowSpacing) {
-            CreateBlockFieldRow(labelKey: "schedule.createSlot.dateLabel") {
+            fieldRow("schedule.createSlot.dateLabel") {
                 DatePicker("", selection: $viewModel.date, displayedComponents: .date)
                     .labelsHidden()
             }
 
-            CreateBlockFieldRow(labelKey: "schedule.createSlot.startLabel") {
+            fieldRow("schedule.createSlot.startLabel") {
                 DatePicker("", selection: $viewModel.startTime, displayedComponents: .hourAndMinute)
                     .labelsHidden()
             }
 
-            CreateBlockFieldRow(labelKey: "schedule.createSlot.endLabel") {
+            fieldRow("schedule.createSlot.endLabel") {
                 DatePicker("", selection: $viewModel.endTime, displayedComponents: .hourAndMinute)
                     .labelsHidden()
             }
@@ -68,6 +68,16 @@ struct CreateBlockPopup: View {
         }
         .padding(ScheduleMetrics.CreatePopup.cardPadding)
         .background(Color.background, in: .rect(cornerRadius: ScheduleMetrics.CreatePopup.cornerRadius))
+    }
+
+    private func fieldRow(_ labelKey: LocalizedStringKey, @ViewBuilder control: () -> some View) -> some View {
+        HStack {
+            Text(labelKey)
+                .font(.elmsSans(.semiBold, 15))
+                .foregroundStyle(Color.ink)
+            Spacer()
+            control()
+        }
     }
 
     private var servicesHeader: some View {
