@@ -29,14 +29,28 @@ this file is just "what's done, what's next," not a design doc.
   two dedicated `TabBarBackground`/`TabBarActiveBackground` colors were dropped in favor of
   reusing `Ink`/`Background`. Badge parameter exists but is stubbed to `nil` until the Requests
   screen ships (tracked as a Next step above).
+- **PR5 — Master Schedule shell (branch `feature/pr-5-scheduleView`)**: view-only Schedule screen —
+  `Master/Schedule/` (`ScheduleView` with title + week strip + hourly timeline, `@State selectedDate`,
+  no view model; `HourlyTimelineView` = hour label per row with a `DashedSlot` in the gap;
+  `ScheduleMetrics`). Reusable components pulled into `Assets/UICommons/`: `WeekDayStrip` (week-day
+  date picker) and `DashedSlot` (tappable dashed-outline labeled slot), both decoupled from feature
+  metrics. `DateFormat` split into storage formatters (`date`/`time`, pinned `en_US_POSIX` for
+  Firestore) and display formatters (`dayNumber`/`weekdayLetter`/`monthYear`, `Locale.current` so the
+  UI is multilingual). Tab bar scroll-clearance fixed: content reserves space via a `Color.clear`
+  `safeAreaInset` (`TabBarMetrics.reservedClearance`) while the bar stays a `ZStack` overlay so its
+  switch animation stays smooth. Block-rendering work (`ScheduleBlockCard`, `ScheduleBlockDetailSheet`,
+  `ScheduleViewModel`, `UserRepository`/`FirestoreUserRepository`, `SchedulePreviewData`) was built
+  then **git-stashed** for the follow-up slices below.
 
 ## Next steps (in order)
 
-1. **Master — "Розклад" (Schedule)** screen (mockup screen 02): day-of-week strip up top, tap
-   selects a day; hourly agenda below — empty hour shows "+ Додати вільний час", booked hour shows
-   a card (client name, status pill, chosen service). Backed by `Block`/`BlockRepository`
-   (already built in PR1).
-2. **Master — "Заявки" (Requests)**: list of `pending` blocks, confirm/decline actions.
+1. **Master — Schedule: create free-time slot** — make the `DashedSlot` "+ Додати вільний час"
+   actually create a block (`addBlock`): pick start/end + offered services → new `available` slot
+   appears via `observeBlocks()`. First follow-up slice; pop the PR5 stash to reuse the built
+   pieces.
+2. **Master — Schedule: render + manage blocks** — show `pending`/`confirmed` blocks as cards on the
+   timeline (pop stashed `ScheduleBlockCard`/`ScheduleViewModel`/`UserRepository`), tap → detail
+   sheet. Overlaps with **"Заявки" (Requests)**: list of `pending` blocks, confirm/decline actions.
 3. **Master — "Статистика" (Stats)**: month summary (revenue/visits/cancellations) + entry point to
    "Мої послуги" (services CRUD).
 4. **Client — "Запис" (Booking)** (mockup screen 03): month calendar → time chips → service picker

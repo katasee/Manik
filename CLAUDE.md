@@ -46,15 +46,25 @@ turn-by-turn current.
   genuinely private to that feature; anything referenced from more than one feature belongs in
   `Manik/Manik/Models/` instead — that's where `UserProfile`, `Service`, and `Block` live, since all
   three get read from both the master and client cabinets (e.g. a client's name shown in the
-  master's requests list), not just from the screen that created them.
+  master's requests list), not just from the screen that created them. The same principle applies
+  to reusable *views*: a component used (or reusable) across more than one feature lives in
+  `Manik/Manik/Assets/UICommons/` (e.g. `WeekDayStrip`, `DashedSlot`, `View+BrandShadow`, the
+  `ElmsSans` font extension), not in a feature folder, and must not depend on any feature's types
+  (e.g. a feature's `*Metrics`) — give it its own private constants or take them as parameters.
+  A feature folder holds only that feature's View, view model, feature-private model, subviews, and
+  a feature-local metrics file (e.g. `Schedule/ScheduleMetrics.swift`, `TabBar/TabBarMetrics.swift`).
   `Service`/`Block` use `@DocumentID var id: String?` (Firestore assigns it, don't encode it
   yourself). `UserProfile.id` is `uid`, since that collection is keyed by the Firebase Auth uid
   rather than an auto-generated document ID.
 - `Block.date`/`startTime`/`endTime` are plain `String` (`yyyy-MM-dd`/`HH:mm`) but must never be
-  produced by an inline `DateFormatter` — always go through `Manik/Manik/Utilities/DateFormat.swift`
-  (`DateFormat.date`/`DateFormat.time`), which pins `en_US_POSIX` locale and the salon's fixed
-  `TimeZone` so device locale/calendar settings can't corrupt the stored string. `firestore.rules`
-  regex-validates the same format server-side (`hasValidBlockFormat()`) as defense in depth.
+  produced by an inline `DateFormatter` — always go through `Manik/Manik/Utilities/DateFormat.swift`.
+  That file splits into two kinds: **storage** formatters (`DateFormat.date`/`DateFormat.time`) pin
+  `en_US_POSIX` locale so the string written to Firestore can't be corrupted by device
+  locale/calendar; **display** formatters (`DateFormat.dayNumber`/`weekdayLetter`/`monthYear`) use
+  `Locale.current` so on-screen dates follow the app's language — the app is multilingual via the
+  String Catalog, so display formatters must never hardcode a locale. Both keep the salon's fixed
+  `TimeZone`. `firestore.rules` regex-validates the storage format server-side
+  (`hasValidBlockFormat()`) as defense in depth.
 - `Manik/Manik/Services/Repositories/` — protocols only (`AuthRepository`, `ServiceRepository`,
   `BlockRepository`). These files must **not** import Firebase — that's the whole point: ViewModels
   depend on these contracts, not on Firestore/Auth directly, so a fake implementation can stand in

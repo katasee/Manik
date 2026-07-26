@@ -44,6 +44,7 @@ struct CustomTabBar: View {
         .padding(.horizontal, TabBarMetrics.Spacing.innerHorizontalPadding)
         .frame(height: TabBarMetrics.Size.capsuleHeight)
         .background(Color.ink, in: .capsule)
+        .brandShadow()
         .padding(.horizontal, TabBarMetrics.Spacing.capsuleHorizontalPadding)
         .padding(.bottom, TabBarMetrics.Spacing.bottomInset)
     }
