@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct HourlyTimelineView: View {
+    let onTapHour: (Int) -> Void
+
     var body: some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: ScheduleMetrics.Spacing.rowSpacing) {
@@ -9,8 +11,10 @@ struct HourlyTimelineView: View {
                         .font(.elmsSans(.bold, 16))
                         .foregroundStyle(Color.textSecondary)
 
-                    DashedSlot(title: "schedule.slot.addFreeTime", action: {})
-                        .padding(.leading, ScheduleMetrics.Size.hourLabelWidth)
+                    DashedSlot(title: "schedule.slot.addFreeTime") {
+                        onTapHour(hour)
+                    }
+                    .padding(.leading, ScheduleMetrics.Size.hourLabelWidth)
                 }
             }
             .padding(.horizontal, ScheduleMetrics.Spacing.timelineHorizontalPadding)
@@ -21,6 +25,6 @@ struct HourlyTimelineView: View {
 }
 
 #Preview {
-    HourlyTimelineView()
+    HourlyTimelineView(onTapHour: { _ in })
         .background(Color.background)
 }
