@@ -19,6 +19,19 @@
   (e.g. a feature's `*Metrics`) — give it its own private constants or take them as parameters.
   A feature folder holds only that feature's View, view model, feature-private model, subviews, and
   a feature-local metrics file (e.g. `Schedule/ScheduleMetrics.swift`, `TabBar/TabBarMetrics.swift`).
+  A metrics file holds **layout** numbers only — anything the view model needs to reason about
+  (salon working hours, tolerances, durations) is domain config and lives in `Models/`
+  (e.g. `Models/SalonHours.swift`), otherwise the view model ends up importing the view layer.
+  A generic UICommons component (e.g. `SwipeToDelete<Content>`) must keep its constants enum at
+  **file scope**, not nested inside the struct — Swift forbids static stored properties in types
+  nested within generic types, and moving them "tidily" inside breaks the build.
+- Screen-covering popups are presented by the feature that owns them, via `.fullScreenCover` +
+  `.presentationBackground(.clear)` — **not** by hoisting state into `MasterRootView`/
+  `ClientRootView` so a shared `ZStack` can draw them above `CustomTabBar`. Presentation modifiers
+  render outside the view hierarchy, so the tab bar stops being a reason to leak feature types into
+  the router. To keep a custom fade instead of the system slide-up, wrap the *state mutation* in a
+  `Transaction` with `disablesAnimations = true` and animate inside the popup; never put
+  `.transaction { }` on the modifier, which disables animations for the whole subtree.
   `Service`/`Block` use `@DocumentID var id: String?` (Firestore assigns it, don't encode it
   yourself). `UserProfile.id` is `uid`, since that collection is keyed by the Firebase Auth uid
   rather than an auto-generated document ID.

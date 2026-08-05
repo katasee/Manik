@@ -18,6 +18,10 @@ final class FirestoreBlockRepository: BlockRepository {
         _ = try await db.collection("blocks").addDocument(data: encoded)
     }
 
+    func deleteBlock(blockId: String) async throws {
+        try await db.collection("blocks").document(blockId).delete()
+    }
+
     func book(
         blockId: String,
         clientId: String,

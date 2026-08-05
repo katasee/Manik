@@ -2,6 +2,7 @@ import SwiftUI
 
 struct AddNewSlotBlock: View {
     @State private var viewModel: CreateBlockViewModel
+    @State private var isVisible = false
     let onDismiss: () -> Void
 
     init(
@@ -22,7 +23,7 @@ struct AddNewSlotBlock: View {
 
     var body: some View {
         ZStack {
-            Button(action: onDismiss) {
+            Button(action: dismiss) {
                 Rectangle()
                     .opacity(0.5)
             }
@@ -32,6 +33,12 @@ struct AddNewSlotBlock: View {
 
             card
                 .padding(.horizontal, ScheduleMetrics.Spacing.timelineHorizontalPadding)
+        }
+        .opacity(isVisible ? 1 : 0)
+        .onAppear {
+            withAnimation(ScheduleMetrics.CreatePopup.fade) {
+                isVisible = true
+            }
         }
     }
 
@@ -97,7 +104,7 @@ struct AddNewSlotBlock: View {
 
     private var buttons: some View {
         HStack(spacing: 12) {
-            Button("schedule.createSlot.cancel", action: onDismiss)
+            Button("schedule.createSlot.cancel", action: dismiss)
                 .font(.elmsSans(.semiBold, 15))
                 .foregroundStyle(Color.textSecondary)
                 .frame(minHeight: 44)
@@ -126,8 +133,16 @@ struct AddNewSlotBlock: View {
     private func handleCreate() {
         Task {
             if await viewModel.submit() {
-                onDismiss()
+                dismiss()
             }
+        }
+    }
+
+    private func dismiss() {
+        withAnimation(ScheduleMetrics.CreatePopup.fade) {
+            isVisible = false
+        } completion: {
+            onDismiss()
         }
     }
 }

@@ -5,10 +5,12 @@ struct FakeBlockRepository: BlockRepository {
     func observeBlocks() -> AsyncStream<[Block]> {
         AsyncStream { continuation in
             continuation.yield(blocks)
+            continuation.finish()
         }
     }
 
     func addBlock(_ block: Block) async throws {}
+    func deleteBlock(blockId: String) async throws {}
     func confirm(blockId: String) async throws {}
     func decline(blockId: String) async throws {}
     func cancel(blockId: String) async throws {}

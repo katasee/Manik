@@ -5,6 +5,7 @@ struct FakeServiceRepository: ServiceRepository {
     func observeServices() -> AsyncStream<[Service]> {
         AsyncStream { continuation in
             continuation.yield(services)
+            continuation.finish()
         }
     }
 

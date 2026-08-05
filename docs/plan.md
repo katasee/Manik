@@ -44,41 +44,68 @@ this file is just "what's done, what's next," not a design doc.
   by PR7 — see PR7 note on why).
 - **PR7 — Master Schedule: create free-time slot (branch `feature/pr-7-createFreeSlot`)**: tapping
   `DashedSlot`'s "+ Додати вільний час" on any hour row opens `Master/Schedule/CreateBlock/
-  AddNewSlotBlock.swift` — a custom centered popup (not a system `.sheet`/`.fullScreenCover`;
-  presented as a `ZStack` overlay owned by `MasterRootView`, the only place with a shared `ZStack`
-  spanning both the schedule content and the floating `CustomTabBar`, so the overlay still sits
-  above the tab bar). Backdrop is `.ultraThinMaterial` at `.opacity(0.9)`, tapping it dismisses the
-  popup (an accessible `Button`, not `onTapGesture`); the card itself fades+scales in/out
-  (`.transition(.opacity.combined(with: .scale(scale: 0.92)))`) and carries `.brandShadow()` (needs
-  `.compositingGroup()` first, otherwise SwiftUI shadows every child individually instead of the
-  card's outline). Fields: "Дата" is a native `DatePicker(.date)`; "Початок"/"Кінець" are plain
+  AddNewSlotBlock.swift` — a custom centered popup. Backdrop is a dimming `Rectangle().opacity(0.5)`,
+  tapping it dismisses the popup (an accessible `Button`, not `onTapGesture`); the card carries
+  `.brandShadow()` (needs `.compositingGroup()` first, otherwise SwiftUI shadows every child
+  individually instead of the card's outline). PR7 presented it as a `ZStack` overlay owned by
+  `MasterRootView`, because that was the only shared `ZStack` spanning both the schedule content and
+  the floating `CustomTabBar`; **PR8 replaced that with `.fullScreenCover` owned by `ScheduleView`**
+  — see the PR8 entry. Fields: "Дата" is a native `DatePicker(.date)`; "Початок"/"Кінець" are plain
   `TextField`s for manual `HH:mm` entry (parsed/validated in `CreateBlockViewModel`'s
   `startTimeText`/`endTimeText`, `didSet`-driven) — not a wheel picker, since a UIKit-wrapped
   `UIDatePicker` (tried first, for `minuteInterval` snapping) and a plain `DatePicker` wheel were
   both dropped in favor of typing the time directly. Default duration when opening the popup is 1
   hour (`ScheduleMetrics.CreatePopup.defaultDurationMinutes = 60`). Services render as a checklist
   (`ServicesChecklist`, checkmark-circle icons) reading whatever's in the `services` Firestore
-  collection — no CRUD screen yet (still step 3 below), so services are hand-seeded via Firebase
-  Console for now. **`MasterRootView` currently has a `#if DEBUG` override feeding `ScheduleView`
-  a `FakeServiceRepository`/`SchedulePreviewData` instead of live Firestore** — kept in place
-  deliberately (not yet reverted) so the checklist has something to show before real services are
-  seeded; remove this once Firestore `services` has real data or step 3's CRUD screen exists.
-  New files live under `Master/Schedule/CreateBlock/` (`AddNewSlotBlock`, `CreateBlockContext`,
-  `CreateBlockViewModel`, `ServicesChecklist`) and `Services/Fakes/` (`FakeBlockRepository`,
-  `FakeServiceRepository`) — split out from a flatter `Master/Schedule/` once it hit 11 files.
-  Does **not** touch the PR5 stash (still separate, still for step 2 below) and does not render
-  `pending`/`confirmed` blocks or hide the "+" for already-occupied hours — both deferred to step 2.
+  collection — no CRUD screen yet (still step 2 below), so services are hand-seeded via Firebase
+  Console for now. A `#if DEBUG` override feeds a `FakeServiceRepository`/`SchedulePreviewData`
+  instead of live Firestore — kept deliberately so the checklist has something to show before real
+  services are seeded; **it lives in `ScheduleView.serviceRepository` since PR8** (was
+  `MasterRootView`). Remove it once Firestore `services` has real data or step 2's CRUD screen
+  exists. New files live under `Master/Schedule/CreateBlock/` (`AddNewSlotBlock`,
+  `CreateBlockContext`, `CreateBlockViewModel`, `ServicesChecklist`) and `Services/Fakes/`
+  (`FakeBlockRepository`, `FakeServiceRepository`) — split out from a flatter `Master/Schedule/`
+  once it hit 11 files.
+- **PR8 — Master Schedule: render + delete blocks (branch `feature/pr-8-showBlocks`)**: blocks from
+  Firestore now appear on the timeline, which became a **proportional** grid — `Timeline/` holds
+  `TimelineGeometry` (pure `CoreGraphics` math: `offset(forHour:)`, `offset(for:)`, `height(for:)`
+  against a fixed `Size.hourHeight = 84`), plus `TimelineHourGrid`, `TimelineFreeSlots`,
+  `TimelineBlockCards` and the card itself; `HourlyTimelineView` is now just their composition.
+  A card's *frame* is exactly its duration — visual breathing room comes from
+  `Card.verticalInset` applied **before** `.frame(height:)`, so insetting never distorts the time
+  axis. Hour labels are nudged up by `Size.hourLabelCentering` so the glyphs sit centered on their
+  line rather than hanging below it (without this everything positioned mathematically *looks*
+  short). Overlapping blocks cascade Google-Calendar style: `ScheduledBlock.depth` = how many
+  earlier blocks it overlaps, driving both a leading indent and `zIndex`. Swipe-to-delete via a new
+  `Assets/UICommons/SwipeToDelete.swift` (generic container — its `Layout` constants must stay at
+  file scope, Swift forbids static stored properties in types nested inside generics) backed by a
+  new `BlockRepository.deleteBlock(blockId:)`; `firestore.rules` already allowed `delete` for the
+  master. Only one row opens at a time (`openBlockId` lives in `HourlyTimelineView`), and tapping
+  anywhere in the timeline closes it. `ScheduleViewModel` owns all derived state — it exposes
+  `scheduledBlocks: [ScheduledBlock]` and `freeHours: Set<Int>`, rebuilt from `didSet` on
+  `blocks`/`selectedDate`/services rather than recomputed in `body`. **Salon working hours and the
+  free-slot tolerance moved out of `ScheduleMetrics` into `Models/SalonHours.swift`** — they are
+  domain config, not layout, and the view model can't depend on view-layer metrics. An hour keeps
+  showing "+ Додати вільний час" while at most `SalonHours.freeSlotToleranceMinutes` (20) of it is
+  occupied. `DateFormat` gained `hourLabel(for:)`/`displayTime(_:)` (template `"jmm"`, not `"j"` —
+  the latter drops minutes) so times follow the device locale instead of a hardcoded `HH:mm`.
+  The create-slot popup moved from a `MasterRootView` `ZStack` overlay to `.fullScreenCover` +
+  `.presentationBackground(.clear)` owned by `ScheduleView`; its system slide-up is suppressed with
+  a `disablesAnimations` `Transaction` at the mutation site (**not** `.transaction` on the modifier,
+  which would kill animations across the whole subtree) while `AddNewSlotBlock` fades itself in/out
+  via `@State isVisible` and `withAnimation(_:completion:)`. `MasterRootView` is now a pure router:
+  no view model, no popup state, no feature types.
 
 ## Next steps (in order)
 
-1. **Master — Schedule: render + manage blocks** — show `pending`/`confirmed` blocks as cards on the
-   timeline (pop stashed `ScheduleBlockCard`/`ScheduleViewModel`/`UserRepository`), tap → detail
-   sheet; also the natural point to hide "+ Додати вільний час" for hours already covered by a
-   block (PR7 left every hour showing it, regardless of existing blocks). Overlaps with
-   **"Заявки" (Requests)**: list of `pending` blocks, confirm/decline actions.
+1. **Master — Schedule: block detail + "Заявки" (Requests)** — PR8 renders and deletes blocks but a
+   card is not tappable: no detail view, and `pending` blocks can't be confirmed/declined yet. The
+   stash still holds a built `BlockDetailPopup`/`BlockDetailViewModel`/`UserRepository` +
+   `BlockStatusPill` for this (see Housekeeping). Requests = list of `pending` blocks with
+   confirm/decline, sharing the same detail surface.
 2. **Master — "Статистика" (Stats)**: month summary (revenue/visits/cancellations) + entry point to
-   "Мої послуги" (services CRUD). Once this exists, remove PR7's `#if DEBUG` fake-services override
-   in `MasterRootView` and seed real services through the CRUD screen instead of Firebase Console.
+   "Мої послуги" (services CRUD). Once this exists, remove the `#if DEBUG` fake-services override
+   in `ScheduleView` and seed real services through the CRUD screen instead of Firebase Console.
 3. **Client — "Запис" (Booking)** (mockup screen 03): month calendar → time chips → service picker
    → footer bar with "Продовжити".
 4. **Client — "Мої записи" (My bookings)**: list of own pending/confirmed blocks, cancel action.
@@ -95,7 +122,34 @@ this file is just "what's done, what's next," not a design doc.
    "Заявки" screen (step 1 above) exists, wire this to a live count of `pending`-status blocks
    from `BlockRepository`, likely via an `AsyncStream` observation similar to `observeBlocks()`.
 
+9. **Accessibility debt (found in PR8 review, deliberately not fixed there)**:
+   - `Font.elmsSans(_:_:)` calls `Font.custom(_:size:)` **without `relativeTo:`**, so Dynamic Type
+     is effectively off app-wide. Adding it is one line, but the schedule also needs `@ScaledMetric`
+     for `Size.hourHeight` or larger text will overflow the cards.
+   - A block's status is conveyed *only* by the accent-capsule color (`statusPending` vs
+     `statusConfirmed`) — nothing for `\.accessibilityDifferentiateWithoutColor`, and VoiceOver
+     never reads the status. Needs a second signal (icon/pattern) plus an accessibility label.
+   - `SwipeToDelete`'s trash button has no text label (removed on request), so VoiceOver announces
+     the raw SF Symbol name.
+10. **Slot creation can overlap an existing block**: since PR8 an hour still offers
+    "+ Додати вільний час" while ≤20 min of it is taken, but `CreateBlockContext` carries only
+    `startHour` (no minutes), so the popup opens at the top of the hour and can produce an
+    overlapping block. Teaching the context minutes touches `AddNewSlotBlock` +
+    `CreateBlockViewModel`. Deleting a `confirmed` block also has no confirmation step.
+11. **Swift 6 language mode**: the project builds in Swift 5 mode with `minimal` concurrency
+    checking. Several `View` initializers construct `@MainActor` view models from a nonisolated
+    context (`ScheduleView`, `AddNewSlotBlock`) — legal today, an error under Swift 6 until `View`
+    conformance carries main-actor isolation. Don't paper over it with per-`init` `@MainActor`.
+
 ## Housekeeping
 
 - Commit + push `feature/pr3/root-routing`, open PR, once the tab bar + first cabinet screen make
   it a coherent reviewable chunk (or sooner, at your discretion).
+- **Two stashes are outstanding** (`git stash list`):
+  - `stash@{0}` — the full first cut of PR8 (proportional timeline, block detail popup + delete,
+    `UserRepository`, popup scaffold components, 13 localization keys). PR8 shipped a much smaller
+    slice re-implemented from a clean tree, so popping this **will** conflict across
+    `ScheduleView`/`ScheduleViewModel`/`HourlyTimelineView`/`MasterRootView`/`ScheduleMetrics`.
+    Cherry-pick the detail-popup files for step 1 rather than popping wholesale.
+  - `stash@{1}` — the older PR5 stash (it shifted down from `stash@{0}` when the PR8 stash was
+    pushed). Largely superseded by PR8; review, then drop.
