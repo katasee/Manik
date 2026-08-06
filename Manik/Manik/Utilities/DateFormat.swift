@@ -9,6 +9,40 @@ enum DateFormat {
 
     static let salonTimeZone = TimeZone(identifier: "Europe/Warsaw") ?? .current
 
+    static func hourLabel(for hour: Int) -> String {
+        let components = DateComponents(
+            year: 2000,
+            month: 1,
+            day: 1,
+            hour: hour,
+            minute: 0
+        )
+
+        guard let date = salonCalendar.date(from: components) else { return "" }
+
+        return clockTime.string(from: date)
+    }
+
+    static func displayTime(_ storageTime: String) -> String {
+        guard let date = time.date(from: storageTime) else { return storageTime }
+
+        return clockTime.string(from: date)
+    }
+
+    private static let clockTime: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.locale = .current
+        formatter.timeZone = salonTimeZone
+        formatter.setLocalizedDateFormatFromTemplate("jmm")
+        return formatter
+    }()
+
+    private static let salonCalendar: Calendar = {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = salonTimeZone
+        return calendar
+    }()
+
     private static func storageFormatter(_ format: String) -> DateFormatter {
         formatter(format, locale: Locale(identifier: "en_US_POSIX"))
     }

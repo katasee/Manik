@@ -1,413 +1,441 @@
 {
-  "sourceLanguage" : "uk",
-  "strings" : {
-    "" : {
-
-    },
-    "%lld" : {
-
-    },
-    "appTitle" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Manik"
+  "sourceLanguage": "uk",
+  "strings": {
+    "": {},
+    "%lld": {},
+    "appTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manik"
           }
         },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Manik"
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manik"
           }
         }
       }
     },
-    "auth.action.signUp" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sign Up"
+    "auth.action.signUp": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign Up"
           }
         },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Зареєструватися"
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Зареєструватися"
           }
         }
       }
     },
-    "auth.field.email" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Email"
+    "auth.field.email": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Email"
           }
         },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Email"
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Email"
           }
         }
       }
     },
-    "auth.field.name" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Name"
+    "auth.field.name": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Name"
           }
         },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ім'я"
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ім'я"
           }
         }
       }
     },
-    "auth.field.password" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Password"
+    "auth.field.password": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Password"
           }
         },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Пароль"
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Пароль"
           }
         }
       }
     },
-    "auth.mode.signIn" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sign In"
+    "auth.mode.signIn": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign In"
           }
         },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Увійти"
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Увійти"
           }
         }
       }
     },
-    "auth.mode.signUp" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sign Up"
+    "auth.mode.signUp": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign Up"
           }
         },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Реєстрація"
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Реєстрація"
           }
         }
       }
     },
-    "auth.tagline" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Book a manicure"
+    "auth.tagline": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Book a manicure"
           }
         },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Запис на манікюр"
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Запис на манікюр"
           }
         }
       }
     },
-    "client.placeholder.title" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Client Cabinet"
+    "client.placeholder.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Client Cabinet"
           }
         },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Кабінет клієнтки"
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Кабінет клієнтки"
           }
         }
       }
     },
-    "common.action.signOut" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sign Out"
+    "common.action.ok": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OK"
           }
         },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Вийти"
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Зрозуміло"
           }
         }
       }
     },
-    "master.placeholder.title" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Master Cabinet"
+    "common.action.signOut": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign Out"
           }
         },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Кабінет майстра"
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Вийти"
           }
         }
       }
     },
-    "schedule.title" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Schedule"
+    "master.placeholder.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Master Cabinet"
           }
         },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Розклад"
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Кабінет майстра"
           }
         }
       }
     },
-    "schedule.slot.addFreeTime" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "+ Add free time"
+    "schedule.alert.deleteFailed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not delete the slot"
           }
         },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "+ Додати вільний час"
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не вдалося видалити слот"
           }
         }
       }
     },
-    "schedule.createSlot.cancel" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cancel"
+    "schedule.createSlot.cancel": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel"
           }
         },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Скасувати"
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Скасувати"
           }
         }
       }
     },
-    "schedule.createSlot.create" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Create"
+    "schedule.createSlot.create": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Create"
           }
         },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Створити"
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Створити"
           }
         }
       }
     },
-    "schedule.createSlot.dateLabel" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Date"
+    "schedule.createSlot.dateLabel": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Date"
           }
         },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Дата"
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Дата"
           }
         }
       }
     },
-    "schedule.createSlot.endLabel" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ends"
+    "schedule.createSlot.endLabel": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ends"
           }
         },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Кінець"
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Кінець"
           }
         }
       }
     },
-    "schedule.createSlot.servicesHeader" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Services"
+    "schedule.createSlot.servicesHeader": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Services"
           }
         },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Послуги"
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Послуги"
           }
         }
       }
     },
-    "schedule.createSlot.startLabel" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Starts"
+    "schedule.createSlot.startLabel": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starts"
           }
         },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Початок"
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Початок"
           }
         }
       }
     },
-    "tabBar.tab.account" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Account"
+    "schedule.slot.addFreeTime": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "+ Add free time"
           }
         },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Акаунт"
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "+ Додати вільний час"
           }
         }
       }
     },
-    "tabBar.tab.booking" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Booking"
+    "schedule.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schedule"
           }
         },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Запис"
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Розклад"
           }
         }
       }
     },
-    "tabBar.tab.myBookings" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "My Bookings"
+    "tabBar.tab.account": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Account"
           }
         },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Мої записи"
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Акаунт"
           }
         }
       }
     },
-    "tabBar.tab.requests" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Requests"
+    "tabBar.tab.booking": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Booking"
           }
         },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Заявки"
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Запис"
           }
         }
       }
     },
-    "tabBar.tab.schedule" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Schedule"
+    "tabBar.tab.myBookings": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My Bookings"
           }
         },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Розклад"
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Мої записи"
           }
         }
       }
     },
-    "tabBar.tab.stats" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Stats"
+    "tabBar.tab.requests": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Requests"
           }
         },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Статистика"
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Заявки"
+          }
+        }
+      }
+    },
+    "tabBar.tab.schedule": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schedule"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Розклад"
+          }
+        }
+      }
+    },
+    "tabBar.tab.stats": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stats"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Статистика"
           }
         }
       }
     }
   },
-  "version" : "1.0"
+  "version": "1.0"
 }

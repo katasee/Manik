@@ -5,29 +5,13 @@ struct MasterRootView: View {
     let onSignOut: () -> Void
 
     @State private var selectedTab: MasterTab = .schedule
-    @State private var creatingBlockContext: CreateBlockContext?
 
     var body: some View {
         ZStack(alignment: .bottom) {
             Group {
                 switch selectedTab {
                 case .schedule:
-                    #if DEBUG
-                    ScheduleView(
-                        serviceRepository: FakeServiceRepository(services: SchedulePreviewData.services),
-                        onCreateSlotRequested: { context in
-                            withAnimation(.easeOut(duration: 0.2)) {
-                                creatingBlockContext = context
-                            }
-                        }
-                    )
-                    #else
-                    ScheduleView(onCreateSlotRequested: { context in
-                        withAnimation(.easeOut(duration: 0.2)) {
-                            creatingBlockContext = context
-                        }
-                    })
-                    #endif
+                    ScheduleView()
                 case .requests, .stats:
                     placeholder
                 }
@@ -39,20 +23,6 @@ struct MasterRootView: View {
             }
 
             CustomTabBar(kind: .master(selection: $selectedTab, badge: { _ in nil }))
-
-            if let context = creatingBlockContext {
-                AddNewSlotBlock(
-                    date: context.date,
-                    startHour: context.startHour,
-                    services: context.services,
-                    onDismiss: {
-                        withAnimation(.easeOut(duration: 0.2)) {
-                            creatingBlockContext = nil
-                        }
-                    }
-                )
-                .zIndex(1)
-            }
         }
     }
 

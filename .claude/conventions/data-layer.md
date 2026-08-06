@@ -8,7 +8,10 @@
   `Locale.current` so on-screen dates follow the app's language — the app is multilingual via the
   String Catalog, so display formatters must never hardcode a locale. Both keep the salon's fixed
   `TimeZone`. `firestore.rules` regex-validates the storage format server-side
-  (`hasValidBlockFormat()`) as defense in depth.
+  (`hasValidBlockFormat()`) as defense in depth. Times shown on screen must go through
+  `DateFormat.hourLabel(for:)`/`displayTime(_:)` rather than printing the stored `HH:mm` string —
+  those use `setLocalizedDateFormatFromTemplate("jmm")`, so an English device gets "9:00 AM". Use
+  the `"jmm"` template, not `"j"`: the latter silently drops minutes.
 - Firestore's Codable convenience methods — `setData(from:)`, `addDocument(from:)` — have **no
   `async` overload** in this SDK version, only `throws` with an optional completion closure.
   Writing `try await someRef.setData(from: model)` compiles but silently resolves to the sync
