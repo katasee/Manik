@@ -148,6 +148,22 @@
         }
       }
     },
+    "common.action.cancel": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Скасувати"
+          }
+        }
+      }
+    },
     "common.action.ok": {
       "localizations": {
         "en": {
@@ -196,6 +212,70 @@
         }
       }
     },
+    "schedule.action.cancelBooking": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel booking"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Скасувати запис"
+          }
+        }
+      }
+    },
+    "schedule.action.confirm": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Підтвердити"
+          }
+        }
+      }
+    },
+    "schedule.action.decline": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Decline"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Скасувати"
+          }
+        }
+      }
+    },
+    "schedule.action.delete": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Видалити"
+          }
+        }
+      }
+    },
     "schedule.alert.deleteFailed": {
       "localizations": {
         "en": {
@@ -208,6 +288,102 @@
           "stringUnit": {
             "state": "translated",
             "value": "Не вдалося видалити слот"
+          }
+        }
+      }
+    },
+    "schedule.confirm.cancelBooking.message": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The client will lose this appointment and the slot will become free again."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Клієнт втратить цей запис, а слот знову стане вільним."
+          }
+        }
+      }
+    },
+    "schedule.confirm.cancelBooking.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel this booking?"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Скасувати запис?"
+          }
+        }
+      }
+    },
+    "schedule.confirm.decline.message": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The slot will become free again."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Слот знову стане вільним."
+          }
+        }
+      }
+    },
+    "schedule.confirm.decline.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Decline this request?"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Скасувати заявку?"
+          }
+        }
+      }
+    },
+    "schedule.confirm.deleteBooked.message": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The client's appointment will be lost. This cannot be undone."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Запис клієнта буде втрачено. Цю дію не можна скасувати."
+          }
+        }
+      }
+    },
+    "schedule.confirm.deleteBooked.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete a booked slot?"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Видалити зайнятий слот?"
           }
         }
       }
@@ -308,6 +484,70 @@
         }
       }
     },
+    "schedule.detail.close": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Закрити"
+          }
+        }
+      }
+    },
+    "schedule.detail.service": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Service"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Послуга"
+          }
+        }
+      }
+    },
+    "schedule.detail.services": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Services"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Послуги"
+          }
+        }
+      }
+    },
+    "schedule.service.unknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unknown service"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Невідома послуга"
+          }
+        }
+      }
+    },
     "schedule.slot.addFreeTime": {
       "localizations": {
         "en": {
@@ -320,6 +560,54 @@
           "stringUnit": {
             "state": "translated",
             "value": "+ Додати вільний час"
+          }
+        }
+      }
+    },
+    "schedule.status.available": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Free"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Вільно"
+          }
+        }
+      }
+    },
+    "schedule.status.confirmed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirmed"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Підтверджено"
+          }
+        }
+      }
+    },
+    "schedule.status.pending": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pending"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Очікує"
           }
         }
       }

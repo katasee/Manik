@@ -5,7 +5,7 @@ struct TimelineHourGrid: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            ForEach(SalonHours.working, id: \.self) { hour in
+            ForEach(WorkHours.working, id: \.self) { hour in
                 Text(DateFormat.hourLabel(for: hour))
                     .font(.elmsSans(.bold, 16))
                     .foregroundStyle(Color.textSecondary)
@@ -23,7 +23,7 @@ struct TimelineHourGrid: View {
     TimelineHourGrid(
         geometry: TimelineGeometry(
             hourHeight: ScheduleMetrics.Size.hourHeight,
-            firstHour: SalonHours.working.lowerBound
+            firstHour: WorkHours.working.lowerBound
         )
     )
     .background(Color.background)

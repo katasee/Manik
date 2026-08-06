@@ -9,10 +9,13 @@ final class ScheduleViewModel {
     }
 
     var deletionFailed = false
+    var isConfirmingDeletion = false
 
     private(set) var scheduledBlocks: [ScheduledBlock] = []
     private(set) var freeHours: Set<Int> = []
     private(set) var services: [Service] = []
+
+    private var blockPendingDeletion: Block?
 
     private var blocks: [Block] = [] {
         didSet { rebuildSchedule() }
@@ -42,6 +45,24 @@ final class ScheduleViewModel {
         }
     }
 
+    func requestDeletion(of block: Block) {
+        guard block.status != .available else {
+            Task { await delete(block) }
+            return
+        }
+
+        blockPendingDeletion = block
+        isConfirmingDeletion = true
+    }
+
+    func confirmPendingDeletion() {
+        guard let block = blockPendingDeletion else { return }
+
+        blockPendingDeletion = nil
+
+        Task { await delete(block) }
+    }
+
     func delete(_ block: Block) async {
         guard let blockId = block.id else { return }
 
@@ -59,7 +80,7 @@ final class ScheduleViewModel {
             .sorted(by: Self.chronologically)
 
         scheduledBlocks = cascade(todaysBlocks)
-        freeHours = Set(SalonHours.working.filter { isFree($0, among: todaysBlocks) })
+        freeHours = Set(WorkHours.working.filter { isFree($0, among: todaysBlocks) })
     }
 
     private func cascade(_ ordered: [Block]) -> [ScheduledBlock] {
@@ -71,7 +92,8 @@ final class ScheduleViewModel {
             return ScheduledBlock(
                 block: block,
                 depth: depth,
-                serviceNames: serviceNames(for: block)
+                serviceNames: serviceNames(for: block),
+                bookedServiceName: bookedServiceName(for: block)
             )
         }
     }
@@ -84,13 +106,20 @@ final class ScheduleViewModel {
             total + max(min(block.endMinutes, hourEnd) - max(block.startMinutes, hourStart), 0)
         }
 
-        return occupied <= SalonHours.freeSlotToleranceMinutes
+        return occupied <= WorkHours.freeSlotToleranceMinutes
     }
 
     private func serviceNames(for block: Block) -> String {
         block.offeredServiceIds
             .compactMap { serviceId in services.first { $0.id == serviceId }?.name }
             .joined(separator: ", ")
+    }
+
+    private func bookedServiceName(for block: Block) -> String {
+        guard let bookedServiceId = block.bookedServiceId else { return "" }
+
+        return services.first { $0.id == bookedServiceId }?.name
+            ?? String(localized: "schedule.service.unknown")
     }
 
     private static func chronologically(_ lhs: Block, _ rhs: Block) -> Bool {

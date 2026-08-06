@@ -21,7 +21,7 @@
   a feature-local metrics file (e.g. `Schedule/ScheduleMetrics.swift`, `TabBar/TabBarMetrics.swift`).
   A metrics file holds **layout** numbers only — anything the view model needs to reason about
   (salon working hours, tolerances, durations) is domain config and lives in `Models/`
-  (e.g. `Models/SalonHours.swift`), otherwise the view model ends up importing the view layer.
+  (e.g. `Models/WorkHours.swift`), otherwise the view model ends up importing the view layer.
   A generic UICommons component (e.g. `SwipeToDelete<Content>`) must keep its constants enum at
   **file scope**, not nested inside the struct — Swift forbids static stored properties in types
   nested within generic types, and moving them "tidily" inside breaks the build.

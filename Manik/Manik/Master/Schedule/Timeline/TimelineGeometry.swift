@@ -5,7 +5,7 @@ struct TimelineGeometry {
     let firstHour: Int
 
     var totalHeight: CGFloat {
-        CGFloat(SalonHours.working.count) * hourHeight
+        CGFloat(WorkHours.working.count) * hourHeight
     }
 
     func offset(forHour hour: Int) -> CGFloat {

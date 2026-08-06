@@ -6,7 +6,7 @@ struct TimelineFreeSlots: View {
     let onTapHour: (Int) -> Void
 
     var body: some View {
-        ForEach(SalonHours.working.filter(freeHours.contains), id: \.self) { hour in
+        ForEach(WorkHours.working.filter(freeHours.contains), id: \.self) { hour in
             DashedSlot(title: "schedule.slot.addFreeTime") {
                 onTapHour(hour)
             }
@@ -21,10 +21,10 @@ struct TimelineFreeSlots: View {
 #if DEBUG
 #Preview {
     TimelineFreeSlots(
-        freeHours: Set(SalonHours.working),
+        freeHours: Set(WorkHours.working),
         geometry: TimelineGeometry(
             hourHeight: ScheduleMetrics.Size.hourHeight,
-            firstHour: SalonHours.working.lowerBound
+            firstHour: WorkHours.working.lowerBound
         ),
         onTapHour: { _ in }
     )

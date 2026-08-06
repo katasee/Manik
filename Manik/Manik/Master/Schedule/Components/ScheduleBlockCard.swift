@@ -31,7 +31,7 @@ struct ScheduleBlockCard: View {
         )
         .overlay(alignment: .leading) {
             Capsule()
-                .fill(accentColor)
+                .fill(block.status.accentColor)
                 .frame(width: ScheduleMetrics.Card.accentWidth)
                 .padding(.vertical, ScheduleMetrics.Card.accentInset)
                 .padding(.leading, ScheduleMetrics.Card.accentInset)
@@ -40,10 +40,6 @@ struct ScheduleBlockCard: View {
 
     private var timeRange: String {
         "\(DateFormat.displayTime(block.startTime)) – \(DateFormat.displayTime(block.endTime))"
-    }
-
-    private var accentColor: Color {
-        block.status == .confirmed ? .statusConfirmed : .statusPending
     }
 }
 
