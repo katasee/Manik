@@ -1,0 +1,130 @@
+import SwiftUI
+
+struct AddServicePopup: View {
+    private enum Field {
+        case name
+        case price
+    }
+
+    @State private var viewModel: AddServiceViewModel
+    @FocusState private var focusedField: Field?
+
+    let onDismiss: () -> Void
+
+    init(viewModel: AddServiceViewModel, onDismiss: @escaping () -> Void) {
+        _viewModel = State(initialValue: viewModel)
+        self.onDismiss = onDismiss
+    }
+
+    var body: some View {
+        PopupContainer(
+            dismissLabel: "common.action.cancel",
+            onDismiss: onDismiss
+        ) { dismiss in
+            title
+            nameField
+            priceField
+            errorText
+            actions(dismiss: dismiss)
+        }
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+
+                Button("common.action.done", action: dismissKeyboard)
+            }
+        }
+    }
+
+    private var title: some View {
+        Text("services.add.title")
+            .font(.elmsSans(.bold, 18))
+            .foregroundStyle(Color.ink)
+    }
+
+    private var nameField: some View {
+        fieldRow("services.add.nameLabel") {
+            TextField("services.add.namePlaceholder", text: $viewModel.name)
+                .multilineTextAlignment(.trailing)
+                .focused($focusedField, equals: .name)
+                .submitLabel(.next)
+                .onSubmit { focusedField = .price }
+        }
+    }
+
+    private var priceField: some View {
+        fieldRow("services.add.priceLabel") {
+            TextField("services.add.pricePlaceholder", text: $viewModel.priceText)
+                .keyboardType(.decimalPad)
+                .multilineTextAlignment(.trailing)
+                .focused($focusedField, equals: .price)
+        }
+    }
+
+    @ViewBuilder
+    private var errorText: some View {
+        if let errorMessage = viewModel.errorMessage {
+            Text(errorMessage)
+                .font(.elmsSans(.regular, 13))
+                .foregroundStyle(Color.destructive)
+        }
+    }
+
+    private func actions(dismiss: @escaping () -> Void) -> some View {
+        HStack {
+            PopupDismissButton(titleKey: "common.action.cancel", action: dismiss)
+
+            Spacer()
+
+            PopupPrimaryButton(
+                titleKey: "services.add.submit",
+                color: .ink,
+                isLoading: viewModel.isSaving,
+                isEnabled: viewModel.canSubmit,
+                action: { save(then: dismiss) }
+            )
+        }
+    }
+
+    private func save(then dismiss: @escaping () -> Void) {
+        focusedField = nil
+
+        Task {
+            if await viewModel.submit() {
+                dismiss()
+            }
+        }
+    }
+
+    private func dismissKeyboard() {
+        focusedField = nil
+    }
+
+    private func fieldRow(
+        _ labelKey: LocalizedStringKey,
+        @ViewBuilder control: () -> some View
+    ) -> some View {
+        HStack {
+            Text(labelKey)
+                .font(.elmsSans(.semiBold, 15))
+                .foregroundStyle(Color.ink)
+
+            Spacer()
+
+            control()
+        }
+        .font(.elmsSans(.regular, 15))
+    }
+}
+
+#if DEBUG
+#Preview {
+    Color.background
+        .overlay {
+            AddServicePopup(
+                viewModel: AddServiceViewModel(serviceRepository: FakeServiceRepository()),
+                onDismiss: {}
+            )
+        }
+}
+#endif

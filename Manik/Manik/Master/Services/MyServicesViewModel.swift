@@ -20,6 +20,10 @@ final class MyServicesViewModel {
         }
     }
 
+    func makeAddServiceViewModel() -> AddServiceViewModel {
+        AddServiceViewModel(serviceRepository: serviceRepository)
+    }
+
     private static func byName(_ lhs: Service, _ rhs: Service) -> Bool {
         lhs.name.localizedStandardCompare(rhs.name) == .orderedAscending
     }

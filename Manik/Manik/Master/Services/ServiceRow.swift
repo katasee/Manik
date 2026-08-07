@@ -37,16 +37,10 @@ struct ServiceRow: View {
     }
 
     private var details: some View {
-        VStack(alignment: .leading, spacing: ServicesMetrics.Spacing.rowTextSpacing) {
-            Text(service.name)
-                .font(.elmsSans(.medium, 16))
-                .foregroundStyle(Color.ink)
-                .lineLimit(2)
-
-            Text(ServiceFormat.duration(minutes: service.durationMinutes))
-                .font(.elmsSans(.regular, 13))
-                .foregroundStyle(Color.textSecondary)
-        }
+        Text(service.name)
+            .font(.elmsSans(.medium, 16))
+            .foregroundStyle(Color.ink)
+            .lineLimit(2)
     }
 
     private var price: some View {

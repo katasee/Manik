@@ -4,18 +4,8 @@ struct ScheduleView: View {
     @State private var viewModel: ScheduleViewModel
     @State private var popup: SchedulePopup?
 
-    init(viewModel: ScheduleViewModel? = nil) {
-        _viewModel = State(
-            initialValue: viewModel ?? ScheduleViewModel(serviceRepository: Self.serviceRepository)
-        )
-    }
-
-    private static var serviceRepository: ServiceRepository {
-        #if DEBUG
-        FakeServiceRepository(services: SchedulePreviewData.services)
-        #else
-        FirestoreServiceRepository()
-        #endif
+    init(viewModel: ScheduleViewModel) {
+        _viewModel = State(initialValue: viewModel)
     }
 
     var body: some View {
@@ -122,13 +112,6 @@ struct ScheduleView: View {
         withoutPresentationAnimation {
             popup = nil
         }
-    }
-
-    private func withoutPresentationAnimation(_ changes: () -> Void) {
-        var transaction = Transaction()
-        transaction.disablesAnimations = true
-
-        withTransaction(transaction, changes)
     }
 }
 

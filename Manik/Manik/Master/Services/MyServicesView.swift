@@ -4,6 +4,7 @@ struct MyServicesView: View {
     @Environment(\.dismiss) private var dismiss
 
     @State private var viewModel: MyServicesViewModel
+    @State private var isAddingService = false
 
     init(viewModel: MyServicesViewModel) {
         _viewModel = State(initialValue: viewModel)
@@ -21,6 +22,13 @@ struct MyServicesView: View {
         .toolbar(.hidden, for: .navigationBar)
         .task {
             await viewModel.observeServices()
+        }
+        .fullScreenCover(isPresented: $isAddingService) {
+            AddServicePopup(
+                viewModel: viewModel.makeAddServiceViewModel(),
+                onDismiss: dismissAddService
+            )
+            .presentationBackground(.clear)
         }
     }
 
@@ -142,6 +150,15 @@ struct MyServicesView: View {
     }
 
     private func addService() {
+        withoutPresentationAnimation {
+            isAddingService = true
+        }
+    }
+
+    private func dismissAddService() {
+        withoutPresentationAnimation {
+            isAddingService = false
+        }
     }
 
     private func goBack() {
