@@ -1,0 +1,71 @@
+import SwiftUI
+
+struct ServiceRow: View {
+    let service: Service
+
+    var body: some View {
+        HStack(spacing: ServicesMetrics.Spacing.rowContentSpacing) {
+            icon
+            details
+
+            Spacer(minLength: 0)
+
+            price
+        }
+        .padding(.horizontal, ServicesMetrics.Spacing.rowHorizontalPadding)
+        .padding(.vertical, ServicesMetrics.Spacing.rowVerticalPadding)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            Color.fieldBackground,
+            in: .rect(cornerRadius: ServicesMetrics.Size.rowCornerRadius)
+        )
+    }
+
+    private var icon: some View {
+        Image(systemName: "star.fill")
+            .font(.elmsSans(.regular, ServicesMetrics.Size.rowIconGlyph))
+            .foregroundStyle(Color.ink)
+            .frame(
+                width: ServicesMetrics.Size.rowIcon,
+                height: ServicesMetrics.Size.rowIcon
+            )
+            .overlay {
+                Circle()
+                    .strokeBorder(Color.surface, lineWidth: ServicesMetrics.Size.rowIconBorder)
+            }
+            .accessibilityHidden(true)
+    }
+
+    private var details: some View {
+        VStack(alignment: .leading, spacing: ServicesMetrics.Spacing.rowTextSpacing) {
+            Text(service.name)
+                .font(.elmsSans(.medium, 16))
+                .foregroundStyle(Color.ink)
+                .lineLimit(2)
+
+            Text(ServiceFormat.duration(minutes: service.durationMinutes))
+                .font(.elmsSans(.regular, 13))
+                .foregroundStyle(Color.textSecondary)
+        }
+    }
+
+    private var price: some View {
+        Text(ServiceFormat.price(service.price))
+            .font(.elmsSans(.bold, 17))
+            .foregroundStyle(Color.ink)
+            .lineLimit(1)
+            .layoutPriority(1)
+    }
+}
+
+#if DEBUG
+#Preview {
+    VStack(spacing: ServicesMetrics.Spacing.rowSpacing) {
+        ForEach(ServicesPreviewData.services) { service in
+            ServiceRow(service: service)
+        }
+    }
+    .padding()
+    .background(Color.background)
+}
+#endif

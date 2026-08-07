@@ -57,12 +57,12 @@ this file is just "what's done, what's next," not a design doc.
   both dropped in favor of typing the time directly. Default duration when opening the popup is 1
   hour (`ScheduleMetrics.CreatePopup.defaultDurationMinutes = 60`). Services render as a checklist
   (`ServicesChecklist`, checkmark-circle icons) reading whatever's in the `services` Firestore
-  collection — no CRUD screen yet (still step 2 below), so services are hand-seeded via Firebase
+  collection — no CRUD screen yet (still step 1 below), so services are hand-seeded via Firebase
   Console for now. A `#if DEBUG` override feeds a `FakeServiceRepository`/`SchedulePreviewData`
   instead of live Firestore — kept deliberately so the checklist has something to show before real
   services are seeded; **it lives in `ScheduleView.serviceRepository` since PR8** (was
-  `MasterRootView`). Remove it once Firestore `services` has real data or step 2's CRUD screen
-  exists. New files live under `Master/Schedule/CreateBlock/` (`AddNewSlotBlock`,
+  `MasterRootView`). Remove it once Firestore `services` has real data or PR11 of step 1 removes
+  it. New files live under `Master/Schedule/CreateBlock/` (`AddNewSlotBlock`,
   `CreateBlockContext`, `CreateBlockViewModel`, `ServicesChecklist`) and `Services/Fakes/`
   (`FakeBlockRepository`, `FakeServiceRepository`) — split out from a flatter `Master/Schedule/`
   once it hit 11 files.
@@ -137,11 +137,80 @@ this file is just "what's done, what's next," not a design doc.
     showed a status pill under `accessibilityDifferentiateWithoutColor` and it was removed on
     request, so a card's status is still conveyed by color alone.
 
+- **PR10 — Master "Мої послуги", read-only list (branch `feature/pr-10-myServices`)**: the master can
+  open a services screen and read their price list live from Firestore. Pure UI — the data layer was
+  already complete and wasn't touched.
+  - `Master/Services/` — `MyServicesView` + `MyServicesViewModel` (`observeServices()`, sorted with
+    `localizedStandardCompare`), `ServiceRow`, `ServicesMetrics`, `Preview/ServicesPreviewData`
+    (deliberately duplicating `SchedulePreviewData`'s four `Service` literals rather than importing
+    another feature's fixtures).
+  - `Utilities/ServiceFormat.swift` — first place `Service.price` is rendered anywhere in the app.
+    Currency pinned to `PLN` (inferred from `DateFormat.salonTimeZone`, never confirmed — the design
+    mockup showed грн); duration via `Duration.UnitsFormatStyle`, which localizes "год"/"хв" itself,
+    so no catalog keys were needed for units.
+  - **`Master/Stats/StatsView.swift` was extracted** so the `.stats` tab has a real owner and
+    `MasterRootView` stays a one-line-per-tab router. It holds the app's **first `NavigationStack`**
+    and the temporary entry link into "Мої послуги".
+  - **Custom header, not the system nav bar**: `.toolbar(.hidden, for: .navigationBar)` plus a
+    `chevron.left` `Button` and a title centered by a `ZStack` (two `Spacer()`s around the title
+    would offset it by half the button's width). `navigationTitle` was ruled out because it renders
+    in the system font.
+  - Design pass after the first cut: subtitle line, black circular "+" button, uppercase section
+    header with a live count, and the row rebuilt around a circled star icon. **The star is
+    decorative** — `Service` has no `isFeatured`-style field, so the filled/outline distinction from
+    the mockup has nothing to drive it. The mockup's per-row "Змінити" link was deliberately not
+    built (PR12), and **the "+" button is a stub with an empty action** until PR11.
+  - States: `ProgressView` until the first snapshot (`hasLoaded`), `ContentUnavailableView` when
+    empty; the section header hides itself rather than reading "· 0".
+  - `MyServicesView.init(viewModel:)` is **required, not optional-with-default**. The
+    `viewModel ?? MyServicesViewModel()` pattern silently binds the View to
+    `FirestoreServiceRepository()`, so a preview that forgets to inject a fake still compiles and
+    goes to the network. The repository default stays on the *view model*, which is the composition
+    root. `ScheduleView` still uses the old pattern — fix it in PR11, alongside its `#if DEBUG`
+    removal, rather than dragging that file into this PR.
+  - `swiftui-pro` review: one finding applied — `.contentShape(.circle)` on the "+" button, whose
+    `.frame`/`.background` sit *outside* the `Button` and therefore left a ~20pt hit area inside a
+    52pt circle. Two findings declined: combining `ServiceRow`/section-header children into single
+    accessibility elements, and extracting the header/intro into their own `View` structs.
+  - Seven new `services.*` keys (en + uk).
+
 ## Next steps (in order)
 
-1. **Master — "Заявки" (Requests)**: list of `pending` blocks with confirm/decline, reusing
-   `BlockDetailPopup` as the detail surface (PR9 shipped the detail half). Two riders that belong
-   with this slice:
+The ordering below follows the **data chain**, not the mockup order: real services make real slots
+possible, real slots make a client booking possible, and a client booking is the only thing that
+creates a `pending` block — which is what "Заявки" lists and what "Статистика" counts. Building
+either master screen before that link exists means inventing fake data for it twice.
+
+1. **Master — "Мої послуги" (services CRUD)**. Deliberately split off from "Статистика" (which the
+   MVP spec makes its permanent entry point) because it's self-contained and unblocks everything
+   below. **The whole data layer already exists** — `Models/Service.swift`, all four methods on
+   `ServiceRepository`, their `FirestoreServiceRepository` implementations, and
+   `firestore.rules:52-55` (`allow write: if isMaster()`). These slices are pure UI. Three
+   decisions settled up front: navigation is a real `NavigationStack` (the app has none yet — this
+   is the first screen that isn't a popup); the add/edit form is a popup on the existing
+   `PopupContainer`, not a full screen, since it's three fields; deleting a service used by
+   existing blocks is **allowed** without a cross-collection check — the ids go dangling and the
+   already-present `schedule.service.unknown` fallback covers it.
+   - ~~**PR10 — read-only list**~~ — **done**, see the PR10 entry under "Done" above.
+   - **PR11 — add a service**: wire the "+" button PR10 left as a stub — popup form + validation +
+     `add`. Also rewrites `FakeServiceRepository` as a mutable in-memory class — the current
+     `struct` yields once and no-ops its mutations, which is fine for PR10's read-only preview but
+     leaves a CRUD preview inert (it also means PR10's `hasLoaded` spinner never appears in a
+     preview). Ends by removing the `#if DEBUG` fake-services override in `ScheduleView.swift:14` —
+     this is the first point where real services can actually be seeded. Expect the create-slot
+     checklist to look empty until you enter some. Take `ScheduleView`'s optional
+     `init(viewModel:)` down to a required one in the same pass, matching PR10's `MyServicesView`.
+   - **PR12 — edit + delete**: same form in edit mode (`update`), plus the existing `SwipeToDelete`
+     wired to `delete` with a confirmation step. This is also where the mockup's per-row "Змінити"
+     link finally gets an action — PR10 left it out rather than shipping a dead link per row.
+2. **Client — "Запис" (Booking)** (mockup screen 03): month calendar → time chips → service picker
+   → footer bar with "Продовжити". This is the first place a `pending` block can be born, so it
+   gates steps 4 and 5.
+3. **Client — "Мої записи" (My bookings)**: list of own pending/confirmed blocks, cancel action.
+   Thin follow-on to step 2 — same repository, same models.
+4. **Master — "Заявки" (Requests)**: list of `pending` blocks with confirm/decline, reusing
+   `BlockDetailPopup` as the detail surface (PR9 shipped the detail half). By now steps 2–3 supply
+   real `pending` data instead of hand-seeded documents. Two riders that belong with this slice:
    - Pull `UserRepository`/`FirestoreUserRepository`/`FakeUserRepository` out of `stash@{0}` and
      show the client's name on both the request row and the detail popup — this is the screen that
      finally gives `pending` blocks a way to exist, so the missing name from PR9 becomes visible.
@@ -149,20 +218,11 @@ this file is just "what's done, what's next," not a design doc.
      `Assets/UICommons/` once Requests becomes their second consumer. Note they'd be the first
      domain-aware components in that folder (they switch on `BlockStatus`); if two or three more
      accumulate, a separate `Assets/DomainUI/` is the alternative.
-2. **PR9 review follow-ups (found by the SwiftUI review, not fixed in PR9)**:
-   - `PopupPrimaryButton`/`PopupDismissButton` apply `.frame(minHeight: 44)`, `.padding` and
-     `.background` **outside** the `Button`, so only the label is tappable and the 44×44 HIG
-     minimum isn't actually met. Move those modifiers inside the label and add `.contentShape`.
-   - `PopupContainer`'s backdrop is a bare `Rectangle()`, which fills with `.primary` — on a device
-     in dark mode the dimming turns light. Use `Color.black` explicitly.
-   - `BlockDetailPopup` defaults to `FirestoreBlockRepository()`, so `ScheduleView`'s `#Preview`
-     reaches live Firestore if an action button is pressed in the canvas.
-3. **Master — "Статистика" (Stats)**: month summary (revenue/visits/cancellations) + entry point to
-   "Мої послуги" (services CRUD). Once this exists, remove the `#if DEBUG` fake-services override
-   in `ScheduleView` and seed real services through the CRUD screen instead of Firebase Console.
-4. **Client — "Запис" (Booking)** (mockup screen 03): month calendar → time chips → service picker
-   → footer bar with "Продовжити".
-5. **Client — "Мої записи" (My bookings)**: list of own pending/confirmed blocks, cancel action.
+5. **Master — "Статистика" (Stats)**: month summary (revenue/visits/cancellations) inside the
+   `Master/Stats/StatsView.swift` shell PR10 created, plus the permanent entry point to "Мої
+   послуги" from step 1 replacing PR10's temporary text link. Last of the five because the numbers
+   derive from real `confirmed`/cancelled blocks, which only exist once the booking chain above
+   works.
 6. **Client — "Акаунт" (Account)**: currently an `EmptyView()` placeholder behind the 3rd client
    tab (`ClientTab.account`) — needs real content (profile info, sign out moved here from the
    temporary root placeholder, etc.).
@@ -173,9 +233,8 @@ this file is just "what's done, what's next," not a design doc.
    has been mentioned multiple times but never confirmed done.
 9. **Live badge counter on "Заявки"**: `CustomTabBar`'s badge parameter currently always returns
    `nil` (`Master/MasterRootView.swift`, `CabinetKind.master`'s `badge` closure). Once the
-   "Заявки" screen (step 1 above) exists, wire this to a live count of `pending`-status blocks
+   "Заявки" screen (step 4 above) exists, wire this to a live count of `pending`-status blocks
    from `BlockRepository`, likely via an `AsyncStream` observation similar to `observeBlocks()`.
-
 10. **Accessibility debt (found in PR8 review, deliberately not fixed there)**:
     - `Font.elmsSans(_:_:)` calls `Font.custom(_:size:)` **without `relativeTo:`**, so Dynamic Type
       is effectively off app-wide. Adding it is one line, but the schedule also needs `@ScaledMetric`
@@ -196,16 +255,32 @@ this file is just "what's done, what's next," not a design doc.
     checking. Several `View` initializers construct `@MainActor` view models from a nonisolated
     context (`ScheduleView`, `AddNewSlotBlock`) — legal today, an error under Swift 6 until `View`
     conformance carries main-actor isolation. Don't paper over it with per-`init` `@MainActor`.
+13. **A failed read is indistinguishable from empty data** (found in PR10 review, deliberately
+    deferred): `observeServices()`/`observeBlocks()` swallow listener errors and yield `?? []`, so
+    a permissions failure or a dropped connection renders as a confident "Поки що немає послуг" /
+    an empty timeline. PR10 added a `hasLoaded` spinner, which fixes the flash-before-first-
+    snapshot case but not this one. The real fix is the `AsyncThrowingStream` switch that
+    `data-layer.md` already names as the intended escalation path; it touches both repository
+    protocols, both Firestore implementations, the fakes, and both view models.
 
 ## Housekeeping
 
 - Commit + push `feature/pr3/root-routing`, open PR, once the tab bar + first cabinet screen make
   it a coherent reviewable chunk (or sooner, at your discretion).
+- **`docs/superpowers/plans/2026-08-07-master-my-services-list.md` must be deleted once PR10 is
+  merged**, per `CLAUDE.md`. It carries a "where the shipped code differs" banner until then.
+- **Open question from PR10, never answered**: `ServiceFormat.currencyCode` is `"PLN"`, but the
+  design mockup showed prices in грн. One-word change either way — decide before PR11 puts a price
+  field in front of the user.
+- **Three PR9 review findings were reviewed and declined** — don't re-raise them: popup buttons'
+  44pt tap target (modifiers sit outside the `Button`), `PopupContainer`'s bare `Rectangle()`
+  backdrop in dark mode, and `BlockDetailPopup`'s default `FirestoreBlockRepository()` reaching
+  live Firestore from `ScheduleView`'s preview.
 - **Two stashes are outstanding** (`git stash list`):
   - `stash@{0}` — the full first cut of PR8 (proportional timeline, block detail popup + delete,
     `UserRepository`, popup scaffold components, 13 localization keys). PR8 and PR9 between them
     re-implemented everything in it from a clean tree **except the `UserRepository` trio**, which is
-    the only reason it's still around — the Requests screen (step 1) needs it for client names.
+    the only reason it's still around — the Requests screen (step 4) needs it for client names.
     Take those three files then, and drop the stash; popping it wholesale **will** conflict across
     `ScheduleView`/`ScheduleViewModel`/`HourlyTimelineView`/`MasterRootView`/`ScheduleMetrics`.
   - `stash@{1}` — the older PR5 stash (it shifted down from `stash@{0}` when the PR8 stash was

@@ -12,8 +12,10 @@ struct MasterRootView: View {
                 switch selectedTab {
                 case .schedule:
                     ScheduleView()
-                case .requests, .stats:
+                case .requests:
                     placeholder
+                case .stats:
+                    StatsView()
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
