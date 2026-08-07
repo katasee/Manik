@@ -309,11 +309,9 @@ either master screen before that link exists means inventing fake data for it tw
 
 - Commit + push `feature/pr3/root-routing`, open PR, once the tab bar + first cabinet screen make
   it a coherent reviewable chunk (or sooner, at your discretion).
-- **Three throwaway feature docs must be deleted once PR11 is merged**, per `CLAUDE.md`:
-  `docs/superpowers/plans/2026-08-07-master-my-services-list.md` (PR10),
-  `docs/superpowers/specs/2026-08-07-master-add-service-design.md` and
-  `docs/superpowers/plans/2026-08-07-master-add-service.md` (PR11). Everything they carry that
-  outlives the branch is already folded into this file.
+- **Throwaway feature docs are cleaned up**: the PR10 plan and both PR11 artifacts (spec + plan)
+  were deleted in PR11, per `CLAUDE.md`; everything from them that outlives a branch is folded into
+  this file. `docs/superpowers/` now holds only the permanent MVP spec.
 - **Currency is settled: `PLN`.** The design mockup showed грн, but the salon works in the Polish
   time zone; `ServiceFormat.currencyCode` stays `"PLN"`. Decided 2026-08-07, before PR11 put a
   price field in front of the user — don't reopen without a product reason.
