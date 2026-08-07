@@ -2,7 +2,7 @@ import SwiftUI
 
 struct ScheduleView: View {
     @State private var viewModel: ScheduleViewModel
-    @State private var creatingBlockContext: CreateBlockContext?
+    @State private var popup: SchedulePopup?
 
     init(viewModel: ScheduleViewModel? = nil) {
         _viewModel = State(
@@ -37,6 +37,7 @@ struct ScheduleView: View {
                 blocks: viewModel.scheduledBlocks,
                 freeHours: viewModel.freeHours,
                 onTapHour: requestSlotCreation,
+                onTapBlock: showBlockDetail,
                 onDeleteBlock: deleteBlock
             )
         }
@@ -54,14 +55,32 @@ struct ScheduleView: View {
         ) {
             Button("common.action.ok", role: .cancel) {}
         }
-        .fullScreenCover(item: $creatingBlockContext) { context in
-            AddNewSlotBlock(
-                date: context.date,
-                startHour: context.startHour,
-                services: context.services,
-                onDismiss: dismissSlotCreation
-            )
-            .presentationBackground(.clear)
+        .alert(
+            "schedule.confirm.deleteBooked.title",
+            isPresented: $viewModel.isConfirmingDeletion
+        ) {
+            Button("common.action.cancel", role: .cancel) {}
+            Button("schedule.action.delete", role: .destructive) {
+                viewModel.confirmPendingDeletion()
+            }
+        } message: {
+            Text("schedule.confirm.deleteBooked.message")
+        }
+        .fullScreenCover(item: $popup) { popup in
+            switch popup {
+            case .createSlot(let context):
+                AddNewSlotBlock(
+                    date: context.date,
+                    startHour: context.startHour,
+                    services: context.services,
+                    onDismiss: dismissPopup
+                )
+                .presentationBackground(.clear)
+
+            case .blockDetail(let context):
+                BlockDetailPopup(context: context, onDismiss: dismissPopup)
+                    .presentationBackground(.clear)
+            }
         }
     }
 
@@ -78,24 +97,30 @@ struct ScheduleView: View {
     }
 
     private func deleteBlock(_ block: Block) {
-        Task {
-            await viewModel.delete(block)
-        }
+        viewModel.requestDeletion(of: block)
     }
 
     private func requestSlotCreation(at hour: Int) {
         withoutPresentationAnimation {
-            creatingBlockContext = CreateBlockContext(
-                date: viewModel.selectedDate,
-                startHour: hour,
-                services: viewModel.services
+            popup = .createSlot(
+                CreateBlockContext(
+                    date: viewModel.selectedDate,
+                    startHour: hour,
+                    services: viewModel.services
+                )
             )
         }
     }
 
-    private func dismissSlotCreation() {
+    private func showBlockDetail(for scheduled: ScheduledBlock) {
         withoutPresentationAnimation {
-            creatingBlockContext = nil
+            popup = .blockDetail(BlockDetailContext(scheduled))
+        }
+    }
+
+    private func dismissPopup() {
+        withoutPresentationAnimation {
+            popup = nil
         }
     }
 

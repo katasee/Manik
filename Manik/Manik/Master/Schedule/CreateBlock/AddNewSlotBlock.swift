@@ -2,7 +2,6 @@ import SwiftUI
 
 struct AddNewSlotBlock: View {
     @State private var viewModel: CreateBlockViewModel
-    @State private var isVisible = false
     let onDismiss: () -> Void
 
     init(
@@ -22,76 +21,100 @@ struct AddNewSlotBlock: View {
     }
 
     var body: some View {
-        ZStack {
-            Button(action: dismiss) {
-                Rectangle()
-                    .opacity(0.5)
-            }
-            .buttonStyle(.plain)
-            .ignoresSafeArea()
-            .accessibilityLabel(Text("schedule.createSlot.cancel"))
+        PopupContainer(
+            dismissLabel: "schedule.createSlot.cancel",
+            onDismiss: onDismiss
+        ) { dismiss in
+            dateField
+            timeField("schedule.createSlot.startLabel", text: $viewModel.startTimeText)
+            timeField("schedule.createSlot.endLabel", text: $viewModel.endTimeText)
 
-            card
-                .padding(.horizontal, ScheduleMetrics.Spacing.timelineHorizontalPadding)
-        }
-        .opacity(isVisible ? 1 : 0)
-        .onAppear {
-            withAnimation(ScheduleMetrics.CreatePopup.fade) {
-                isVisible = true
-            }
-        }
-    }
-
-    private var card: some View {
-        VStack(alignment: .leading, spacing: ScheduleMetrics.CreatePopup.rowSpacing) {
-            fieldRow("schedule.createSlot.dateLabel") {
-                DatePicker("", selection: $viewModel.date, displayedComponents: .date)
-                    .labelsHidden()
-            }
-
-            fieldRow("schedule.createSlot.startLabel") {
-                TextField("", text: $viewModel.startTimeText)
-                    .keyboardType(.numbersAndPunctuation)
-                    .multilineTextAlignment(.trailing)
-            }
-
-            fieldRow("schedule.createSlot.endLabel") {
-                TextField("", text: $viewModel.endTimeText)
-                    .keyboardType(.numbersAndPunctuation)
-                    .multilineTextAlignment(.trailing)
-            }
-
-            Color.surface
-                .frame(height: 1)
+            divider
 
             servicesHeader
+            servicesChecklist
 
-            ServicesChecklist(
-                services: viewModel.services,
-                isSelected: viewModel.isSelected,
-                onToggle: viewModel.toggleSelection
-            )
+            errorText
 
-            if let errorMessage = viewModel.errorMessage {
-                Text(errorMessage)
-                    .font(.elmsSans(.regular, 13))
-                    .foregroundStyle(.red)
-            }
-
-            buttons
+            actions(dismiss: dismiss)
         }
-        .padding(ScheduleMetrics.CreatePopup.cardPadding)
-        .background(Color.background, in: .rect(cornerRadius: ScheduleMetrics.CreatePopup.cornerRadius))
-        .compositingGroup()
-        .brandShadow()
     }
 
-    private func fieldRow(_ labelKey: LocalizedStringKey, @ViewBuilder control: () -> some View) -> some View {
+    private var dateField: some View {
+        fieldRow("schedule.createSlot.dateLabel") {
+            DatePicker("", selection: $viewModel.date, displayedComponents: .date)
+                .labelsHidden()
+        }
+    }
+
+    private func timeField(
+        _ labelKey: LocalizedStringKey,
+        text: Binding<String>
+    ) -> some View {
+        fieldRow(labelKey) {
+            TextField("", text: text)
+                .keyboardType(.numbersAndPunctuation)
+                .multilineTextAlignment(.trailing)
+        }
+    }
+
+    private var divider: some View {
+        Color.surface
+            .frame(height: 1)
+    }
+
+    private var servicesChecklist: some View {
+        ServicesChecklist(
+            services: viewModel.services,
+            isSelected: viewModel.isSelected,
+            onToggle: viewModel.toggleSelection
+        )
+    }
+
+    private func actions(dismiss: @escaping () -> Void) -> some View {
+        HStack {
+            PopupDismissButton(titleKey: "schedule.createSlot.cancel", action: dismiss)
+
+            Spacer()
+
+            PopupPrimaryButton(
+                titleKey: "schedule.createSlot.create",
+                color: .ink,
+                isLoading: viewModel.isSaving,
+                isEnabled: viewModel.canSubmit,
+                action: { create(then: dismiss) }
+            )
+        }
+    }
+
+    private func create(then dismiss: @escaping () -> Void) {
+        Task {
+            if await viewModel.submit() {
+                dismiss()
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var errorText: some View {
+        if let errorMessage = viewModel.errorMessage {
+            Text(errorMessage)
+                .font(.elmsSans(.regular, 13))
+                .foregroundStyle(Color.destructive)
+        }
+    }
+
+    private func fieldRow(
+        _ labelKey: LocalizedStringKey,
+        @ViewBuilder control: () -> some View
+    ) -> some View {
         HStack {
             Text(labelKey)
                 .font(.elmsSans(.semiBold, 15))
                 .foregroundStyle(Color.ink)
+
             Spacer()
+
             control()
         }
     }
@@ -100,50 +123,6 @@ struct AddNewSlotBlock: View {
         Text("schedule.createSlot.servicesHeader")
             .font(.elmsSans(.bold, 16))
             .foregroundStyle(Color.ink)
-    }
-
-    private var buttons: some View {
-        HStack(spacing: 12) {
-            Button("schedule.createSlot.cancel", action: dismiss)
-                .font(.elmsSans(.semiBold, 15))
-                .foregroundStyle(Color.textSecondary)
-                .frame(minHeight: 44)
-
-            Spacer()
-
-            Button(action: handleCreate) {
-                if viewModel.isSaving {
-                    ProgressView()
-                        .tint(.white)
-                } else {
-                    Text("schedule.createSlot.create")
-                        .font(.elmsSans(.bold, 15))
-                }
-            }
-            .foregroundStyle(.white)
-            .frame(minHeight: 44)
-            .padding(.horizontal, 20)
-            .background(Color.ink, in: .capsule)
-            .disabled(viewModel.isSaving || !viewModel.canSubmit)
-            .opacity(viewModel.isSaving || !viewModel.canSubmit ? 0.4 : 1)
-        }
-        .buttonStyle(.plain)
-    }
-
-    private func handleCreate() {
-        Task {
-            if await viewModel.submit() {
-                dismiss()
-            }
-        }
-    }
-
-    private func dismiss() {
-        withAnimation(ScheduleMetrics.CreatePopup.fade) {
-            isVisible = false
-        } completion: {
-            onDismiss()
-        }
     }
 }
 

@@ -26,9 +26,9 @@ enum SchedulePreviewData {
             startTime: "10:00",
             endTime: "11:00",
             offeredServiceIds: ["svc-gel-correction"],
-            bookedServiceId: nil,
-            status: .confirmed,
-            clientId: nil
+            bookedServiceId: "svc-gel-correction",
+            status: .pending,
+            clientId: "client-olena"
         ),
         Block(
             id: "preview-afternoon",
@@ -36,19 +36,38 @@ enum SchedulePreviewData {
             startTime: "15:00",
             endTime: "16:00",
             offeredServiceIds: ["svc-classic"],
-            bookedServiceId: nil,
-            status: .available,
-            clientId: nil
+            bookedServiceId: "svc-classic",
+            status: .confirmed,
+            clientId: "client-olena"
         )
     ]
 
     static let scheduledBlocks: [ScheduledBlock] = [
-        ScheduledBlock(block: blocks[0], depth: 0, serviceNames: offeredServiceNames(for: blocks[0])),
-        ScheduledBlock(block: blocks[1], depth: 1, serviceNames: offeredServiceNames(for: blocks[1])),
-        ScheduledBlock(block: blocks[2], depth: 0, serviceNames: offeredServiceNames(for: blocks[2]))
+        scheduled(blocks[0]),
+        scheduled(blocks[1], depth: 1),
+        scheduled(blocks[2])
     ]
 
-    static let freeHours = Set(SalonHours.working).subtracting([9, 10, 11, 15])
+    static func scheduled(_ block: Block, depth: Int = 0) -> ScheduledBlock {
+        ScheduledBlock(
+            block: block,
+            depth: depth,
+            serviceNames: offeredServiceNames(for: block),
+            bookedServiceName: bookedServiceName(for: block)
+        )
+    }
+
+    static func detailContext(for block: Block) -> BlockDetailContext {
+        BlockDetailContext(scheduled(block))
+    }
+
+    static func bookedServiceName(for block: Block) -> String {
+        guard let bookedServiceId = block.bookedServiceId else { return "" }
+
+        return services.first { $0.id == bookedServiceId }?.name ?? ""
+    }
+
+    static let freeHours = Set(WorkHours.working).subtracting([9, 10, 11, 15])
 
     static func offeredServiceNames(for block: Block) -> String {
         block.offeredServiceIds

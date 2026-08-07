@@ -1,4 +1,4 @@
-import SwiftUI
+import CoreGraphics
 
 enum ScheduleMetrics {
     enum Size {
@@ -27,11 +27,13 @@ enum ScheduleMetrics {
         static let minHeight: CGFloat = 64
     }
 
-    enum CreatePopup {
-        static let fade = Animation.easeOut(duration: 0.2)
-        static let cornerRadius: CGFloat = 20
-        static let cardPadding: CGFloat = 20
-        static let rowSpacing: CGFloat = 16
-        static let defaultDurationMinutes = 60
+    enum StatusPill {
+        static let horizontalPadding: CGFloat = 8
+        static let verticalPadding: CGFloat = 3
+    }
+
+    enum Detail {
+        static let rowSpacing: CGFloat = 4
+        static let headerSpacing: CGFloat = 6
     }
 }

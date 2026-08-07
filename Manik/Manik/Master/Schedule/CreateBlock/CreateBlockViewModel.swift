@@ -50,7 +50,7 @@ final class CreateBlockViewModel {
         self.startTime = start
         let end = calendar.date(
             byAdding: .minute,
-            value: ScheduleMetrics.CreatePopup.defaultDurationMinutes,
+            value: WorkHours.defaultSlotDurationMinutes,
             to: start
         ) ?? start
         self.endTime = end

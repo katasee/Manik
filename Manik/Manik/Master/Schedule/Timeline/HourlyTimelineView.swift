@@ -4,13 +4,14 @@ struct HourlyTimelineView: View {
     let blocks: [ScheduledBlock]
     let freeHours: Set<Int>
     let onTapHour: (Int) -> Void
+    let onTapBlock: (ScheduledBlock) -> Void
     let onDeleteBlock: (Block) -> Void
 
     @State private var openBlockId: String?
 
     private let geometry = TimelineGeometry(
         hourHeight: ScheduleMetrics.Size.hourHeight,
-        firstHour: SalonHours.working.lowerBound
+        firstHour: WorkHours.working.lowerBound
     )
 
     var body: some View {
@@ -28,6 +29,7 @@ struct HourlyTimelineView: View {
                     blocks: blocks,
                     geometry: geometry,
                     openBlockId: $openBlockId,
+                    onTap: onTapBlock,
                     onDelete: onDeleteBlock
                 )
             }
@@ -50,6 +52,7 @@ struct HourlyTimelineView: View {
         blocks: SchedulePreviewData.scheduledBlocks,
         freeHours: SchedulePreviewData.freeHours,
         onTapHour: { _ in },
+        onTapBlock: { _ in },
         onDeleteBlock: { _ in }
     )
     .background(Color.background)
