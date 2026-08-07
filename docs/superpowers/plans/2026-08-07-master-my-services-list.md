@@ -8,6 +8,34 @@
 
 **Tech Stack:** SwiftUI (iOS 17.2 deployment target), Swift Observation (`@Observable`), Firebase Firestore via the existing `ServiceRepository` protocol, String Catalog (`Localizable.xcstrings`) for all user-facing text.
 
+## Status: implemented — where the shipped code differs from this plan
+
+All three tasks are done on `feature/pr-10-myServices`. A design pass and a `swiftui-pro` review
+after the first cut moved several things; the code is the source of truth, this list exists so a
+reader of the plan isn't misled. **Delete this whole file once PR10 is merged**, per `CLAUDE.md`.
+
+- **Entry point.** Task 3's `statsPlaceholder` inside `MasterRootView` was rejected — it put feature
+  UI back into the router. The `.stats` branch now renders a real `Master/Stats/StatsView.swift`,
+  which owns the `NavigationStack` and the temporary link.
+- **Screen title.** The `ToolbarItem(.principal)` approach was dropped for a custom header drawn
+  under `.toolbar(.hidden, for: .navigationBar)`: a `chevron.left` `Button` over a `ZStack`-centered
+  title. Reason: the system back chevron was unwanted, and once the bar is hidden the title has to
+  come with it.
+- **Empty state.** The hand-rolled `VStack` became `ContentUnavailableView`, and a `ProgressView`
+  was added for `hasLoaded == false`. `ServicesMetrics.Spacing.emptyStateSpacing` is gone.
+- **Row + chrome redesign** (not in this plan at all): circled star icon, subtitle line, uppercase
+  section header with a count, black circular "+" button, `rowCornerRadius` 18 → 24. The star is
+  decorative — `Service` has no field to drive filled-vs-outline. The "+" button's action is an
+  empty stub until PR11, and the mockup's per-row "Змінити" link was left out entirely (PR12).
+- **Localization.** Seven `services.*` keys, not four — `services.subtitle`,
+  `services.section.all`, `services.action.add` were added by the redesign, plus
+  `common.action.back` for the header button.
+- **Initializer.** `MyServicesView(viewModel:)` is required. The `viewModel: X? = nil` pattern this
+  plan copied from `ScheduleView` silently binds the View to `FirestoreServiceRepository()`.
+- **Review outcome.** One `swiftui-pro` finding applied (`.contentShape(.circle)` on the "+"
+  button — `.frame`/`.background` outside a `Button` don't extend its hit area). Accessibility
+  grouping and extracting the header/intro into `View` structs were both declined.
+
 ## Global Constraints
 
 Every task's requirements implicitly include this section.
@@ -44,8 +72,9 @@ Every task's requirements implicitly include this section.
 
 | File | Change |
 |---|---|
-| `Manik/Manik/Master/MasterRootView.swift:16` | Wrap the `.stats` branch in a `NavigationStack` and add a temporary `NavigationLink` to `MyServicesView`. |
-| `Manik/Manik/Localizable/Localizable.xcstrings` | Four new `services.*` keys (en + uk). |
+| `Manik/Manik/Master/Stats/StatsView.swift` | **Create.** Owns the `.stats` tab, the app's first `NavigationStack`, and the temporary `NavigationLink` to `MyServicesView`. |
+| `Manik/Manik/Master/MasterRootView.swift:16` | Point the `.stats` branch at `StatsView()`. Nothing else — the router stays free of feature UI. |
+| `Manik/Manik/Localizable/Localizable.xcstrings` | New `services.*` keys plus `common.action.back` (en + uk). |
 
 **Note on `ServicesPreviewData`:** this duplicates the four `Service` literals already in `Master/Schedule/Preview/SchedulePreviewData.swift`. That is deliberate — a feature folder must not import another feature's types, and the Schedule fixtures exist to be referenced by `Block.offeredServiceIds`, which this feature does not care about. The alternative (hoisting shared `Service` fixtures into `Services/Fakes/`) would drag a Schedule-file edit into this PR for four literals; not worth it.
 
@@ -449,25 +478,33 @@ with:
                     placeholder
 
                 case .stats:
-                    statsPlaceholder
+                    StatsView()
 ```
 
-- [ ] **Step 2: Add the `statsPlaceholder` and link**
+`MasterRootView` must stay a one-line-per-tab router — no feature UI, no navigation state. That is
+why the screen goes into its own file rather than a `statsPlaceholder` property here.
 
-Add these two properties to `MasterRootView`, directly after the existing `placeholder` property.
+- [ ] **Step 2: Create `Manik/Manik/Master/Stats/StatsView.swift`**
 
-The `NavigationStack` is scoped to this one branch on purpose — wrapping the whole `Group` would push a navigation bar onto the Розклад tab, which draws its own header. `.toolbar(.hidden, for: .navigationBar)` on the root keeps the placeholder looking exactly as it does today; `MyServicesView` re-shows the bar for itself when pushed.
+The `NavigationStack` is scoped to this one tab on purpose — wrapping the whole `Group` in
+`MasterRootView` would push a navigation bar onto the Розклад tab, which draws its own header.
+`.toolbar(.hidden, for: .navigationBar)` keeps this placeholder looking exactly as it does today;
+`MyServicesView` hides the bar for itself too and draws a custom header instead.
 
-```swift
 The link is deliberately a bare `Text` with no capsule, background or explicit tint — it is a
-throwaway entry point on a mock placeholder, and it should read as the same kind of plain link as
-the sign-out button sitting right above it.
+throwaway entry point on a mock placeholder, and the real one arrives with the Статистика PR
+(plan step 5).
 
 ```swift
-    private var statsPlaceholder: some View {
+import SwiftUI
+
+struct StatsView: View {
+    var body: some View {
         NavigationStack {
             VStack(spacing: 16) {
-                placeholder
+                Text("master.placeholder.title")
+                    .font(.elmsSans(.bold, 24))
+                    .foregroundStyle(Color.ink)
 
                 myServicesLink
             }
@@ -479,12 +516,17 @@ the sign-out button sitting right above it.
 
     private var myServicesLink: some View {
         NavigationLink {
-            MyServicesView()
+            MyServicesView(viewModel: MyServicesViewModel())
         } label: {
             Text("services.action.open")
                 .font(.elmsSans(.bold, 14.5))
         }
     }
+}
+
+#Preview {
+    StatsView()
+}
 ```
 
 - [ ] **Step 3: Ask the user to run a build, then run it**
@@ -512,7 +554,8 @@ Run the app and sign in as the master account.
 
 Recorded so a reviewer does not flag them as missing:
 
-- Add / edit / delete a service, and the `+` toolbar button — PR11 and PR12.
+- Add / edit / delete a service — PR11 and PR12. The design pass did add a `+` button to the
+  screen, but its action is an empty stub; the per-row "Змінити" link was left out entirely.
 - Rewriting `FakeServiceRepository` as a mutable in-memory class — PR11.
 - Removing the `#if DEBUG` fake-services override in `ScheduleView.swift:14` — PR11.
 - Moving the entry point from the placeholder onto a real stats screen — the "Статистика" PR (plan step 5).

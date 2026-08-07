@@ -137,6 +137,43 @@ this file is just "what's done, what's next," not a design doc.
     showed a status pill under `accessibilityDifferentiateWithoutColor` and it was removed on
     request, so a card's status is still conveyed by color alone.
 
+- **PR10 — Master "Мої послуги", read-only list (branch `feature/pr-10-myServices`)**: the master can
+  open a services screen and read their price list live from Firestore. Pure UI — the data layer was
+  already complete and wasn't touched.
+  - `Master/Services/` — `MyServicesView` + `MyServicesViewModel` (`observeServices()`, sorted with
+    `localizedStandardCompare`), `ServiceRow`, `ServicesMetrics`, `Preview/ServicesPreviewData`
+    (deliberately duplicating `SchedulePreviewData`'s four `Service` literals rather than importing
+    another feature's fixtures).
+  - `Utilities/ServiceFormat.swift` — first place `Service.price` is rendered anywhere in the app.
+    Currency pinned to `PLN` (inferred from `DateFormat.salonTimeZone`, never confirmed — the design
+    mockup showed грн); duration via `Duration.UnitsFormatStyle`, which localizes "год"/"хв" itself,
+    so no catalog keys were needed for units.
+  - **`Master/Stats/StatsView.swift` was extracted** so the `.stats` tab has a real owner and
+    `MasterRootView` stays a one-line-per-tab router. It holds the app's **first `NavigationStack`**
+    and the temporary entry link into "Мої послуги".
+  - **Custom header, not the system nav bar**: `.toolbar(.hidden, for: .navigationBar)` plus a
+    `chevron.left` `Button` and a title centered by a `ZStack` (two `Spacer()`s around the title
+    would offset it by half the button's width). `navigationTitle` was ruled out because it renders
+    in the system font.
+  - Design pass after the first cut: subtitle line, black circular "+" button, uppercase section
+    header with a live count, and the row rebuilt around a circled star icon. **The star is
+    decorative** — `Service` has no `isFeatured`-style field, so the filled/outline distinction from
+    the mockup has nothing to drive it. The mockup's per-row "Змінити" link was deliberately not
+    built (PR12), and **the "+" button is a stub with an empty action** until PR11.
+  - States: `ProgressView` until the first snapshot (`hasLoaded`), `ContentUnavailableView` when
+    empty; the section header hides itself rather than reading "· 0".
+  - `MyServicesView.init(viewModel:)` is **required, not optional-with-default**. The
+    `viewModel ?? MyServicesViewModel()` pattern silently binds the View to
+    `FirestoreServiceRepository()`, so a preview that forgets to inject a fake still compiles and
+    goes to the network. The repository default stays on the *view model*, which is the composition
+    root. `ScheduleView` still uses the old pattern — fix it in PR11, alongside its `#if DEBUG`
+    removal, rather than dragging that file into this PR.
+  - `swiftui-pro` review: one finding applied — `.contentShape(.circle)` on the "+" button, whose
+    `.frame`/`.background` sit *outside* the `Button` and therefore left a ~20pt hit area inside a
+    52pt circle. Two findings declined: combining `ServiceRow`/section-header children into single
+    accessibility elements, and extracting the header/intro into their own `View` structs.
+  - Seven new `services.*` keys (en + uk).
+
 ## Next steps (in order)
 
 The ordering below follows the **data chain**, not the mockup order: real services make real slots
@@ -154,22 +191,18 @@ either master screen before that link exists means inventing fake data for it tw
    `PopupContainer`, not a full screen, since it's three fields; deleting a service used by
    existing blocks is **allowed** without a cross-collection check — the ids go dangling and the
    already-present `schedule.service.unknown` fallback covers it.
-   - **PR10 — read-only list** (planned in
-     `docs/superpowers/plans/2026-08-07-master-my-services-list.md`): `NavigationStack`, temporary
-     entry button from the `.stats` placeholder in `MasterRootView.swift:16`, `Master/Services/`
-     with `MyServicesView` + `MyServicesViewModel` over `observeServices()`, a row view, and
-     `Utilities/ServiceFormat.swift` for price + duration (`Service.price` is rendered **nowhere**
-     in the app today, so this introduces the first one; currency pinned to `PLN`, inferred from
-     `DateFormat.salonTimeZone`). Ships: the master can open and read their price list. The bulk
-     here is one-time infrastructure, which makes PR11/PR12 thin.
-   - **PR11 — add a service**: popup form + validation + `add`. Also rewrites
-     `FakeServiceRepository` as a mutable in-memory class — the current `struct` yields once and
-     no-ops its mutations, which is fine for PR10's read-only preview but leaves a CRUD preview
-     inert. Ends by removing the `#if DEBUG` fake-services override in `ScheduleView.swift:14` —
+   - ~~**PR10 — read-only list**~~ — **done**, see the PR10 entry under "Done" above.
+   - **PR11 — add a service**: wire the "+" button PR10 left as a stub — popup form + validation +
+     `add`. Also rewrites `FakeServiceRepository` as a mutable in-memory class — the current
+     `struct` yields once and no-ops its mutations, which is fine for PR10's read-only preview but
+     leaves a CRUD preview inert (it also means PR10's `hasLoaded` spinner never appears in a
+     preview). Ends by removing the `#if DEBUG` fake-services override in `ScheduleView.swift:14` —
      this is the first point where real services can actually be seeded. Expect the create-slot
-     checklist to look empty until you enter some.
+     checklist to look empty until you enter some. Take `ScheduleView`'s optional
+     `init(viewModel:)` down to a required one in the same pass, matching PR10's `MyServicesView`.
    - **PR12 — edit + delete**: same form in edit mode (`update`), plus the existing `SwipeToDelete`
-     wired to `delete` with a confirmation step.
+     wired to `delete` with a confirmation step. This is also where the mockup's per-row "Змінити"
+     link finally gets an action — PR10 left it out rather than shipping a dead link per row.
 2. **Client — "Запис" (Booking)** (mockup screen 03): month calendar → time chips → service picker
    → footer bar with "Продовжити". This is the first place a `pending` block can be born, so it
    gates steps 4 and 5.
@@ -185,10 +218,11 @@ either master screen before that link exists means inventing fake data for it tw
      `Assets/UICommons/` once Requests becomes their second consumer. Note they'd be the first
      domain-aware components in that folder (they switch on `BlockStatus`); if two or three more
      accumulate, a separate `Assets/DomainUI/` is the alternative.
-5. **Master — "Статистика" (Stats)**: month summary (revenue/visits/cancellations) + the permanent
-   entry point to "Мої послуги" from step 1, replacing PR10's temporary button. Last of the five
-   because the numbers derive from real `confirmed`/cancelled blocks, which only exist once the
-   booking chain above works.
+5. **Master — "Статистика" (Stats)**: month summary (revenue/visits/cancellations) inside the
+   `Master/Stats/StatsView.swift` shell PR10 created, plus the permanent entry point to "Мої
+   послуги" from step 1 replacing PR10's temporary text link. Last of the five because the numbers
+   derive from real `confirmed`/cancelled blocks, which only exist once the booking chain above
+   works.
 6. **Client — "Акаунт" (Account)**: currently an `EmptyView()` placeholder behind the 3rd client
    tab (`ClientTab.account`) — needs real content (profile info, sign out moved here from the
    temporary root placeholder, etc.).
@@ -233,6 +267,11 @@ either master screen before that link exists means inventing fake data for it tw
 
 - Commit + push `feature/pr3/root-routing`, open PR, once the tab bar + first cabinet screen make
   it a coherent reviewable chunk (or sooner, at your discretion).
+- **`docs/superpowers/plans/2026-08-07-master-my-services-list.md` must be deleted once PR10 is
+  merged**, per `CLAUDE.md`. It carries a "where the shipped code differs" banner until then.
+- **Open question from PR10, never answered**: `ServiceFormat.currencyCode` is `"PLN"`, but the
+  design mockup showed prices in грн. One-word change either way — decide before PR11 puts a price
+  field in front of the user.
 - **Three PR9 review findings were reviewed and declined** — don't re-raise them: popup buttons'
   44pt tap target (modifiers sit outside the `Button`), `PopupContainer`'s bare `Rectangle()`
   backdrop in dark mode, and `BlockDetailPopup`'s default `FirestoreBlockRepository()` reaching

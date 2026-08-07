@@ -18,7 +18,7 @@ struct StatsView: View {
 
     private var myServicesLink: some View {
         NavigationLink {
-            MyServicesView()
+            MyServicesView(viewModel: MyServicesViewModel())
         } label: {
             Text("services.action.open")
                 .font(.elmsSans(.bold, 14.5))

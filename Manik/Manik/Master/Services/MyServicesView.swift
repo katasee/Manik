@@ -5,8 +5,8 @@ struct MyServicesView: View {
 
     @State private var viewModel: MyServicesViewModel
 
-    init(viewModel: MyServicesViewModel? = nil) {
-        _viewModel = State(initialValue: viewModel ?? MyServicesViewModel())
+    init(viewModel: MyServicesViewModel) {
+        _viewModel = State(initialValue: viewModel)
     }
 
     var body: some View {
