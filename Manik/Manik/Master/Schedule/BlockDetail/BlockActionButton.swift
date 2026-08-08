@@ -44,7 +44,7 @@ struct BlockActionButton: View {
     }
 
     private func run() {
-        Task {
+        Task { @MainActor in
             if await perform(action) {
                 onSuccess()
             }

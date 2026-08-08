@@ -12,6 +12,13 @@ service cloud.firestore {
         request.resource.data.endTime.matches('^([01][0-9]|2[0-3]):[0-5][0-9]$');
     }
 
+    function hasValidServiceFormat() {
+      return request.resource.data.name is string &&
+        request.resource.data.name.size() > 0 &&
+        request.resource.data.price is int &&
+        request.resource.data.price >= 0;
+    }
+
     function isMaster() {
       return isSignedIn() &&
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "master";
@@ -51,7 +58,8 @@ service cloud.firestore {
 
     match /services/{serviceId} {
       allow read: if isSignedIn();
-      allow write: if isMaster();
+      allow create, update: if isMaster() && hasValidServiceFormat();
+      allow delete: if isMaster();
     }
 
     match /blocks/{blockId} {

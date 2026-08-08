@@ -1,17 +1,17 @@
 import SwiftUI
 
-struct AddServicePopup: View {
+struct ServiceFormPopup: View {
     private enum Field {
         case name
         case price
     }
 
-    @State private var viewModel: AddServiceViewModel
+    @State private var viewModel: ServiceFormViewModel
     @FocusState private var focusedField: Field?
 
     let onDismiss: () -> Void
 
-    init(viewModel: AddServiceViewModel, onDismiss: @escaping () -> Void) {
+    init(viewModel: ServiceFormViewModel, onDismiss: @escaping () -> Void) {
         _viewModel = State(initialValue: viewModel)
         self.onDismiss = onDismiss
     }
@@ -37,14 +37,14 @@ struct AddServicePopup: View {
     }
 
     private var title: some View {
-        Text("services.add.title")
+        Text(viewModel.mode.titleKey)
             .font(.elmsSans(.bold, 18))
             .foregroundStyle(Color.ink)
     }
 
     private var nameField: some View {
-        fieldRow("services.add.nameLabel") {
-            TextField("services.add.namePlaceholder", text: $viewModel.name)
+        fieldRow("services.form.nameLabel") {
+            TextField("services.form.namePlaceholder", text: $viewModel.name)
                 .multilineTextAlignment(.trailing)
                 .focused($focusedField, equals: .name)
                 .submitLabel(.next)
@@ -53,9 +53,9 @@ struct AddServicePopup: View {
     }
 
     private var priceField: some View {
-        fieldRow("services.add.priceLabel") {
-            TextField("services.add.pricePlaceholder", text: $viewModel.priceText)
-                .keyboardType(.decimalPad)
+        fieldRow("services.form.priceLabel") {
+            TextField("services.form.pricePlaceholder", text: $viewModel.priceText)
+                .keyboardType(.numberPad)
                 .multilineTextAlignment(.trailing)
                 .focused($focusedField, equals: .price)
         }
@@ -77,7 +77,7 @@ struct AddServicePopup: View {
             Spacer()
 
             PopupPrimaryButton(
-                titleKey: "services.add.submit",
+                titleKey: viewModel.mode.submitKey,
                 color: .ink,
                 isLoading: viewModel.isSaving,
                 isEnabled: viewModel.canSubmit,
@@ -89,7 +89,7 @@ struct AddServicePopup: View {
     private func save(then dismiss: @escaping () -> Void) {
         focusedField = nil
 
-        Task {
+        Task { @MainActor in
             if await viewModel.submit() {
                 dismiss()
             }
@@ -118,11 +118,29 @@ struct AddServicePopup: View {
 }
 
 #if DEBUG
-#Preview {
+#Preview("Додавання") {
     Color.background
         .overlay {
-            AddServicePopup(
-                viewModel: AddServiceViewModel(serviceRepository: FakeServiceRepository()),
+            ServiceFormPopup(
+                viewModel: ServiceFormViewModel(
+                    mode: .add,
+                    serviceRepository: FakeServiceRepository()
+                ),
+                onDismiss: {}
+            )
+        }
+}
+
+#Preview("Редагування") {
+    Color.background
+        .overlay {
+            ServiceFormPopup(
+                viewModel: ServiceFormViewModel(
+                    mode: .edit(ServicesPreviewData.services[0]),
+                    serviceRepository: FakeServiceRepository(
+                        services: ServicesPreviewData.services
+                    )
+                ),
                 onDismiss: {}
             )
         }

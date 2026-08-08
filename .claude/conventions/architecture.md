@@ -32,6 +32,16 @@
   the router. To keep a custom fade instead of the system slide-up, wrap the *state mutation* in a
   `Transaction` with `disablesAnimations = true` and animate inside the popup; never put
   `.transaction { }` on the modifier, which disables animations for the whole subtree.
+- **A `Task {}` created inside a `View`'s helper method does not inherit `MainActor`.** `Task`
+  captures isolation *statically*, from the enclosing declaration — and helper methods on a `View`
+  struct are nonisolated (only `body` carries the protocol's `@MainActor`). So anything
+  **synchronous** called after an `await` — a `dismiss()` closure, an `onSuccess()` callback —
+  runs on the generic executor and mutates `@State` off the main thread. Nothing diagnoses this:
+  the callee is nonisolated too, so even Swift 6 stays quiet. Write `Task { @MainActor in ... }`
+  at these sites (`ServiceFormPopup`, `AddNewSlotBlock`, `BlockActionButton` all do). Don't
+  annotate the *method* instead — that cascades up through every caller (`actions(dismiss:)` and
+  friends) and then into closure-conversion questions. A `Task {}` whose only post-`await` work is
+  another `await` needs nothing: the async call hops to its own actor by itself.
   `Service`/`Block` use `@DocumentID var id: String?` (Firestore assigns it, don't encode it
   yourself). `UserProfile.id` is `uid`, since that collection is keyed by the Firebase Auth uid
   rather than an auto-generated document ID.

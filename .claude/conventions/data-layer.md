@@ -30,6 +30,26 @@
   query; `continuation.onTermination` removes the listener. Listener errors are currently swallowed
   (`{ snapshot, _ in ... }`) — if that needs to surface to the UI, switch to `AsyncThrowingStream`
   rather than bolting an error side-channel onto `AsyncStream`.
+- **A new field added to a model whose collection already has documents must be optional.** Swift's
+  synthesized `init(from:)` does **not** fall back to a property's default value — a missing key
+  throws `keyNotFound`, so `var isActive = true` would break decoding for every pre-existing
+  document and render the whole list empty. Declare `var isActive: Bool?` and hide the optional
+  behind a computed accessor (`var isOffered: Bool { isActive ?? true }`) that the rest of the code
+  reads instead. Write the field explicitly on create so only legacy documents rely on the fallback.
+  Optional `var`s also keep the memberwise initializer source-compatible (they default to `nil`),
+  so existing call sites don't need touching.
+- **Money is `Int`, never `Double`.** `Service.price` is whole PLN; `ServiceFormat` renders it with
+  `.fractionLength(0)` and the input field uses `.numberPad`. `Double` accumulates rounding error
+  once values get summed (the Stats screen does exactly that), and `.numberPad` has no decimal-
+  separator key at all, which removes the whole class of locale-parsing bugs — no `FormatStyle`,
+  no `.locale(.current)`, just `Int(text)`. If groszy are ever needed, switch to minor units
+  (`Int` groszy), not back to floating point. Changing a stored numeric field's type is a data
+  migration: a Firestore double decodes into `Int` only when it is whole (`800.0` yes, `450.5` no),
+  and one bad document fails the whole query.
+- In `firestore.rules`, **`write` means create + update + delete**, and on a delete
+  `request.resource` is `null`. Any rule that validates incoming fields must therefore be attached
+  to `create, update` with `delete` allowed separately — `allow write: if isMaster() &&
+  hasValidServiceFormat()` silently breaks deletion. Both `services` and `blocks` are split this way.
 - Block state machine: `available → pending → confirmed`, with cancel/decline both returning to
   `available`. A block carries `offeredServiceIds: [String]` (services the master allows for that
   time slot) and `bookedServiceId: String?` (the one the client actually picked at booking time).

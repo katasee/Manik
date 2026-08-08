@@ -14,6 +14,7 @@ final class ScheduleViewModel {
     private(set) var scheduledBlocks: [ScheduledBlock] = []
     private(set) var freeHours: Set<Int> = []
     private(set) var services: [Service] = []
+    private(set) var offeredServices: [Service] = []
 
     private var blockPendingDeletion: Block?
 
@@ -41,6 +42,7 @@ final class ScheduleViewModel {
     func observeServices() async {
         for await updatedServices in serviceRepository.observeServices() {
             services = updatedServices
+            offeredServices = updatedServices.filter(\.isOffered)
             rebuildSchedule()
         }
     }

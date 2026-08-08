@@ -208,6 +208,64 @@ this file is just "what's done, what's next," not a design doc.
     пункт 12 нижче для `ScheduleView`; лишається `AddNewSlotBlock`).
   - Сім нових ключів локалізації (`common.action.done` + шість `services.add.*`), en + uk.
 
+- **PR12 — Master «Мої послуги»: редагування, активність, видалення (branch
+  `feature/pr-12-editAndDeleteService`)**: CRUD послуг закритий. Тап по рядку відкриває ту саму
+  форму в режимі редагування, зірочка стала перемикачем «пропонувати при створенні слота», свайп
+  вліво видаляє. Дата-шар не змінювався — `update`/`delete` існують із PR1.
+  - **Зірочка з декоративної стала функціональною**, тобто PR вийшов ширшим за початкове «edit +
+    delete». `Service` отримав `isActive: Bool?` + обчислювану `isOffered`. Поле **мусить** бути
+    опціональним: синтезований `init(from:)` не використовує дефолтне значення властивості, тож із
+    `var isActive = true` відсутній ключ дав би `keyNotFound`, і всі документи, створені до PR12,
+    перестали б декодуватись. Форма створення пише `isActive: true` явно, тож на `?? true`
+    покладаються лише легасі-документи; решта коду читає `isOffered`, ніколи `isActive`.
+  - **Дезактивація не чіпає вже створені блоки** — послуга зникає лише з чекліста нових слотів.
+    Узгоджено з рішенням для видалення (id йдуть у дангл, покриває `schedule.service.unknown`);
+    дезактивація м'якша за видалення, тож діяти агресивніше не має права. Технічно це **друга,
+    похідна** властивість `ScheduleViewModel.offeredServices` — фільтрувати наявний `services`
+    не можна, він паралельно резолвить назви для вже створених блоків (`ScheduleViewModel:114,121`),
+    і відфільтрований масив зробив би дезактивовану послугу «невідомою».
+  - **Видалення без підтвердження** — свідома зміна рішення (початково планувався confirmation
+    step): свайп плюс тап по кошику вже два навмисні жести. Alert лишився тільки на **невдале**
+    видалення. Undo не будували.
+  - `Master/Services/AddService/` → `ServiceForm/`: `ServiceFormMode` (`enum .add / .edit(Service)`,
+    `Identifiable`, несе `titleKey`/`submitKey`), `ServiceFormPopup`, `ServiceFormViewModel`.
+    Різниця між додаванням і редагуванням звелась до двох звернень до `mode` — другого екрана не
+    знадобилось. У гілці `.edit` **обов'язково** передається `isActive: service.isOffered`:
+    `update` перезаписує документ цілком, і пропущене поле мовчки скинуло б перемикач.
+  - `MyServicesView` перейшла з `.fullScreenCover(isPresented:)` на `.fullScreenCover(item:)` з
+    `ServiceFormMode?` — окремий enum-обгортка на кшталт `SchedulePopup` не потрібен, попап один і
+    режим сам є ідентичністю. Рядок обгорнуто в `SwipeToDelete` (`openRowId` у `@State`, за зразком
+    `openBlockId`), тап рядка — `onTapGesture`, не `Button` (прецедент PR9 із червоною підкладкою).
+  - **Ціна переведена з `Double` на `Int`**, клавіатура з `.decimalPad` на `.numberPad`. Разом із
+    цим зникли `priceStyle`/локале-залежний парсинг (`.numberPad` фізично не має клавіші
+    роздільника) і `ServiceFormat` перейшов на `.fractionLength(0)`. Це не косметика: `Double` для
+    грошей накопичує похибку при сумуванні, а крок «Статистика» рахує місячну виручку. **Міграція
+    даних:** документи, записані PR11, містять `price` як double; ціле значення (`800.0`)
+    декодується в `Int` нормально, дробове (`450.5`) — ні, і ламає весь список. Перед запуском
+    звірити колекцію в Console.
+  - `firestore.rules` **змінено вперше з PR1**: додано `hasValidServiceFormat()` (`name` —
+    непорожній рядок, `price` — невідʼємний `int`), а `write` розщеплено на `create, update` /
+    `delete`. Розщеплення обов'язкове: при видаленні `request.resource` дорівнює `null`, тож
+    спільне `allow write: if isMaster() && hasValidServiceFormat()` зламало б свайп-видалення.
+  - Локалізація: `services.add.*` → `services.form.*` для спільних полів форми (у режимі
+    редагування ключ зі словом «add» бреше), плюс `services.edit.title`, `services.edit.submit`,
+    `services.alert.updateFailed`, `services.alert.deleteFailed`.
+  - **Рев'ю `swiftui-pro`** — три знахідки, усі виправлені: тап по вже зсунутому свайпом рядку
+    відкривав форму замість закрити свайп (`guard openRowId == nil`); `parsePrice`/`formatPrice`
+    мали різні формат-стилі (питання зняте переходом на `Int`); `.alert(item:)`, що повертає
+    `Alert`, задепрекейчений з iOS 15 — замінено на `.alert(_:isPresented:)`.
+  - **Рев'ю `swift-concurrency-pro`** — дві знахідки виправлені. `Task {}` у трьох попапах
+    (`ServiceFormPopup`, `AddNewSlotBlock`, `BlockActionButton`) викликав **синхронне**
+    `dismiss()`/`onSuccess()` після `await`: `Task` успадковує ізоляцію статично, за обгортаючим
+    оголошенням, тож із нонізольованого методу `View` замикання йде на глобальний виконавець і
+    мутує `@State` поза головним потоком. Виправлено як `Task { @MainActor in }` — анотація на самі
+    методи тягла б каскад угору по `actions(dismiss:)`. Другa: `submit()` отримав
+    `guard isSaving == false` — прапорець ставиться асинхронно, тож між тапом і його встановленням
+    кнопка ще активна, і подвійний тап міг створити дубль послуги.
+  - `AuthView:85` і `ScheduleViewModel:52,65` перевірені й не потребували фікса — перший робить
+    `await onAuthenticated()` (асинхронний виклик сам стрибає на потрібний актор), другі живуть
+    усередині `@MainActor`-класу.
+
 ## Next steps (in order)
 
 The ordering below follows the **data chain**, not the mockup order: real services make real slots
@@ -215,7 +273,8 @@ possible, real slots make a client booking possible, and a client booking is the
 creates a `pending` block — which is what "Заявки" lists and what "Статистика" counts. Building
 either master screen before that link exists means inventing fake data for it twice.
 
-1. **Master — "Мої послуги" (services CRUD)**. Deliberately split off from "Статистика" (which the
+1. ~~**Master — "Мої послуги" (services CRUD)**~~ — **done** (PR10 + PR11 + PR12, усі три під
+   "Done" вище). Deliberately split off from "Статистика" (which the
    MVP spec makes its permanent entry point) because it's self-contained and unblocks everything
    below. **The whole data layer already exists** — `Models/Service.swift`, all four methods on
    `ServiceRepository`, their `FirestoreServiceRepository` implementations, and
@@ -228,9 +287,10 @@ either master screen before that link exists means inventing fake data for it tw
    - ~~**PR10 — read-only list**~~ — **done**, see the PR10 entry under "Done" above.
    - ~~**PR11 — add a service**~~ — **done**, see the PR11 entry under "Done" above. Note it also
      deleted `Service.durationMinutes` outright, so the form is two fields, not three.
-   - **PR12 — edit + delete**: same form in edit mode (`update`), plus the existing `SwipeToDelete`
-     wired to `delete` with a confirmation step. This is also where the mockup's per-row "Змінити"
-     link finally gets an action — PR10 left it out rather than shipping a dead link per row.
+   - ~~**PR12 — edit + delete**~~ — **done**, see the PR12 entry under "Done" above. Two departures
+     from what was planned here: deletion ships **without** a confirmation step, and the mockup's
+     per-row "Змінити" link was still not built — editing is entered by tapping the row instead,
+     while the row's star became a real activity toggle (a scope addition, not a substitution).
 2. **Client — "Запис" (Booking)** (mockup screen 03): month calendar → time chips → service picker
    → footer bar with "Продовжити". This is the first place a `pending` block can be born, so it
    gates steps 4 and 5.
@@ -256,10 +316,14 @@ either master screen before that link exists means inventing fake data for it tw
    temporary root placeholder, etc.).
 7. **"Забули пароль?"**: decide tappable-stub vs. real `sendPasswordReset` flow, then implement.
    (Was tracked as a task in a now-disconnected MCP tool — re-track here instead.)
-8. ~~**Confirm `firestore.rules` deployment**~~ — **done (2026-08-07, during PR11)**: the rules
-   published in the Firebase Console for project `manik-5a2b8` were diffed against the local
-   `firestore.rules` and are identical line for line. Re-verify only after editing the file, since
-   deployment is manual (Console copy-paste, no CLI/CI hookup).
+8. **Deploy `firestore.rules` again — REOPENED by PR12.** The file was verified identical to the
+   Console on 2026-08-07 during PR11, then **edited by PR12** (`hasValidServiceFormat()`, and
+   `services`' `write` split into `create, update` / `delete`). Deployment is manual — Console
+   copy-paste, no CLI/CI hookup — so the repo and production are currently out of sync. Paste the
+   local file into the Console for project `manik-5a2b8`, then re-diff.
+   - Related, same trip to the Console: **audit `price` in the `services` collection.** PR12 moved
+     `Service.price` to `Int`, and any document holding a fractional price (e.g. `450.5`) will fail
+     to decode and take the whole list down with it. Whole-number doubles (`800.0`) are fine.
 9. **Live badge counter on "Заявки"**: `CustomTabBar`'s badge parameter currently always returns
    `nil` (`Master/MasterRootView.swift`, `CabinetKind.master`'s `badge` closure). Once the
    "Заявки" screen (step 4 above) exists, wire this to a live count of `pending`-status blocks
@@ -287,6 +351,12 @@ either master screen before that link exists means inventing fake data for it tw
     on this list: since PR11 its view model is built in `MasterRootView.body`, which *is*
     main-actor isolated.) The same migration is where the deliberately-declined
     `FakeServiceRepository` race below should be revisited.
+    - PR12 patched a symptom of the same root cause: helper methods on `View` structs are
+      nonisolated, so a `Task {}` created inside one does **not** inherit `MainActor` and any
+      synchronous UI call after an `await` runs off the main thread. Three popups were fixed with
+      `Task { @MainActor in }` (`ServiceFormPopup`, `AddNewSlotBlock`, `BlockActionButton`). Under
+      Swift 6.2's default main-actor isolation the annotation becomes redundant — drop it then
+      rather than sprinkling more of it now.
 13. **A failed read is indistinguishable from empty data** (found in PR10 review, deliberately
     deferred): `observeServices()`/`observeBlocks()` swallow listener errors and yield `?? []`, so
     a permissions failure or a dropped connection renders as a confident "Поки що немає послуг" /
@@ -304,21 +374,53 @@ either master screen before that link exists means inventing fake data for it tw
     services list, the create-slot checklist, and every client-facing screen that prints a service
     name. Not scoped for the MVP — one salon, one master, who knows what language their clients
     speak — so treat this as a decision to revisit only if the salon actually serves two languages.
+15. **`CreateBlockViewModel.submit()` can double-submit** (found in PR12's concurrency review,
+    deliberately left out of that PR's scope): it does `guard canSubmit` then `isSaving = true`,
+    but `isSaving` is only set once the `Task` reaches the main actor, so the button is still
+    enabled in between and a fast double tap can create two identical blocks. The fix is the same
+    one-liner PR12 applied to `ServiceFormViewModel` — `guard isSaving == false else { return false }`
+    at the top, which is atomic because the method is `@MainActor` and has no `await` before the
+    assignment.
+16. **Dark mode makes typed text invisible** (found on a real device after PR12): entering a date,
+    a time, a service name or a price shows white glyphs on a light field. Reproduces only in dark
+    mode — the simulator and the previews default to light, which is why it survived this long.
+    - Cause, and it is app-wide rather than specific to those fields: **every colorset in
+      `Assets.xcassets` has a single appearance** (`Background`, `Ink`, `FieldBackground`,
+      `Surface`, `TextSecondary`, `Badge`, `Destructive`, all three `Status*`). The palette never
+      flips. But `TextField` and `DatePicker` set no foreground colour of their own, so they fall
+      back to `Color.primary`, which *does* flip — white text lands on a permanently light field.
+      Labels around them are fine precisely because they say `.foregroundStyle(Color.ink)`
+      explicitly. Nothing in the app calls `preferredColorScheme`.
+    - Three ways out, and they are not equivalent. (a) Pin the app to light —
+      `.preferredColorScheme(.light)` on the root — one line, honest about a palette that has no
+      dark half, and instantly consistent. (b) Give every `TextField`/`DatePicker` an explicit
+      `.foregroundStyle(Color.ink)` — fixes the symptom, leaves the next system-coloured control to
+      rediscover the bug. (c) Add real dark variants to all eleven colorsets — the only true fix,
+      and a design task, not a code one.
+    - Recommendation is (a) now and (c) whenever dark mode becomes a product decision; (b) is the
+      one to avoid, since it spreads the workaround instead of naming the cause.
+    - Related, and now confirmed rather than hypothetical: a PR9 review finding about
+      `PopupContainer`'s bare `Rectangle()` backdrop in dark mode was reviewed and declined at the
+      time (see Housekeeping). Same root cause — fold it into whichever option is taken.
 
 ## Housekeeping
 
 - Commit + push `feature/pr3/root-routing`, open PR, once the tab bar + first cabinet screen make
   it a coherent reviewable chunk (or sooner, at your discretion).
-- **Throwaway feature docs are cleaned up**: the PR10 plan and both PR11 artifacts (spec + plan)
-  were deleted in PR11, per `CLAUDE.md`; everything from them that outlives a branch is folded into
-  this file. `docs/superpowers/` now holds only the permanent MVP spec.
-- **Currency is settled: `PLN`.** The design mockup showed грн, but the salon works in the Polish
-  time zone; `ServiceFormat.currencyCode` stays `"PLN"`. Decided 2026-08-07, before PR11 put a
-  price field in front of the user — don't reopen without a product reason.
+- **Throwaway feature docs are cleaned up**: the PR10 plan, both PR11 artifacts and both PR12
+  artifacts (spec + plan) were deleted, per `CLAUDE.md`; everything from them that outlives a
+  branch is folded into this file. `docs/superpowers/` now holds only the permanent MVP spec.
+- **Currency is settled: `PLN`, whole units only.** The design mockup showed грн, but the salon
+  works in the Polish time zone; `ServiceFormat.currencyCode` stays `"PLN"`. Decided 2026-08-07,
+  before PR11 put a price field in front of the user — don't reopen without a product reason. PR12
+  additionally settled the *type*: `Service.price` is `Int`, formatted with `.fractionLength(0)`,
+  and the form uses `.numberPad`. Groszy are not representable by design; if the salon ever needs
+  them, switch to minor units (`Int` groszy), not back to `Double`.
 - **Three PR9 review findings were reviewed and declined** — don't re-raise them: popup buttons'
   44pt tap target (modifiers sit outside the `Button`), `PopupContainer`'s bare `Rectangle()`
   backdrop in dark mode, and `BlockDetailPopup`'s default `FirestoreBlockRepository()` reaching
-  live Firestore from `ScheduleView`'s preview.
+  live Firestore from `ScheduleView`'s preview. **The dark-mode one has since been reopened** —
+  device testing after PR12 showed the same root cause makes typed text invisible, which is step 16.
 - **Two PR11 review findings were reviewed and declined** — don't re-raise them:
   - `swiftui-pro`: `.accessibilityAddTraits(.isHeader)` on the add-service popup title.
   - `swift-concurrency-pro`: `FakeServiceRepository` has a genuine race — the synchronous
@@ -327,7 +429,19 @@ either master screen before that link exists means inventing fake data for it tw
     `onTermination` was deliberately left out to avoid mutating the dictionary off-actor. An
     `OSAllocatedUnfairLock` fix was written and verified to compile warning-free under
     `-strict-concurrency=complete`, then declined: this is `#if DEBUG` preview scaffolding. Revisit
-    with the Swift 6 migration (step 12), not before.
+    with the Swift 6 migration (step 12), not before. PR12 leans on the fake harder (previews now
+    exercise `update`/`delete` too) — the decision still stands, but that's why it's worth
+    revisiting rather than forgetting.
+- **Three PR12 findings were reviewed and declined** — don't re-raise them:
+  - `swiftui-pro`: splitting `MyServicesView`'s `some View` computed properties into separate
+    `View` structs. Already reviewed and declined in PR10; the skill raises it every time.
+  - `swiftui-pro`: dropping the explicit `Button("common.action.ok", role: .cancel) {}` from the
+    services alert. SwiftUI supplies a localized dismiss button for an empty `actions` closure, but
+    `ScheduleView` spells it out — remove it in both places in one pass or not at all.
+  - `swift-concurrency-pro`: an in-flight guard on `MyServicesViewModel.toggleActive`. Both taps
+    capture the same `Service` value and compute the same new `isActive`, so the second write is
+    redundant rather than a flip-back — no data corruption, and an `isToggling` flag would add more
+    state than it removes.
 - **Two stashes are outstanding** (`git stash list`):
   - `stash@{0}` — the full first cut of PR8 (proportional timeline, block detail popup + delete,
     `UserRepository`, popup scaffold components, 13 localization keys). PR8 and PR9 between them

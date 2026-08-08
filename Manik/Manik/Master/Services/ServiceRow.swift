@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ServiceRow: View {
     let service: Service
+    let onToggleActive: () -> Void
 
     var body: some View {
         HStack(spacing: ServicesMetrics.Spacing.rowContentSpacing) {
@@ -22,18 +23,21 @@ struct ServiceRow: View {
     }
 
     private var icon: some View {
-        Image(systemName: "star.fill")
-            .font(.elmsSans(.regular, ServicesMetrics.Size.rowIconGlyph))
-            .foregroundStyle(Color.ink)
-            .frame(
-                width: ServicesMetrics.Size.rowIcon,
-                height: ServicesMetrics.Size.rowIcon
-            )
-            .overlay {
-                Circle()
-                    .strokeBorder(Color.surface, lineWidth: ServicesMetrics.Size.rowIconBorder)
-            }
-            .accessibilityHidden(true)
+        Button(action: onToggleActive) {
+            Image(systemName: service.isOffered ? "star.fill" : "star")
+                .font(.elmsSans(.regular, ServicesMetrics.Size.rowIconGlyph))
+                .foregroundStyle(Color.ink)
+                .frame(
+                    width: ServicesMetrics.Size.rowIcon,
+                    height: ServicesMetrics.Size.rowIcon
+                )
+                .overlay {
+                    Circle()
+                        .strokeBorder(Color.surface, lineWidth: ServicesMetrics.Size.rowIconBorder)
+                }
+                .contentShape(.circle)
+        }
+        .buttonStyle(.plain)
     }
 
     private var details: some View {
@@ -56,7 +60,7 @@ struct ServiceRow: View {
 #Preview {
     VStack(spacing: ServicesMetrics.Spacing.rowSpacing) {
         ForEach(ServicesPreviewData.services) { service in
-            ServiceRow(service: service)
+            ServiceRow(service: service, onToggleActive: {})
         }
     }
     .padding()
