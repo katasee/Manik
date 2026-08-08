@@ -57,7 +57,7 @@ this file is just "what's done, what's next," not a design doc.
   both dropped in favor of typing the time directly. Default duration when opening the popup is 1
   hour (`ScheduleMetrics.CreatePopup.defaultDurationMinutes = 60`). Services render as a checklist
   (`ServicesChecklist`, checkmark-circle icons) reading whatever's in the `services` Firestore
-  collection — no CRUD screen yet (still step 1 below), so services are hand-seeded via Firebase
+  collection — no CRUD screen yet (screen 1 below, since done), so services are hand-seeded via Firebase
   Console for now. A `#if DEBUG` override feeds a `FakeServiceRepository`/`SchedulePreviewData`
   instead of live Firestore — kept deliberately so the checklist has something to show before real
   services are seeded; it lived in `ScheduleView.serviceRepository` from PR8 (before that, in
@@ -133,7 +133,7 @@ this file is just "what's done, what's next," not a design doc.
     `BlockStatusStyle`) and `Preview/`.
   - **The client's name is deliberately absent.** No `pending` block can exist until the client
     booking screen ships, so `UserRepository` would have been a data layer with no data to serve.
-  - Accessibility scorecard for step 9 below: nothing was paid off. `ScheduleBlockCard` briefly
+  - Accessibility scorecard for the accessibility-debt item in the backlog below: nothing was paid off. `ScheduleBlockCard` briefly
     showed a status pill under `accessibilityDifferentiateWithoutColor` and it was removed on
     request, so a card's status is still conveyed by color alone.
 
@@ -266,12 +266,16 @@ this file is just "what's done, what's next," not a design doc.
     `await onAuthenticated()` (асинхронний виклик сам стрибає на потрібний актор), другі живуть
     усередині `@MainActor`-класу.
 
-## Next steps (in order)
+## Screens (in order)
 
-The ordering below follows the **data chain**, not the mockup order: real services make real slots
-possible, real slots make a client booking possible, and a client booking is the only thing that
-creates a `pending` block — which is what "Заявки" lists and what "Статистика" counts. Building
-either master screen before that link exists means inventing fake data for it twice.
+This is the actual work queue, and the only numbered list here. The ordering follows the **data
+chain**, not the mockup order: real services make real slots possible, real slots make a client
+booking possible, and a client booking is the only thing that creates a `pending` block — which is
+what "Заявки" lists and what "Статистика" counts. Building either master screen before that link
+exists means inventing fake data for it twice.
+
+Everything that is *not* a screen lives in "Backlog and tech debt" below, deliberately unnumbered —
+those items are referred to by name, so the list can grow without renumbering anything.
 
 1. ~~**Master — "Мої послуги" (services CRUD)**~~ — **done** (PR10 + PR11 + PR12, усі три під
    "Done" вище). Deliberately split off from "Статистика" (which the
@@ -293,11 +297,11 @@ either master screen before that link exists means inventing fake data for it tw
      while the row's star became a real activity toggle (a scope addition, not a substitution).
 2. **Client — "Запис" (Booking)** (mockup screen 03): month calendar → time chips → service picker
    → footer bar with "Продовжити". This is the first place a `pending` block can be born, so it
-   gates steps 4 and 5.
+   gates screens 4 and 5.
 3. **Client — "Мої записи" (My bookings)**: list of own pending/confirmed blocks, cancel action.
-   Thin follow-on to step 2 — same repository, same models.
+   Thin follow-on to screen 2 — same repository, same models.
 4. **Master — "Заявки" (Requests)**: list of `pending` blocks with confirm/decline, reusing
-   `BlockDetailPopup` as the detail surface (PR9 shipped the detail half). By now steps 2–3 supply
+   `BlockDetailPopup` as the detail surface (PR9 shipped the detail half). By now screens 2–3 supply
    real `pending` data instead of hand-seeded documents. Two riders that belong with this slice:
    - Pull `UserRepository`/`FirestoreUserRepository`/`FakeUserRepository` out of `stash@{0}` and
      show the client's name on both the request row and the detail popup — this is the screen that
@@ -308,100 +312,113 @@ either master screen before that link exists means inventing fake data for it tw
      accumulate, a separate `Assets/DomainUI/` is the alternative.
 5. **Master — "Статистика" (Stats)**: month summary (revenue/visits/cancellations) inside the
    `Master/Stats/StatsView.swift` shell PR10 created, plus the permanent entry point to "Мої
-   послуги" from step 1 replacing PR10's temporary text link. Last of the five because the numbers
+   послуги" from screen 1 replacing PR10's temporary text link. Last of the data-chain screens because the numbers
    derive from real `confirmed`/cancelled blocks, which only exist once the booking chain above
    works.
 6. **Client — "Акаунт" (Account)**: currently an `EmptyView()` placeholder behind the 3rd client
    tab (`ClientTab.account`) — needs real content (profile info, sign out moved here from the
    temporary root placeholder, etc.).
-7. **"Забули пароль?"**: decide tappable-stub vs. real `sendPasswordReset` flow, then implement.
-   (Was tracked as a task in a now-disconnected MCP tool — re-track here instead.)
-8. **Deploy `firestore.rules` again — REOPENED by PR12.** The file was verified identical to the
-   Console on 2026-08-07 during PR11, then **edited by PR12** (`hasValidServiceFormat()`, and
-   `services`' `write` split into `create, update` / `delete`). Deployment is manual — Console
-   copy-paste, no CLI/CI hookup — so the repo and production are currently out of sync. Paste the
-   local file into the Console for project `manik-5a2b8`, then re-diff.
-   - Related, same trip to the Console: **audit `price` in the `services` collection.** PR12 moved
-     `Service.price` to `Int`, and any document holding a fractional price (e.g. `450.5`) will fail
-     to decode and take the whole list down with it. Whole-number doubles (`800.0`) are fine.
-9. **Live badge counter on "Заявки"**: `CustomTabBar`'s badge parameter currently always returns
-   `nil` (`Master/MasterRootView.swift`, `CabinetKind.master`'s `badge` closure). Once the
-   "Заявки" screen (step 4 above) exists, wire this to a live count of `pending`-status blocks
-   from `BlockRepository`, likely via an `AsyncStream` observation similar to `observeBlocks()`.
-10. **Accessibility debt (found in PR8 review, deliberately not fixed there)**:
-    - `Font.elmsSans(_:_:)` calls `Font.custom(_:size:)` **without `relativeTo:`**, so Dynamic Type
-      is effectively off app-wide. Adding it is one line, but the schedule also needs `@ScaledMetric`
-      for `Size.hourHeight` or larger text will overflow the cards.
-    - On a *card*, a block's status is still conveyed only by the accent-capsule color, and
-      VoiceOver never reads it. PR9 built `BlockStatusPill` as the second signal and wired it to
-      `\.accessibilityDifferentiateWithoutColor` in `ScheduleBlockCard`, then removed that wiring
-      on request — the pill now appears only in `BlockDetailPopup`'s header, unconditionally.
-      Re-adding it to the card is a three-line change.
-    - `SwipeToDelete`'s trash button has no text label (removed on request), so VoiceOver announces
-      the raw SF Symbol name.
-11. **Slot creation can overlap an existing block**: since PR8 an hour still offers
-    "+ Додати вільний час" while ≤20 min of it is taken, but `CreateBlockContext` carries only
-    `startHour` (no minutes), so the popup opens at the top of the hour and can produce an
-    overlapping block. Teaching the context minutes touches `AddNewSlotBlock` +
-    `CreateBlockViewModel`. Deleting a `confirmed` block also has no confirmation step.
-12. **Swift 6 language mode**: the project builds in Swift 5 mode with `minimal` concurrency
-    checking. `AddNewSlotBlock` still constructs a `@MainActor` view model from its nonisolated
-    `init` — legal today, an error under Swift 6 until `View` conformance carries main-actor
-    isolation. Don't paper over it with per-`init` `@MainActor`. (`ScheduleView` no longer belongs
-    on this list: since PR11 its view model is built in `MasterRootView.body`, which *is*
-    main-actor isolated.) The same migration is where the deliberately-declined
-    `FakeServiceRepository` race below should be revisited.
-    - PR12 patched a symptom of the same root cause: helper methods on `View` structs are
-      nonisolated, so a `Task {}` created inside one does **not** inherit `MainActor` and any
-      synchronous UI call after an `await` runs off the main thread. Three popups were fixed with
-      `Task { @MainActor in }` (`ServiceFormPopup`, `AddNewSlotBlock`, `BlockActionButton`). Under
-      Swift 6.2's default main-actor isolation the annotation becomes redundant — drop it then
-      rather than sprinkling more of it now.
-13. **A failed read is indistinguishable from empty data** (found in PR10 review, deliberately
-    deferred): `observeServices()`/`observeBlocks()` swallow listener errors and yield `?? []`, so
-    a permissions failure or a dropped connection renders as a confident "Поки що немає послуг" /
-    an empty timeline. PR10 added a `hasLoaded` spinner, which fixes the flash-before-first-
-    snapshot case but not this one. The real fix is the `AsyncThrowingStream` switch that
-    `data-layer.md` already names as the intended escalation path; it touches both repository
-    protocols, both Firestore implementations, the fakes, and both view models.
-14. **Service names don't follow the device language** (raised during PR11 planning, deliberately
-    out of its scope): `Service.name` is master-entered *data*, stored as one `String`, so a client
-    on an English device sees whatever the master typed. Only the chrome around it localizes —
-    field labels, buttons, the placeholder, and the price/decimal-separator formatting. Making
-    names multilingual means turning `name` into a per-language map (e.g. `[String: String]` keyed
-    by language code) plus a resolver that falls back to the salon's default language when the
-    device's is missing, and it touches the model, the add/edit form (a field per language), the
-    services list, the create-slot checklist, and every client-facing screen that prints a service
-    name. Not scoped for the MVP — one salon, one master, who knows what language their clients
-    speak — so treat this as a decision to revisit only if the salon actually serves two languages.
-15. **`CreateBlockViewModel.submit()` can double-submit** (found in PR12's concurrency review,
-    deliberately left out of that PR's scope): it does `guard canSubmit` then `isSaving = true`,
-    but `isSaving` is only set once the `Task` reaches the main actor, so the button is still
-    enabled in between and a fast double tap can create two identical blocks. The fix is the same
-    one-liner PR12 applied to `ServiceFormViewModel` — `guard isSaving == false else { return false }`
-    at the top, which is atomic because the method is `@MainActor` and has no `await` before the
-    assignment.
-16. **Dark mode makes typed text invisible** (found on a real device after PR12): entering a date,
-    a time, a service name or a price shows white glyphs on a light field. Reproduces only in dark
-    mode — the simulator and the previews default to light, which is why it survived this long.
-    - Cause, and it is app-wide rather than specific to those fields: **every colorset in
-      `Assets.xcassets` has a single appearance** (`Background`, `Ink`, `FieldBackground`,
-      `Surface`, `TextSecondary`, `Badge`, `Destructive`, all three `Status*`). The palette never
-      flips. But `TextField` and `DatePicker` set no foreground colour of their own, so they fall
-      back to `Color.primary`, which *does* flip — white text lands on a permanently light field.
-      Labels around them are fine precisely because they say `.foregroundStyle(Color.ink)`
-      explicitly. Nothing in the app calls `preferredColorScheme`.
-    - Three ways out, and they are not equivalent. (a) Pin the app to light —
-      `.preferredColorScheme(.light)` on the root — one line, honest about a palette that has no
-      dark half, and instantly consistent. (b) Give every `TextField`/`DatePicker` an explicit
-      `.foregroundStyle(Color.ink)` — fixes the symptom, leaves the next system-coloured control to
-      rediscover the bug. (c) Add real dark variants to all eleven colorsets — the only true fix,
-      and a design task, not a code one.
-    - Recommendation is (a) now and (c) whenever dark mode becomes a product decision; (b) is the
-      one to avoid, since it spreads the workaround instead of naming the cause.
-    - Related, and now confirmed rather than hypothetical: a PR9 review finding about
-      `PopupContainer`'s bare `Rectangle()` backdrop in dark mode was reviewed and declined at the
-      time (see Housekeeping). Same root cause — fold it into whichever option is taken.
+
+## Backlog and tech debt (unordered)
+
+Not a queue. These accumulate as they're found and get picked up when they block a screen, or when
+something nearby is already being touched. **No numbers on purpose** — cite them by name, since
+numbering drifts every time an item is added or closed (it already did once: PR9's entry pointed at
+"step 9" for what was item 10).
+
+- ~~**Deploy `firestore.rules`**~~ — **done (2026-08-08, after PR12)**: the file was edited by PR12
+  (`hasValidServiceFormat()`, and `services`' `write` split into `create, update` / `delete`) and
+  published to the Console for project `manik-5a2b8`. Deployment stays manual — Console
+  copy-paste, no CLI/CI hookup — so re-verify after any future edit to the file.
+  - The `price` audit that came with it is **also done**: the `services` collection holds a single
+    document, written by a post-PR12 build (it already carries `isActive`), with `price: 1000` —
+    whole, so it decodes into `Int` cleanly. No fractional prices exist to migrate. Note this also
+    means the "legacy document without `isActive`" case has no instance in the live database; the
+    optional stays anyway, since a hand-made Console document would recreate it for free.
+- **"Забули пароль?"**: decide tappable-stub vs. real `sendPasswordReset` flow, then implement.
+  (Was tracked as a task in a now-disconnected MCP tool — re-track here instead.)
+- **Dark mode makes typed text invisible** (found on a real device after PR12): entering a date,
+  a time, a service name or a price shows white glyphs on a light field. Reproduces only in dark
+  mode — the simulator and the previews default to light, which is why it survived this long.
+  Deliberately parked until the screens are done, per an explicit call on 2026-08-08.
+  - Cause, and it is app-wide rather than specific to those fields: **every colorset in
+    `Assets.xcassets` has a single appearance** (`Background`, `Ink`, `FieldBackground`,
+    `Surface`, `TextSecondary`, `Badge`, `Destructive`, all three `Status*`). The palette never
+    flips. But `TextField` and `DatePicker` set no foreground colour of their own, so they fall
+    back to `Color.primary`, which *does* flip — white text lands on a permanently light field.
+    Labels around them are fine precisely because they say `.foregroundStyle(Color.ink)`
+    explicitly. Nothing in the app calls `preferredColorScheme`.
+  - Three ways out, and they are not equivalent. (a) Pin the app to light —
+    `.preferredColorScheme(.light)` on the root — one line, honest about a palette that has no
+    dark half, and instantly consistent. (b) Give every `TextField`/`DatePicker` an explicit
+    `.foregroundStyle(Color.ink)` — fixes the symptom, leaves the next system-coloured control to
+    rediscover the bug. (c) Add real dark variants to all eleven colorsets — the only true fix,
+    and a design task, not a code one.
+  - Recommendation is (a) now and (c) whenever dark mode becomes a product decision; (b) is the
+    one to avoid, since it spreads the workaround instead of naming the cause.
+  - Related, and now confirmed rather than hypothetical: a PR9 review finding about
+    `PopupContainer`'s bare `Rectangle()` backdrop in dark mode was reviewed and declined at the
+    time (see Housekeeping). Same root cause — fold it into whichever option is taken.
+- **Live badge counter on "Заявки"**: `CustomTabBar`'s badge parameter currently always returns
+  `nil` (`Master/MasterRootView.swift`, `CabinetKind.master`'s `badge` closure). Once the
+  "Заявки" screen (screen 4) exists, wire this to a live count of `pending`-status blocks
+  from `BlockRepository`, likely via an `AsyncStream` observation similar to `observeBlocks()`.
+- **Accessibility debt (found in PR8 review, deliberately not fixed there)**:
+  - `Font.elmsSans(_:_:)` calls `Font.custom(_:size:)` **without `relativeTo:`**, so Dynamic Type
+    is effectively off app-wide. Adding it is one line, but the schedule also needs `@ScaledMetric`
+    for `Size.hourHeight` or larger text will overflow the cards.
+  - On a *card*, a block's status is still conveyed only by the accent-capsule color, and
+    VoiceOver never reads it. PR9 built `BlockStatusPill` as the second signal and wired it to
+    `\.accessibilityDifferentiateWithoutColor` in `ScheduleBlockCard`, then removed that wiring
+    on request — the pill now appears only in `BlockDetailPopup`'s header, unconditionally.
+    Re-adding it to the card is a three-line change.
+  - `SwipeToDelete`'s trash button has no text label (removed on request), so VoiceOver announces
+    the raw SF Symbol name.
+  - PR12 added one more: the star toggle in `ServiceRow` is a `Button` with no `accessibilityLabel`
+    or `accessibilityValue`, and the row's `onTapGesture` carries no `.isButton` trait. Both were
+    explicitly cut from PR12's scope, not overlooked.
+- **Slot creation can overlap an existing block**: since PR8 an hour still offers
+  "+ Додати вільний час" while ≤20 min of it is taken, but `CreateBlockContext` carries only
+  `startHour` (no minutes), so the popup opens at the top of the hour and can produce an
+  overlapping block. Teaching the context minutes touches `AddNewSlotBlock` +
+  `CreateBlockViewModel`. Deleting a `confirmed` block also has no confirmation step.
+- **`CreateBlockViewModel.submit()` can double-submit** (found in PR12's concurrency review,
+  deliberately left out of that PR's scope): it does `guard canSubmit` then `isSaving = true`,
+  but `isSaving` is only set once the `Task` reaches the main actor, so the button is still
+  enabled in between and a fast double tap can create two identical blocks. The fix is the same
+  one-liner PR12 applied to `ServiceFormViewModel` — `guard isSaving == false else { return false }`
+  at the top, which is atomic because the method is `@MainActor` and has no `await` before the
+  assignment.
+- **Swift 6 language mode**: the project builds in Swift 5 mode with `minimal` concurrency
+  checking. `AddNewSlotBlock` still constructs a `@MainActor` view model from its nonisolated
+  `init` — legal today, an error under Swift 6 until `View` conformance carries main-actor
+  isolation. Don't paper over it with per-`init` `@MainActor`. (`ScheduleView` no longer belongs
+  on this list: since PR11 its view model is built in `MasterRootView.body`, which *is*
+  main-actor isolated.) The same migration is where the deliberately-declined
+  `FakeServiceRepository` race below should be revisited.
+  - PR12 patched a symptom of the same root cause: helper methods on `View` structs are
+    nonisolated, so a `Task {}` created inside one does **not** inherit `MainActor` and any
+    synchronous UI call after an `await` runs off the main thread. Three popups were fixed with
+    `Task { @MainActor in }` (`ServiceFormPopup`, `AddNewSlotBlock`, `BlockActionButton`). Under
+    Swift 6.2's default main-actor isolation the annotation becomes redundant — drop it then
+    rather than sprinkling more of it now.
+- **A failed read is indistinguishable from empty data** (found in PR10 review, deliberately
+  deferred): `observeServices()`/`observeBlocks()` swallow listener errors and yield `?? []`, so
+  a permissions failure or a dropped connection renders as a confident "Поки що немає послуг" /
+  an empty timeline. PR10 added a `hasLoaded` spinner, which fixes the flash-before-first-
+  snapshot case but not this one. The real fix is the `AsyncThrowingStream` switch that
+  `data-layer.md` already names as the intended escalation path; it touches both repository
+  protocols, both Firestore implementations, the fakes, and both view models.
+- **Service names don't follow the device language** (raised during PR11 planning, deliberately
+  out of its scope): `Service.name` is master-entered *data*, stored as one `String`, so a client
+  on an English device sees whatever the master typed. Only the chrome around it localizes —
+  field labels, buttons and the placeholder. Making names multilingual means turning `name` into a
+  per-language map (e.g. `[String: String]` keyed by language code) plus a resolver that falls back
+  to the salon's default language when the device's is missing, and it touches the model, the
+  add/edit form (a field per language), the services list, the create-slot checklist, and every
+  client-facing screen that prints a service name. Not scoped for the MVP — one salon, one master,
+  who knows what language their clients speak — so treat this as a decision to revisit only if the
+  salon actually serves two languages.
 
 ## Housekeeping
 
@@ -420,7 +437,7 @@ either master screen before that link exists means inventing fake data for it tw
   44pt tap target (modifiers sit outside the `Button`), `PopupContainer`'s bare `Rectangle()`
   backdrop in dark mode, and `BlockDetailPopup`'s default `FirestoreBlockRepository()` reaching
   live Firestore from `ScheduleView`'s preview. **The dark-mode one has since been reopened** —
-  device testing after PR12 showed the same root cause makes typed text invisible, which is step 16.
+  device testing after PR12 showed the same root cause makes typed text invisible — see the dark-mode item in the backlog.
 - **Two PR11 review findings were reviewed and declined** — don't re-raise them:
   - `swiftui-pro`: `.accessibilityAddTraits(.isHeader)` on the add-service popup title.
   - `swift-concurrency-pro`: `FakeServiceRepository` has a genuine race — the synchronous
@@ -429,7 +446,7 @@ either master screen before that link exists means inventing fake data for it tw
     `onTermination` was deliberately left out to avoid mutating the dictionary off-actor. An
     `OSAllocatedUnfairLock` fix was written and verified to compile warning-free under
     `-strict-concurrency=complete`, then declined: this is `#if DEBUG` preview scaffolding. Revisit
-    with the Swift 6 migration (step 12), not before. PR12 leans on the fake harder (previews now
+    with the Swift 6 language mode item in the backlog, not before. PR12 leans on the fake harder (previews now
     exercise `update`/`delete` too) — the decision still stands, but that's why it's worth
     revisiting rather than forgetting.
 - **Three PR12 findings were reviewed and declined** — don't re-raise them:
@@ -446,7 +463,7 @@ either master screen before that link exists means inventing fake data for it tw
   - `stash@{0}` — the full first cut of PR8 (proportional timeline, block detail popup + delete,
     `UserRepository`, popup scaffold components, 13 localization keys). PR8 and PR9 between them
     re-implemented everything in it from a clean tree **except the `UserRepository` trio**, which is
-    the only reason it's still around — the Requests screen (step 4) needs it for client names.
+    the only reason it's still around — the Requests screen (screen 4) needs it for client names.
     Take those three files then, and drop the stash; popping it wholesale **will** conflict across
     `ScheduleView`/`ScheduleViewModel`/`HourlyTimelineView`/`MasterRootView`/`ScheduleMetrics`.
   - `stash@{1}` — the older PR5 stash (it shifted down from `stash@{0}` when the PR8 stash was
