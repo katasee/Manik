@@ -88,7 +88,7 @@ struct AddNewSlotBlock: View {
     }
 
     private func create(then dismiss: @escaping () -> Void) {
-        Task {
+        Task { @MainActor in
             if await viewModel.submit() {
                 dismiss()
             }

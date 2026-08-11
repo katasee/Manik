@@ -96,7 +96,7 @@ struct ScheduleView: View {
                 CreateBlockContext(
                     date: viewModel.selectedDate,
                     startHour: hour,
-                    services: viewModel.services
+                    services: viewModel.offeredServices
                 )
             )
         }

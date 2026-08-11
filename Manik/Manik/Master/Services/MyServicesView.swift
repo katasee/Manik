@@ -4,7 +4,8 @@ struct MyServicesView: View {
     @Environment(\.dismiss) private var dismiss
 
     @State private var viewModel: MyServicesViewModel
-    @State private var isAddingService = false
+    @State private var formMode: ServiceFormMode?
+    @State private var openRowId: String?
 
     init(viewModel: MyServicesViewModel) {
         _viewModel = State(initialValue: viewModel)
@@ -23,10 +24,16 @@ struct MyServicesView: View {
         .task {
             await viewModel.observeServices()
         }
-        .fullScreenCover(isPresented: $isAddingService) {
-            AddServicePopup(
-                viewModel: viewModel.makeAddServiceViewModel(),
-                onDismiss: dismissAddService
+        .alert(
+            viewModel.failure?.titleKey ?? "",
+            isPresented: $viewModel.hasFailure
+        ) {
+            Button("common.action.ok", role: .cancel) {}
+        }
+        .fullScreenCover(item: $formMode) { mode in
+            ServiceFormPopup(
+                viewModel: viewModel.makeFormViewModel(for: mode),
+                onDismiss: dismissForm
             )
             .presentationBackground(.clear)
         }
@@ -122,7 +129,18 @@ struct MyServicesView: View {
         ScrollView {
             LazyVStack(spacing: ServicesMetrics.Spacing.rowSpacing) {
                 ForEach(viewModel.services) { service in
-                    ServiceRow(service: service)
+                    SwipeToDelete(
+                        id: service.id ?? "",
+                        openId: $openRowId,
+                        cornerRadius: ServicesMetrics.Size.rowCornerRadius,
+                        onDelete: { delete(service) }
+                    ) {
+                        ServiceRow(
+                            service: service,
+                            onToggleActive: { toggleActive(service) }
+                        )
+                        .onTapGesture { editService(service) }
+                    }
                 }
             }
             .padding(.horizontal, ServicesMetrics.Spacing.horizontalPadding)
@@ -149,15 +167,38 @@ struct MyServicesView: View {
         }
     }
 
-    private func addService() {
-        withoutPresentationAnimation {
-            isAddingService = true
+    private func delete(_ service: Service) {
+        Task {
+            await viewModel.delete(service)
         }
     }
 
-    private func dismissAddService() {
+    private func toggleActive(_ service: Service) {
+        Task {
+            await viewModel.toggleActive(service)
+        }
+    }
+
+    private func addService() {
         withoutPresentationAnimation {
-            isAddingService = false
+            formMode = .add
+        }
+    }
+
+    private func editService(_ service: Service) {
+        guard openRowId == nil else {
+            openRowId = nil
+            return
+        }
+
+        withoutPresentationAnimation {
+            formMode = .edit(service)
+        }
+    }
+
+    private func dismissForm() {
+        withoutPresentationAnimation {
+            formMode = nil
         }
     }
 
