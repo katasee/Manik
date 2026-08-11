@@ -60,9 +60,9 @@ this file is just "what's done, what's next," not a design doc.
   collection — no CRUD screen yet (still step 1 below), so services are hand-seeded via Firebase
   Console for now. A `#if DEBUG` override feeds a `FakeServiceRepository`/`SchedulePreviewData`
   instead of live Firestore — kept deliberately so the checklist has something to show before real
-  services are seeded; **it lives in `ScheduleView.serviceRepository` since PR8** (was
-  `MasterRootView`). Remove it once Firestore `services` has real data or PR11 of step 1 removes
-  it. New files live under `Master/Schedule/CreateBlock/` (`AddNewSlotBlock`,
+  services are seeded; it lived in `ScheduleView.serviceRepository` from PR8 (before that, in
+  `MasterRootView`) and **PR11 removed it entirely** once services became creatable in-app.
+  New files live under `Master/Schedule/CreateBlock/` (`AddNewSlotBlock`,
   `CreateBlockContext`, `CreateBlockViewModel`, `ServicesChecklist`) and `Services/Fakes/`
   (`FakeBlockRepository`, `FakeServiceRepository`) — split out from a flatter `Master/Schedule/`
   once it hit 11 files.
@@ -159,20 +159,54 @@ this file is just "what's done, what's next," not a design doc.
     header with a live count, and the row rebuilt around a circled star icon. **The star is
     decorative** — `Service` has no `isFeatured`-style field, so the filled/outline distinction from
     the mockup has nothing to drive it. The mockup's per-row "Змінити" link was deliberately not
-    built (PR12), and **the "+" button is a stub with an empty action** until PR11.
+    built (PR12), and the "+" button was left a stub with an empty action until PR11 wired it.
   - States: `ProgressView` until the first snapshot (`hasLoaded`), `ContentUnavailableView` when
     empty; the section header hides itself rather than reading "· 0".
   - `MyServicesView.init(viewModel:)` is **required, not optional-with-default**. The
     `viewModel ?? MyServicesViewModel()` pattern silently binds the View to
     `FirestoreServiceRepository()`, so a preview that forgets to inject a fake still compiles and
     goes to the network. The repository default stays on the *view model*, which is the composition
-    root. `ScheduleView` still uses the old pattern — fix it in PR11, alongside its `#if DEBUG`
-    removal, rather than dragging that file into this PR.
+    root. `ScheduleView` kept the old pattern through PR10 and was brought in line in PR11,
+    alongside its `#if DEBUG` removal, rather than dragging that file into this PR.
   - `swiftui-pro` review: one finding applied — `.contentShape(.circle)` on the "+" button, whose
     `.frame`/`.background` sit *outside* the `Button` and therefore left a ~20pt hit area inside a
     52pt circle. Two findings declined: combining `ServiceRow`/section-header children into single
     accessibility elements, and extracting the header/intro into their own `View` structs.
   - Seven new `services.*` keys (en + uk).
+
+- **PR11 — Master "Мої послуги": додавання послуги (branch `feature/pr-11-addService`)**: кнопка «+»,
+  яку PR10 лишив заглушкою, стала робочою — попап із назвою й ціною пише в `services`, і послуга
+  одразу видима і в списку, і в чеклісті створення слота. Дата-шар не змінювався взагалі
+  (`ServiceRepository.add` існує з PR1), правила теж — звірка з Console показала, що опубліковані
+  правила збігаються з локальним `firestore.rules` рядок у рядок.
+  - **Тривалість послуги видалена з продукту**, не просто з форми: `Service` = `name` + `price`.
+    Тривалість візиту задають межі блоку (`startTime`/`endTime`), тож `durationMinutes` дублював цю
+    інформацію і використовувався лише як підпис у рядку списку. Разом із полем пішли
+    `ServiceFormat.duration(minutes:)`, другий рядок у `ServiceRow` і `ServicesMetrics.Spacing.rowTextSpacing`.
+    Уже засіяні документи з цим полем декодуються далі — Codable ігнорує невідомі ключі.
+  - `Master/Services/AddService/` — `AddServicePopup` + `AddServiceViewModel` на наявному
+    `PopupContainer`. Валідація: назва непорожня після trim і ціна > 0, без перевірки дублікатів.
+    Ціна парситься через `try? Double(text, format: .number.locale(.current))`, а не `Double(text)`:
+    `.decimalPad` видає роздільник поточної локалі, тож у полі буде «450,5», а ручна заміна коми
+    ламається на роздільниках тисяч.
+  - **Тулбар клавіатури обов'язковий** (`@FocusState` + `ToolbarItemGroup(placement: .keyboard)` з
+    `common.action.done`): у `.decimalPad`, на відміну від `.numbersAndPunctuation` в
+    `AddNewSlotBlock`, немає return-клавіші, тож без нього клавіатуру нічим прибрати — тап по фону
+    закрив би всю форму.
+  - **Ін'єкція через фабрику**: `MyServicesViewModel.makeAddServiceViewModel()` віддає дочірній VM,
+    лишаючи `serviceRepository` приватним. Батько не зберігає дитину й не читає її стан — тому
+    форма щоразу відкривається порожньою, а прев'ю з фейком працює наскрізь (додав → рядок
+    з'явився). `AddServiceViewModel.init` **без** дефолтного репозиторію, як і `MyServicesView`
+    після PR10.
+  - `withoutPresentationAnimation(_:)` переїхав із приватного методу `ScheduleView` у
+    `Assets/UICommons/PresentationAnimation.swift` — вільна функція, не метод на `View` (вона нічого
+    не рендерить). Другий споживач — `MyServicesView`.
+  - `FakeServiceRepository` став мутабельним `final class`: стрім більше не завершується, мутації
+    транслюються підписникам, `add` сам присвоює `id`. Тепер це виключно прев'ю-дабл — **`#if DEBUG`
+    підміна сервісів у `ScheduleView` знята**, а `ScheduleView.init(viewModel:)` став обов'язковим
+    (`MasterRootView` створює `ScheduleViewModel()` у `body`, який `@MainActor` — це заодно закрило
+    пункт 12 нижче для `ScheduleView`; лишається `AddNewSlotBlock`).
+  - Сім нових ключів локалізації (`common.action.done` + шість `services.add.*`), en + uk.
 
 ## Next steps (in order)
 
@@ -188,18 +222,12 @@ either master screen before that link exists means inventing fake data for it tw
    `firestore.rules:52-55` (`allow write: if isMaster()`). These slices are pure UI. Three
    decisions settled up front: navigation is a real `NavigationStack` (the app has none yet — this
    is the first screen that isn't a popup); the add/edit form is a popup on the existing
-   `PopupContainer`, not a full screen, since it's three fields; deleting a service used by
+   `PopupContainer`, not a full screen, since it's two fields; deleting a service used by
    existing blocks is **allowed** without a cross-collection check — the ids go dangling and the
    already-present `schedule.service.unknown` fallback covers it.
    - ~~**PR10 — read-only list**~~ — **done**, see the PR10 entry under "Done" above.
-   - **PR11 — add a service**: wire the "+" button PR10 left as a stub — popup form + validation +
-     `add`. Also rewrites `FakeServiceRepository` as a mutable in-memory class — the current
-     `struct` yields once and no-ops its mutations, which is fine for PR10's read-only preview but
-     leaves a CRUD preview inert (it also means PR10's `hasLoaded` spinner never appears in a
-     preview). Ends by removing the `#if DEBUG` fake-services override in `ScheduleView.swift:14` —
-     this is the first point where real services can actually be seeded. Expect the create-slot
-     checklist to look empty until you enter some. Take `ScheduleView`'s optional
-     `init(viewModel:)` down to a required one in the same pass, matching PR10's `MyServicesView`.
+   - ~~**PR11 — add a service**~~ — **done**, see the PR11 entry under "Done" above. Note it also
+     deleted `Service.durationMinutes` outright, so the form is two fields, not three.
    - **PR12 — edit + delete**: same form in edit mode (`update`), plus the existing `SwipeToDelete`
      wired to `delete` with a confirmation step. This is also where the mockup's per-row "Змінити"
      link finally gets an action — PR10 left it out rather than shipping a dead link per row.
@@ -228,9 +256,10 @@ either master screen before that link exists means inventing fake data for it tw
    temporary root placeholder, etc.).
 7. **"Забули пароль?"**: decide tappable-stub vs. real `sendPasswordReset` flow, then implement.
    (Was tracked as a task in a now-disconnected MCP tool — re-track here instead.)
-8. **Confirm `firestore.rules` deployment**: verify the latest rules (format validation +
-   privilege-escalation + booking field-pinning) are actually published in Firebase Console — this
-   has been mentioned multiple times but never confirmed done.
+8. ~~**Confirm `firestore.rules` deployment**~~ — **done (2026-08-07, during PR11)**: the rules
+   published in the Firebase Console for project `manik-5a2b8` were diffed against the local
+   `firestore.rules` and are identical line for line. Re-verify only after editing the file, since
+   deployment is manual (Console copy-paste, no CLI/CI hookup).
 9. **Live badge counter on "Заявки"**: `CustomTabBar`'s badge parameter currently always returns
    `nil` (`Master/MasterRootView.swift`, `CabinetKind.master`'s `badge` closure). Once the
    "Заявки" screen (step 4 above) exists, wire this to a live count of `pending`-status blocks
@@ -252,9 +281,12 @@ either master screen before that link exists means inventing fake data for it tw
     overlapping block. Teaching the context minutes touches `AddNewSlotBlock` +
     `CreateBlockViewModel`. Deleting a `confirmed` block also has no confirmation step.
 12. **Swift 6 language mode**: the project builds in Swift 5 mode with `minimal` concurrency
-    checking. Several `View` initializers construct `@MainActor` view models from a nonisolated
-    context (`ScheduleView`, `AddNewSlotBlock`) — legal today, an error under Swift 6 until `View`
-    conformance carries main-actor isolation. Don't paper over it with per-`init` `@MainActor`.
+    checking. `AddNewSlotBlock` still constructs a `@MainActor` view model from its nonisolated
+    `init` — legal today, an error under Swift 6 until `View` conformance carries main-actor
+    isolation. Don't paper over it with per-`init` `@MainActor`. (`ScheduleView` no longer belongs
+    on this list: since PR11 its view model is built in `MasterRootView.body`, which *is*
+    main-actor isolated.) The same migration is where the deliberately-declined
+    `FakeServiceRepository` race below should be revisited.
 13. **A failed read is indistinguishable from empty data** (found in PR10 review, deliberately
     deferred): `observeServices()`/`observeBlocks()` swallow listener errors and yield `?? []`, so
     a permissions failure or a dropped connection renders as a confident "Поки що немає послуг" /
@@ -262,20 +294,40 @@ either master screen before that link exists means inventing fake data for it tw
     snapshot case but not this one. The real fix is the `AsyncThrowingStream` switch that
     `data-layer.md` already names as the intended escalation path; it touches both repository
     protocols, both Firestore implementations, the fakes, and both view models.
+14. **Service names don't follow the device language** (raised during PR11 planning, deliberately
+    out of its scope): `Service.name` is master-entered *data*, stored as one `String`, so a client
+    on an English device sees whatever the master typed. Only the chrome around it localizes —
+    field labels, buttons, the placeholder, and the price/decimal-separator formatting. Making
+    names multilingual means turning `name` into a per-language map (e.g. `[String: String]` keyed
+    by language code) plus a resolver that falls back to the salon's default language when the
+    device's is missing, and it touches the model, the add/edit form (a field per language), the
+    services list, the create-slot checklist, and every client-facing screen that prints a service
+    name. Not scoped for the MVP — one salon, one master, who knows what language their clients
+    speak — so treat this as a decision to revisit only if the salon actually serves two languages.
 
 ## Housekeeping
 
 - Commit + push `feature/pr3/root-routing`, open PR, once the tab bar + first cabinet screen make
   it a coherent reviewable chunk (or sooner, at your discretion).
-- **`docs/superpowers/plans/2026-08-07-master-my-services-list.md` must be deleted once PR10 is
-  merged**, per `CLAUDE.md`. It carries a "where the shipped code differs" banner until then.
-- **Open question from PR10, never answered**: `ServiceFormat.currencyCode` is `"PLN"`, but the
-  design mockup showed prices in грн. One-word change either way — decide before PR11 puts a price
-  field in front of the user.
+- **Throwaway feature docs are cleaned up**: the PR10 plan and both PR11 artifacts (spec + plan)
+  were deleted in PR11, per `CLAUDE.md`; everything from them that outlives a branch is folded into
+  this file. `docs/superpowers/` now holds only the permanent MVP spec.
+- **Currency is settled: `PLN`.** The design mockup showed грн, but the salon works in the Polish
+  time zone; `ServiceFormat.currencyCode` stays `"PLN"`. Decided 2026-08-07, before PR11 put a
+  price field in front of the user — don't reopen without a product reason.
 - **Three PR9 review findings were reviewed and declined** — don't re-raise them: popup buttons'
   44pt tap target (modifiers sit outside the `Button`), `PopupContainer`'s bare `Rectangle()`
   backdrop in dark mode, and `BlockDetailPopup`'s default `FirestoreBlockRepository()` reaching
   live Firestore from `ScheduleView`'s preview.
+- **Two PR11 review findings were reviewed and declined** — don't re-raise them:
+  - `swiftui-pro`: `.accessibilityAddTraits(.isHeader)` on the add-service popup title.
+  - `swift-concurrency-pro`: `FakeServiceRepository` has a genuine race — the synchronous
+    `observeServices()` runs on the caller (MainActor in previews) while the nonisolated `async`
+    mutations hop to the generic executor — plus continuations that are never cleaned up, because
+    `onTermination` was deliberately left out to avoid mutating the dictionary off-actor. An
+    `OSAllocatedUnfairLock` fix was written and verified to compile warning-free under
+    `-strict-concurrency=complete`, then declined: this is `#if DEBUG` preview scaffolding. Revisit
+    with the Swift 6 migration (step 12), not before.
 - **Two stashes are outstanding** (`git stash list`):
   - `stash@{0}` — the full first cut of PR8 (proportional timeline, block detail popup + delete,
     `UserRepository`, popup scaffold components, 13 localization keys). PR8 and PR9 between them

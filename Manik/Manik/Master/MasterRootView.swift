@@ -11,7 +11,7 @@ struct MasterRootView: View {
             Group {
                 switch selectedTab {
                 case .schedule:
-                    ScheduleView()
+                    ScheduleView(viewModel: ScheduleViewModel())
                 case .requests:
                     placeholder
                 case .stats:
