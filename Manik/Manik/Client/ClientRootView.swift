@@ -10,27 +10,16 @@ struct ClientRootView: View {
         ZStack(alignment: .bottom) {
             Group {
                 switch selectedTab {
-                case .booking, .myBookings:
-                    VStack(spacing: 16) {
-                        Text("client.placeholder.title")
-                            .font(.elmsSans(.bold, 24))
-                            .foregroundStyle(Color.ink)
-
-                        Text(selectedTab.titleKey)
-                            .font(.elmsSans(.medium, 16))
-                            .foregroundStyle(Color.textSecondary)
-
-                        Text(profile.name)
-                            .font(.elmsSans(.regular, 16))
-                            .foregroundStyle(Color.textSecondary)
-
-                        Button(action: onSignOut) {
-                            Text("common.action.signOut")
-                                .font(.elmsSans(.bold, 14.5))
-                        }
-                    }
+                case .booking:
+                    BookingView(
+                        viewModel: BookingViewModel(),
+                        clientName: profile.name,
+                        bottomClearance: TabBarMetrics.Size.reservedClearance
+                    )
+                case .myBookings:
+                    placeholder
                 case .account:
-                    EmptyView()
+                    account
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -42,11 +31,42 @@ struct ClientRootView: View {
             CustomTabBar(kind: .client(selection: $selectedTab))
         }
     }
+
+    private var placeholder: some View {
+        Text("client.placeholder.title")
+            .font(.elmsSans(.bold, 24))
+            .foregroundStyle(Color.ink)
+    }
+
+    private var account: some View {
+        VStack(spacing: 16) {
+            Text(profile.name)
+                .font(.elmsSans(.bold, 24))
+                .foregroundStyle(Color.ink)
+
+            Text(profile.email)
+                .font(.elmsSans(.regular, 16))
+                .foregroundStyle(Color.textSecondary)
+
+            Button(action: onSignOut) {
+                Text("common.action.signOut")
+                    .font(.elmsSans(.bold, 14.5))
+                    .foregroundStyle(Color.ink)
+            }
+        }
+    }
 }
 
+#if DEBUG
 #Preview {
     ClientRootView(
-        profile: UserProfile(uid: "preview", role: .client, name: "Оля", email: "client@example.com"),
+        profile: UserProfile(
+            uid: "preview",
+            role: .client,
+            name: "Олена",
+            email: "client@example.com"
+        ),
         onSignOut: {}
     )
 }
+#endif
