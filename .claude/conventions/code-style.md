@@ -13,6 +13,11 @@ throw NSError(
 
 Same for declaring a function with 3+ parameters. Under 3 arguments, keep it on one line.
 
+One agreed exception: **literal fixture arrays inside `#if DEBUG` preview data may stay packed**
+(`BookingPreviewData.swift`, `ServicesPreviewData.swift`). A column of `Service(...)` / `block(...)`
+calls reads as a table, which is the point of the file, and none of it ships. The exception is for
+fixture *literals* only — production code and preview *views* follow the normal rule.
+
 User-facing strings never sit as bare literals in a View — they go in
 `Manik/Manik/Localizable.xcstrings` (String Catalog) under a `feature.kind.name` key
 (e.g. `auth.field.email`, `auth.action.signUp`) and get pulled in via `String(localized: "key")`.
