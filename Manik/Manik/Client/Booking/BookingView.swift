@@ -18,19 +18,23 @@ struct BookingView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: 0) {
-                    BookingHeader(
-                        clientName: clientName,
-                        nearestSlot: viewModel.nearestSlot
-                    )
+            GeometryReader { proxy in
+                ScrollView {
+                    VStack(spacing: 0) {
+                        BookingHeader(
+                            clientName: clientName,
+                            nearestSlot: viewModel.nearestSlot,
+                            topInset: proxy.safeAreaInsets.top
+                        )
 
-                    sectionHeader
-                    list
+                        sectionHeader
+                        list
+                    }
                 }
+                .scrollIndicators(.hidden)
+                .ignoresSafeArea(.container, edges: .top)
+                .overlay { statusOverlay }
             }
-            .scrollIndicators(.hidden)
-            .overlay { statusOverlay }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(Color.background)
             .toolbar(.hidden, for: .navigationBar)
