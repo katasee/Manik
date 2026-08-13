@@ -10,6 +10,7 @@ final class BookingViewModel {
     private(set) var nearestSlot: BookingSlot?
     private(set) var hasLoaded = false
 
+    private let clientId: String
     private let blockRepository: BlockRepository
     private let serviceRepository: ServiceRepository
 
@@ -25,11 +26,29 @@ final class BookingViewModel {
     }
 
     init(
+        clientId: String,
         blockRepository: BlockRepository = FirestoreBlockRepository(),
         serviceRepository: ServiceRepository = FirestoreServiceRepository()
     ) {
+        self.clientId = clientId
         self.blockRepository = blockRepository
         self.serviceRepository = serviceRepository
+    }
+
+    func makeDatesViewModel(for offer: ServiceOffer) -> BookingDatesViewModel {
+        BookingDatesViewModel(
+            offer: offer,
+            clientId: clientId,
+            blockRepository: blockRepository
+        )
+    }
+
+    func makeConfirmViewModel(context: BookingConfirmContext) -> BookingConfirmViewModel {
+        BookingConfirmViewModel(
+            context: context,
+            clientId: clientId,
+            blockRepository: blockRepository
+        )
     }
 
     func observeBlocks() async {

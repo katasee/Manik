@@ -3,15 +3,19 @@ import SwiftUI
 struct BookingDatesView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var viewModel: BookingDatesViewModel
+    @State private var confirmContext: BookingConfirmContext?
 
     let bottomClearance: CGFloat
+    let onBooked: () -> Void
 
     init(
         viewModel: BookingDatesViewModel,
-        bottomClearance: CGFloat
+        bottomClearance: CGFloat,
+        onBooked: @escaping () -> Void
     ) {
         _viewModel = State(initialValue: viewModel)
         self.bottomClearance = bottomClearance
+        self.onBooked = onBooked
     }
 
     var body: some View {
@@ -23,6 +27,14 @@ struct BookingDatesView: View {
         .background(Color.background)
         .toolbar(.hidden, for: .navigationBar)
         .safeAreaInset(edge: .bottom) { footer }
+        .fullScreenCover(item: $confirmContext) { context in
+            BookingConfirmPopup(
+                viewModel: viewModel.makeConfirmViewModel(context: context),
+                onDismiss: dismissConfirm,
+                onFinish: finishConfirm
+            )
+            .presentationBackground(.clear)
+        }
     }
 
     private var content: some View {
@@ -95,7 +107,7 @@ struct BookingDatesView: View {
                     serviceName: viewModel.serviceName,
                     slotLabel: slotLabel,
                     priceLabel: viewModel.priceLabel,
-                    action: {}
+                    action: presentConfirm
                 )
                 .padding(.horizontal, BookingMetrics.Spacing.horizontalPadding)
                 .padding(.bottom, BookingMetrics.Spacing.cardPadding)
@@ -135,6 +147,25 @@ struct BookingDatesView: View {
     private func goBack() {
         dismiss()
     }
+
+    private func presentConfirm() {
+        guard let context = viewModel.confirmContext else { return }
+
+        withoutPresentationAnimation {
+            confirmContext = context
+        }
+    }
+
+    private func dismissConfirm() {
+        withoutPresentationAnimation {
+            confirmContext = nil
+        }
+    }
+
+    private func finishConfirm() {
+        dismissConfirm()
+        onBooked()
+    }
 }
 
 #if DEBUG
@@ -147,8 +178,13 @@ struct BookingDatesView: View {
 
     return NavigationStack {
         BookingDatesView(
-            viewModel: BookingDatesViewModel(offer: offers[0]),
-            bottomClearance: 0
+            viewModel: BookingDatesViewModel(
+                offer: offers[0],
+                clientId: BookingPreviewData.clientId,
+                blockRepository: FakeBlockRepository(blocks: BookingPreviewData.blocks)
+            ),
+            bottomClearance: 0,
+            onBooked: {}
         )
     }
 }

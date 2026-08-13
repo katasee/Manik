@@ -15,12 +15,18 @@ final class BookingDatesViewModel {
     }
 
     private let now: Date
+    private let clientId: String
+    private let blockRepository: BlockRepository
 
     init(
         offer: ServiceOffer,
+        clientId: String,
+        blockRepository: BlockRepository,
         now: Date = .now
     ) {
         self.offer = offer
+        self.clientId = clientId
+        self.blockRepository = blockRepository
         self.now = now
         self.month = BookingAvailability.month(
             startingAt: Self.anchor(for: offer, now: now),
@@ -45,6 +51,20 @@ final class BookingDatesViewModel {
         guard let selectedSlot else { return nil }
 
         return "\(selectedSlot.shortDayLabel), \(selectedSlot.timeLabel)"
+    }
+
+    var confirmContext: BookingConfirmContext? {
+        guard let selectedSlot else { return nil }
+
+        return BookingConfirmContext(service: offer.service, slot: selectedSlot)
+    }
+
+    func makeConfirmViewModel(context: BookingConfirmContext) -> BookingConfirmViewModel {
+        BookingConfirmViewModel(
+            context: context,
+            clientId: clientId,
+            blockRepository: blockRepository
+        )
     }
 
     func select(day: BookingDay) {

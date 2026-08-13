@@ -136,6 +136,22 @@
         }
       }
     },
+    "booking.action.book" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Book"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Забронювати"
+          }
+        }
+      }
+    },
     "booking.action.continue" : {
       "localizations" : {
         "en" : {
@@ -248,6 +264,22 @@
         }
       }
     },
+    "booking.confirm.note" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your booking becomes active once the master confirms it"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Запис буде активний після підтвердження майстром"
+          }
+        }
+      }
+    },
     "booking.confirm.title" : {
       "localizations" : {
         "en" : {
@@ -312,6 +344,54 @@
         }
       }
     },
+    "booking.error.expired" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This time has already passed. Pick another one"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Цей час уже минув. Оберіть інший"
+          }
+        }
+      }
+    },
+    "booking.error.generic" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't book. Please try again"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не вдалось забронювати. Спробуйте ще раз"
+          }
+        }
+      }
+    },
+    "booking.error.slotTaken" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This time was just taken. Pick another one"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Цей час щойно зайняли. Оберіть інший"
+          }
+        }
+      }
+    },
     "booking.greeting" : {
       "localizations" : {
         "en" : {
@@ -356,6 +436,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Послуги"
+          }
+        }
+      }
+    },
+    "booking.success.message" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The master will confirm it shortly"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Майстер підтвердить його найближчим часом"
+          }
+        }
+      }
+    },
+    "booking.success.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Request sent"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Заявку надіслано"
           }
         }
       }

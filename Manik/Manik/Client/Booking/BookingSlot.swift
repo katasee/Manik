@@ -5,6 +5,10 @@ struct BookingSlot: Identifiable, Hashable {
     let date: String
     let startTime: String
 
+    var startsAt: Date? {
+        DateFormat.dateTime.date(from: "\(date) \(startTime)")
+    }
+
     var timeLabel: String {
         DateFormat.displayTime(startTime)
     }
