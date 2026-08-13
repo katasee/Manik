@@ -6,10 +6,7 @@ struct BookingHeader: View {
     let topInset: CGFloat
 
     var body: some View {
-        VStack(
-            alignment: .leading,
-            spacing: BookingMetrics.Spacing.headerContentSpacing
-        ) {
+        VStack(alignment: .leading, spacing: BookingMetrics.Spacing.headerContentSpacing) {
             greeting
             title
             nearestPill

@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct BookingFooterBar: View {
+struct ConfirmBar: View {
     let serviceName: String
     let slotLabel: String
     let priceLabel: String
@@ -8,10 +8,7 @@ struct BookingFooterBar: View {
 
     var body: some View {
         HStack(spacing: BookingMetrics.Spacing.cardContentSpacing) {
-            VStack(
-                alignment: .leading,
-                spacing: BookingMetrics.Spacing.footerSpacing
-            ) {
+            VStack(alignment: .leading, spacing: BookingMetrics.Spacing.footerSpacing) {
                 Text(verbatim: serviceName)
                     .font(.elmsSans(.medium, 15))
                     .foregroundStyle(Color.ink)
@@ -49,7 +46,7 @@ struct BookingFooterBar: View {
 
 #if DEBUG
 #Preview {
-    BookingFooterBar(
+    ConfirmBar(
         serviceName: "Манікюр + гель-лак",
         slotLabel: "12 серп, 12:30",
         priceLabel: "750 zł",

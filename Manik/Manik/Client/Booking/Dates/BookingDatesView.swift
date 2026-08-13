@@ -49,10 +49,7 @@ struct BookingDatesView: View {
     }
 
     private var timeSection: some View {
-        VStack(
-            alignment: .leading,
-            spacing: BookingMetrics.Spacing.chipSpacing
-        ) {
+        VStack(alignment: .leading, spacing: BookingMetrics.Spacing.chipSpacing) {
             Text("booking.calendar.pickTime")
                 .font(.elmsSans(.medium, 12))
                 .textCase(.uppercase)
@@ -94,7 +91,7 @@ struct BookingDatesView: View {
     private var footer: some View {
         VStack(spacing: 0) {
             if let slotLabel = viewModel.slotLabel {
-                BookingFooterBar(
+                ConfirmBar(
                     serviceName: viewModel.serviceName,
                     slotLabel: slotLabel,
                     priceLabel: viewModel.priceLabel,

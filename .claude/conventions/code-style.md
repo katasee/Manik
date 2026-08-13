@@ -13,6 +13,14 @@ throw NSError(
 
 Same for declaring a function with 3+ parameters. Under 3 arguments, keep it on one line.
 
+**A trailing closure does not count toward that total — only the arguments inside the parentheses
+do.** So `VStack(alignment: .leading, spacing: 8) { ... }` is a two-argument call and stays on one
+line, even though `VStack.init` genuinely takes three parameters and the closure is the third
+(`content:`). Counting it would split every stack, `Button(action:)` and `ForEach` in the app,
+which is not what the rest of the code does — the whole of `Auth/`, `Master/Schedule/` and
+`Assets/UICommons/` writes these on one line, and the handful of split ones that had accumulated in
+`Client/Booking/` were normalized back to match.
+
 One agreed exception: **literal fixture arrays inside `#if DEBUG` preview data may stay packed**
 (`BookingPreviewData.swift`, `ServicesPreviewData.swift`). A column of `Service(...)` / `block(...)`
 calls reads as a table, which is the point of the file, and none of it ships. The exception is for

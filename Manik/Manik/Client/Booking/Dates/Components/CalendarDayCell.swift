@@ -8,15 +8,7 @@ struct CalendarDayCell: View {
     var body: some View {
         Button(action: onTap) {
             VStack(spacing: BookingMetrics.Spacing.footerSpacing) {
-                Text(verbatim: day.numberLabel)
-                    .font(.elmsSans(.medium, 15))
-                    .foregroundStyle(numberColor)
-                    .frame(
-                        width: BookingMetrics.Size.daySelection,
-                        height: BookingMetrics.Size.daySelection
-                    )
-                    .background(isSelected ? Color.ink : Color.clear, in: .circle)
-
+                dayNumber
                 underline
             }
             .frame(maxWidth: .infinity, minHeight: BookingMetrics.Size.dayCell)
@@ -25,6 +17,17 @@ struct CalendarDayCell: View {
         }
         .buttonStyle(.plain)
         .disabled(day.isSelectable == false)
+    }
+
+    private var dayNumber: some View {
+        Text(verbatim: day.numberLabel)
+            .font(.elmsSans(.medium, 15))
+            .foregroundStyle(numberColor)
+            .frame(
+                width: BookingMetrics.Size.daySelection,
+                height: BookingMetrics.Size.daySelection
+            )
+            .background(isSelected ? Color.ink : Color.clear, in: .circle)
     }
 
     private var underline: some View {

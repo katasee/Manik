@@ -18,10 +18,7 @@ struct ServiceOfferCard: View {
             .buttonStyle(.plain)
             .accessibilityLabel("booking.card.allDates")
 
-            VStack(
-                alignment: .leading,
-                spacing: BookingMetrics.Spacing.cardContentSpacing
-            ) {
+            VStack(alignment: .leading, spacing: BookingMetrics.Spacing.cardContentSpacing) {
                 titleRow
                 nearestLabel
                 slotRow

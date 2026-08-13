@@ -349,6 +349,68 @@ this file is just "what's done, what's next," not a design doc.
     `LazyVGrid(columns:spacing:alignment:)` **не компілюється** — SwiftUI оголошує `alignment`
     перед `spacing`, а Swift вимагає позначені аргументи в порядку оголошення.
 
+- **PR14 — Client «Запис»: календар послуги (UI, branch `feature/pr-14-calendarAndBooking`,
+  6 задач)**: `BookingDatesView` із заглушки став справжнім екраном — місячний календар доступних
+  дат обраної послуги, ряд чипів годин обраного дня і футер вибору. Запису в Firestore досі немає й
+  нових запитів теж: усе похідне від `ServiceOffer.slots`, які вже вичитав `BookingViewModel`.
+  - **Задача 1 — спільний календар**: `DateFormat.salonCalendar` став internal і отримав
+    `firstWeekday = 2`; `WeekDayStrip` викинув власну ідентичну копію. Сітка місяця була б третім
+    споживачем — саме той момент, коли дубль виносять.
+  - **Задача 2 — сітка як дані**: `Dates/BookingDay.swift`, `Dates/BookingMonth.swift` і
+    `BookingAvailability.month(startingAt:for:now:)` — чиста побудова 6×7 без жодного SwiftUI.
+    Доступні дати — `Set` з `offer.slots`, тож перевірка дня це хеш-лукап, а не пошук по масиву.
+    `BookingDay.isSelectable` (`isAvailable && isPast == false`) — єдине місце, де живе правило
+    «можна тапнути». Перевірялось тимчасовим текстовим `#Preview("Month")`, видаленим у задачі 6 —
+    той самий прийом, що в PR13.
+  - **Задача 3 — компоненти**: `Dates/Components/CalendarDayCell.swift` (темне коло для обраного,
+    зелена риска `Color.freeSlot` для доступного, бліді дні сусідніх місяців),
+    `Dates/Components/MonthHeader.swift` (стрілки місяців, ліва блідне на поточному місяці).
+    `SlotChip` отримав `var isSelected = false` — саме `var`, бо memberwise-ініціалізатор тоді дає
+    параметру дефолт і обидва наявні виклики лишились валідними без правок.
+  - **Задача 4 — `Dates/Components/MonthGrid.swift`**: 7 колонок, шапка днів тижня з понеділка.
+  - **Задача 5 — `Dates/BookingDatesViewModel.swift`** (`@MainActor @Observable`): тримає видимий
+    місяць, обраний день і обрану годину. **Репозиторію тут навмисно немає** — усе похідне від
+    `offer`, а `now` фіксується в `init`, бо за нього відповідає батьківський екран із 60-секундним
+    тиком. `daySlots` — збережена похідна на `didSet` від `selectedDate` (як у `ScheduleViewModel`),
+    а не фільтр у `body`; початкове значення присвоюється в `init` вручну, бо `didSet` під час
+    ініціалізації не спрацьовує — без цього екран відкрився б без чипів.
+  - **Задача 6 — складання**: `Dates/Components/ConfirmBar.swift` + переписаний
+    `BookingDatesView`. Сигнатура змінилась на `BookingDatesView(viewModel:bottomClearance:)`, тож
+    `BookingView` правився в тій же задачі. `init(viewModel:)` **без дефолту** — правило з
+    PR10/PR11; тут репозиторію немає, але діє друга причина: view model `@MainActor`, а `init`
+    в'юхи нонізольований, тож будувати його треба в головноакторному `BookingView.body`.
+    `bottomClearance` — не косметика: `ClientRootView` малює `CustomTabBar` у `ZStack` над
+    контентом, а цей екран пушиться в той самий `NavigationStack`, тож без відступу футер
+    «Продовжити» опинявся б під баром.
+  - Локалізація: 5 нових ключів (`booking.action.continue`, `booking.calendar.nextMonth`,
+    `booking.calendar.noSlots`, `booking.calendar.pickTime`, `booking.calendar.previousMonth`) —
+    усі `en`+`uk`, `translated`, вставлені за абеткою.
+  - Кнопка «Продовжити» має **порожню дію** — це домовлений обсяг PR14. Попап підтвердження
+    приходить у PR15 і змінить рівно цю одну точку.
+  - **Після рев'ю (skill `swiftui-pro`)** доробки, які варто памʼятати:
+    - `SlotChip` став пілюлею з обведенням (`Capsule().fill(...).stroke(...)`, iOS 17 chaining
+      замість `background` + `overlay`). Причина не косметична: чип народився всередині
+      `ServiceOfferCard` на `Color.surface` і читався контрастом до неї, а на цьому екрані лежить
+      просто на `Color.background` — тобто був невидимий. Компонент, який переїжджає на інший фон,
+      треба перевіряти на власну межу.
+    - `bottomClearance` рахувався двічі: `safeAreaInset` додає висоту футера (в якій уже є
+      clearance) **плюс** нижній padding контенту скролу. Лишився один — на футері.
+    - Тап-таргет 44×44 у `MonthHeader` мусить бути **всередині** лейбла кнопки; `.frame` на самій
+      `Button` збільшує лише її layout-рамку, а не зону натискання.
+    - `MonthGrid` тримає `GridItem`-колонки одним `private static let` — інакше два `LazyVGrid`
+      перебудовували б однаковий масив на кожен рендер. Ряд днів тижня свідомо йде по
+      `indices, id: \.self`: українські символи «П В С Ч П С Н» містять дублікати, тож самі рядки
+      унікальними ключами бути не можуть.
+  - **Спроба, яку відкотили (`bebb9d9`)**: рев'ю запропонувало прибрати `GeometryReader`/`topInset`
+    із `BookingView`/`BookingHeader` і залити шапку через `.background { … .ignoresSafeArea(edges:
+    .top) }`. Усередині `ScrollView` це **не працює** — фон не розтягується під статус-бар, і шапка
+    перестає бути суцільною. Не повторювати; `topInset` через `GeometryReader` тут лишається
+    свідомим рішенням.
+  - Найменування: футер називається `ConfirmBar`, а не `BookingFooterBar` — суфікс `Bar` уже
+    каже, що це смуга, а `Booking` дублює теку. Тоді ж у `code-style.md` дописано, що **трейлінг-
+    клоужер не рахується** в правилі «3+ аргументи — по рядку на аргумент»: рахуються лише
+    аргументи в дужках, інакше довелося б розбивати кожен `VStack`/`ForEach` у застосунку.
+
 ## Screens (in order)
 
 This is the actual work queue, and the only numbered list here. The ordering follows the **data
@@ -378,19 +440,20 @@ those items are referred to by name, so the list can grow without renumbering an
      from what was planned here: deletion ships **without** a confirmation step, and the mockup's
      per-row "Змінити" link was still not built — editing is entered by tapping the row instead,
      while the row's star became a real activity toggle (a scope addition, not a substitution).
-2. ~~**Client — "Запис" (Booking)**~~ (mockup screen 03) — **partially done** (PR13, see the PR13
-   entry under "Done" above): the service list is wired to real `available` blocks and each card
-   already offers up to three hour chips of the nearest day. Two destination screens exist but are
-   empty shells — `BookingDatesView` (behind the chevron) and `BookingConfirmView` (behind a chip).
-   What's left is filling them: the **month calendar** with green-underlined available dates and the
-   hour grid under it, the footer showing the chosen service with the option to change it, and
-   actually writing the `pending` block via `BlockRepository.book(blockId:clientId:bookedServiceId:)`
-   — which is the first client write in the app, so it also needs `clientId` threaded in (the PR13
-   view model deliberately has none). Build the calendar and the hours in **one** slice: an
-   hours-only version was written and reverted precisely because a day list without the calendar is
-   code you throw away. Two things to carry in: `ServiceOffer.slots` already holds every future slot
-   of the service, so no new query is needed; and the past filter is up to 60 s stale, so guard at
-   the booking call rather than trusting the list. Still gates screens 4 and 5.
+2. ~~**Client — "Запис" (Booking)**~~ (mockup screen 03) — **partially done** (PR13 + PR14, обидва
+   під "Done" above): the service list is wired to real `available` blocks, and tapping a card's
+   chevron now opens a real screen — month calendar with green-underlined available dates, hour
+   chips of the selected day, and a footer with the chosen service, slot and price. Everything is
+   still **read-only**. What's left is two slices:
+   - **PR15 — попап підтвердження**: the footer's "Продовжити" button currently has an empty
+     action; that is the single point PR15 changes. `BookingConfirmView` (the PR13 shell behind a
+     card's hour chip) either becomes that popup or dies with it — the `.navigationDestination(for:
+     BookingSlot.self)` in `BookingView` was deliberately left untouched by PR14 for that reason.
+   - **PR16 — власне запис**: writing the `pending` block via
+     `BlockRepository.book(blockId:clientId:bookedServiceId:)` — the first client write in the app,
+     so it also needs `clientId` threaded in (the PR13 view model deliberately has none). Carry in:
+     the past filter is up to 60 s stale, so guard at the booking call rather than trusting the list.
+   Still gates screens 4 and 5.
 3. **Client — "Мої записи" (My bookings)**: list of own pending/confirmed blocks, cancel action.
    Thin follow-on to screen 2 — same repository, same models.
 4. **Master — "Заявки" (Requests)**: list of `pending` blocks with confirm/decline, reusing

@@ -8,25 +8,35 @@ struct MonthHeader: View {
 
     var body: some View {
         HStack(spacing: BookingMetrics.Spacing.pillSpacing) {
-            arrow(
-                systemName: "chevron.left",
-                labelKey: "booking.calendar.previousMonth",
-                action: onPrevious
-            )
-            .disabled(canGoBack == false)
-            .opacity(canGoBack ? 1 : BookingMetrics.Opacity.outsideMonth)
-
-            Text(verbatim: title)
-                .font(.elmsSans(.bold, 18))
-                .foregroundStyle(Color.ink)
-                .frame(maxWidth: .infinity)
-
-            arrow(
-                systemName: "chevron.right",
-                labelKey: "booking.calendar.nextMonth",
-                action: onNext
-            )
+            previousArrow
+            monthTitle
+            nextArrow
         }
+    }
+
+    private var previousArrow: some View {
+        arrow(
+            systemName: "chevron.left",
+            labelKey: "booking.calendar.previousMonth",
+            action: onPrevious
+        )
+        .disabled(canGoBack == false)
+        .opacity(canGoBack ? 1 : BookingMetrics.Opacity.outsideMonth)
+    }
+
+    private var nextArrow: some View {
+        arrow(
+            systemName: "chevron.right",
+            labelKey: "booking.calendar.nextMonth",
+            action: onNext
+        )
+    }
+
+    private var monthTitle: some View {
+        Text(verbatim: title)
+            .font(.elmsSans(.bold, 18))
+            .foregroundStyle(Color.ink)
+            .frame(maxWidth: .infinity)
     }
 
     private func arrow(
