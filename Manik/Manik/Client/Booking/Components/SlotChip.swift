@@ -2,21 +2,27 @@ import SwiftUI
 
 struct SlotChip: View {
     let slot: BookingSlot
+    var isSelected = false
 
     var body: some View {
         Text(slot.timeLabel)
             .font(.elmsSans(.bold, 15))
-            .foregroundStyle(Color.ink)
+            .foregroundStyle(isSelected ? Color.background : Color.ink)
             .lineLimit(1)
             .padding(.horizontal, BookingMetrics.Spacing.chipPadding)
             .frame(
                 minWidth: BookingMetrics.Size.chipMinWidth,
                 minHeight: BookingMetrics.Size.chipHeight
             )
-            .background(
-                Color.background,
-                in: .rect(cornerRadius: BookingMetrics.Size.chipCornerRadius)
-            )
+            .background {
+                Capsule()
+                    .fill(isSelected ? Color.ink : Color.background)
+                    .stroke(borderColor, lineWidth: BookingMetrics.Size.chipBorderWidth)
+            }
+    }
+
+    private var borderColor: Color {
+        isSelected ? Color.ink : Color.ink.opacity(BookingMetrics.Opacity.chipBorder)
     }
 }
 

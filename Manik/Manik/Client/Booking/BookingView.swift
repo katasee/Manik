@@ -18,27 +18,27 @@ struct BookingView: View {
 
     var body: some View {
         NavigationStack {
-            GeometryReader { proxy in
-                ScrollView {
-                    VStack(spacing: 0) {
-                        BookingHeader(
-                            clientName: clientName,
-                            nearestSlot: viewModel.nearestSlot,
-                            topInset: proxy.safeAreaInsets.top
-                        )
+            ScrollView {
+                VStack(spacing: 0) {
+                    BookingHeader(
+                        clientName: clientName,
+                        nearestSlot: viewModel.nearestSlot
+                    )
 
-                        sectionHeader
-                        list
-                    }
+                    sectionHeader
+                    list
                 }
-                .scrollIndicators(.hidden)
-                .ignoresSafeArea(.container, edges: .top)
             }
+            .scrollIndicators(.hidden)
+            .overlay { statusOverlay }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(Color.background)
             .toolbar(.hidden, for: .navigationBar)
             .navigationDestination(for: ServiceOffer.self) { offer in
-                BookingDatesView(offer: offer)
+                BookingDatesView(
+                    viewModel: BookingDatesViewModel(offer: offer),
+                    bottomClearance: bottomClearance
+                )
             }
             .navigationDestination(for: BookingSlot.self) { slot in
                 BookingConfirmView(slot: slot)
@@ -83,7 +83,6 @@ struct BookingView: View {
         .padding(.horizontal, BookingMetrics.Spacing.horizontalPadding)
         .padding(.top, BookingMetrics.Spacing.listTopPadding)
         .padding(.bottom, bottomClearance)
-        .overlay { statusOverlay }
     }
     
     @ViewBuilder

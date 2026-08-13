@@ -12,6 +12,13 @@ enum DateFormat {
 
     static let salonTimeZone = TimeZone(identifier: "Europe/Warsaw") ?? .current
 
+    static let salonCalendar: Calendar = {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = salonTimeZone
+        calendar.firstWeekday = 2
+        return calendar
+    }()
+
     static func hourLabel(for hour: Int) -> String {
         let components = DateComponents(
             year: 2000,
@@ -33,12 +40,6 @@ enum DateFormat {
     }
 
     private static let clockTime = templateFormatter("jmm")
-
-    private static let salonCalendar: Calendar = {
-        var calendar = Calendar(identifier: .gregorian)
-        calendar.timeZone = salonTimeZone
-        return calendar
-    }()
 
     private static func storageFormatter(_ format: String) -> DateFormatter {
         formatter(format, locale: Locale(identifier: "en_US_POSIX"))

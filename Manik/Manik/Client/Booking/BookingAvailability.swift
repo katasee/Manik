@@ -13,6 +13,37 @@ enum BookingAvailability {
             .sorted(by: soonestFirst)
     }
 
+    static func month(
+        startingAt monthStart: Date,
+        for offer: ServiceOffer,
+        now: Date
+    ) -> BookingMonth {
+        let calendar = DateFormat.salonCalendar
+        let start = startOfMonth(monthStart, in: calendar)
+        let gridStart = calendar.dateInterval(of: .weekOfYear, for: start)?.start ?? start
+        let dates = (0..<gridLength).compactMap {
+            calendar.date(byAdding: .day, value: $0, to: gridStart)
+        }
+        let availableDates = Set(offer.slots.map(\.date))
+        let today = calendar.startOfDay(for: now)
+
+        return BookingMonth(
+            start: start,
+            title: DateFormat.monthYear.string(from: start),
+            weekdaySymbols: dates.prefix(daysPerWeek).map(weekdaySymbol),
+            days: dates.map { date in
+                day(
+                    date,
+                    in: start,
+                    availableDates: availableDates,
+                    today: today,
+                    calendar: calendar
+                )
+            },
+            canGoBack: start > startOfMonth(now, in: calendar)
+        )
+    }
+
     private static func offer(for service: Service, among upcoming: [Block]) -> ServiceOffer? {
         guard let serviceId = service.id else { return nil }
 
@@ -62,5 +93,41 @@ enum BookingAvailability {
         if left.startTime != right.startTime { return left.startTime < right.startTime }
 
         return lhs.service.name.localizedStandardCompare(rhs.service.name) == .orderedAscending
+    }
+
+    static let daysPerWeek = 7
+
+    private static let gridLength = 42
+
+    private static func day(
+        _ date: Date,
+        in monthStart: Date,
+        availableDates: Set<String>,
+        today: Date,
+        calendar: Calendar
+    ) -> BookingDay {
+        let key = DateFormat.date.string(from: date)
+
+        return BookingDay(
+            date: key,
+            numberLabel: DateFormat.dayNumber.string(from: date),
+            isInMonth: calendar.isDate(
+                date,
+                equalTo: monthStart,
+                toGranularity: .month
+            ),
+            isAvailable: availableDates.contains(key),
+            isPast: date < today
+        )
+    }
+
+    private static func startOfMonth(_ date: Date, in calendar: Calendar) -> Date {
+        let components = calendar.dateComponents([.year, .month], from: date)
+
+        return calendar.date(from: components) ?? date
+    }
+
+    private static func weekdaySymbol(_ date: Date) -> String {
+        DateFormat.weekdayLetter.string(from: date).uppercased()
     }
 }

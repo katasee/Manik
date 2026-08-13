@@ -3,7 +3,6 @@ import SwiftUI
 struct BookingHeader: View {
     let clientName: String
     let nearestSlot: BookingSlot?
-    let topInset: CGFloat
 
     var body: some View {
         VStack(
@@ -16,9 +15,8 @@ struct BookingHeader: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, BookingMetrics.Spacing.headerHorizontalPadding)
-        .padding(.top, BookingMetrics.Spacing.headerPadding + topInset)
-        .padding(.bottom, BookingMetrics.Spacing.headerPadding)
-        .background { headerBackground }
+        .padding(.vertical, BookingMetrics.Spacing.headerPadding)
+        .background { headerBackground.ignoresSafeArea(edges: .top) }
     }
 
     private var greeting: some View {
@@ -95,8 +93,7 @@ struct BookingHeader: View {
                 id: "b1",
                 date: DateFormat.date.string(from: BookingPreviewData.reference),
                 startTime: "10:00"
-            ),
-            topInset: 0
+            )
         )
     }
     .background(Color.background)
@@ -106,8 +103,7 @@ struct BookingHeader: View {
     ScrollView {
         BookingHeader(
             clientName: "Олена",
-            nearestSlot: nil,
-            topInset: 0
+            nearestSlot: nil
         )
     }
     .background(Color.background)
