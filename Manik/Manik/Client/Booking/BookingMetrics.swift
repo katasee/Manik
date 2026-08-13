@@ -18,6 +18,7 @@ enum BookingMetrics {
     enum Spacing {
         static let horizontalPadding: CGFloat = 16
         static let headerPadding: CGFloat = 20
+        static let headerHorizontalPadding: CGFloat = 32
         static let headerContentSpacing: CGFloat = 10
         static let cardPadding: CGFloat = 16
         static let cardContentSpacing: CGFloat = 12

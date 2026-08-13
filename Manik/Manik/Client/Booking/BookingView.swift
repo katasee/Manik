@@ -18,15 +18,21 @@ struct BookingView: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 0) {
-                BookingHeader(
-                    clientName: clientName,
-                    nearestSlot: viewModel.nearestSlot
-                )
-                .padding(.horizontal, BookingMetrics.Spacing.horizontalPadding)
+            GeometryReader { proxy in
+                ScrollView {
+                    VStack(spacing: 0) {
+                        BookingHeader(
+                            clientName: clientName,
+                            nearestSlot: viewModel.nearestSlot,
+                            topInset: proxy.safeAreaInsets.top
+                        )
 
-                sectionHeader
-                list
+                        sectionHeader
+                        list
+                    }
+                }
+                .scrollIndicators(.hidden)
+                .ignoresSafeArea(.container, edges: .top)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(Color.background)
@@ -67,21 +73,19 @@ struct BookingView: View {
             .padding(.top, BookingMetrics.Spacing.sectionTopPadding)
         }
     }
-
+    
     private var list: some View {
-        ScrollView {
-            LazyVStack(spacing: BookingMetrics.Spacing.listSpacing) {
-                ForEach(viewModel.offers) { offer in
-                    ServiceOfferCard(offer: offer)
-                }
+        LazyVStack(spacing: BookingMetrics.Spacing.listSpacing) {
+            ForEach(viewModel.offers) { offer in
+                ServiceOfferCard(offer: offer)
             }
-            .padding(.horizontal, BookingMetrics.Spacing.horizontalPadding)
-            .padding(.top, BookingMetrics.Spacing.listTopPadding)
-            .padding(.bottom, bottomClearance)
         }
+        .padding(.horizontal, BookingMetrics.Spacing.horizontalPadding)
+        .padding(.top, BookingMetrics.Spacing.listTopPadding)
+        .padding(.bottom, bottomClearance)
         .overlay { statusOverlay }
     }
-
+    
     @ViewBuilder
     private var statusOverlay: some View {
         if viewModel.hasLoaded == false {

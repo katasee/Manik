@@ -10,15 +10,24 @@ struct ServiceOfferCard: View {
     }
 
     var body: some View {
-        VStack(
-            alignment: .leading,
-            spacing: BookingMetrics.Spacing.cardContentSpacing
-        ) {
-            titleRow
-            nearestLabel
-            slotRow
+        ZStack {
+            NavigationLink(value: offer) {
+                Color.clear
+                    .contentShape(.rect)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("booking.card.allDates")
+
+            VStack(
+                alignment: .leading,
+                spacing: BookingMetrics.Spacing.cardContentSpacing
+            ) {
+                titleRow
+                nearestLabel
+                slotRow
+            }
+            .padding(BookingMetrics.Spacing.cardPadding)
         }
-        .padding(BookingMetrics.Spacing.cardPadding)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
             Color.surface,
@@ -42,6 +51,7 @@ struct ServiceOfferCard: View {
                 .lineLimit(1)
                 .layoutPriority(1)
         }
+        .allowsHitTesting(false)
     }
 
     private var slotRow: some View {
@@ -71,22 +81,20 @@ struct ServiceOfferCard: View {
             .textCase(.uppercase)
             .tracking(BookingMetrics.Tracking.sectionLabel)
             .foregroundStyle(Color.textSecondary)
+            .allowsHitTesting(false)
         }
     }
 
     private var chevron: some View {
-        NavigationLink(value: offer) {
-            Image(systemName: "chevron.right")
-                .font(.elmsSans(.bold, BookingMetrics.Size.chevron))
-                .foregroundStyle(Color.background)
-                .frame(
-                    width: BookingMetrics.Size.chevronButton,
-                    height: BookingMetrics.Size.chevronButton
-                )
-                .background(Color.ink, in: .circle)
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel("booking.card.allDates")
+        Image(systemName: "chevron.right")
+            .font(.elmsSans(.bold, BookingMetrics.Size.chevron))
+            .foregroundStyle(Color.background)
+            .frame(
+                width: BookingMetrics.Size.chevronButton,
+                height: BookingMetrics.Size.chevronButton
+            )
+            .background(Color.ink, in: .circle)
+            .allowsHitTesting(false)
     }
 }
 

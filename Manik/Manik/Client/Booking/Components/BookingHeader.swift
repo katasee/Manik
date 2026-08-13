@@ -3,6 +3,7 @@ import SwiftUI
 struct BookingHeader: View {
     let clientName: String
     let nearestSlot: BookingSlot?
+    let topInset: CGFloat
 
     var body: some View {
         VStack(
@@ -14,7 +15,9 @@ struct BookingHeader: View {
             nearestPill
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(BookingMetrics.Spacing.headerPadding)
+        .padding(.horizontal, BookingMetrics.Spacing.headerHorizontalPadding)
+        .padding(.top, BookingMetrics.Spacing.headerPadding + topInset)
+        .padding(.bottom, BookingMetrics.Spacing.headerPadding)
         .background { headerBackground }
     }
 
@@ -60,42 +63,53 @@ struct BookingHeader: View {
     }
 
     private var headerBackground: some View {
-        Color.ink
-            .overlay(alignment: .topTrailing) { bubble }
-            .clipShape(.rect(cornerRadius: BookingMetrics.Size.headerCornerRadius))
+        let radius = BookingMetrics.Size.headerCornerRadius
+
+        return GeometryReader { proxy in
+            let stretch = max(0, proxy.frame(in: .scrollView).minY)
+
+            Color.ink
+                .overlay(alignment: .topTrailing) { bubble(stretch: stretch) }
+                .clipShape(.rect(bottomLeadingRadius: radius, bottomTrailingRadius: radius))
+                .frame(height: proxy.size.height + stretch)
+                .offset(y: -stretch)
+        }
     }
 
-    private var bubble: some View {
-        Circle()
+    private func bubble(stretch: CGFloat) -> some View {
+        let diameter = BookingMetrics.Size.headerBubble
+
+        return Ellipse()
             .fill(Color.background.opacity(BookingMetrics.Opacity.headerBubble))
-            .frame(
-                width: BookingMetrics.Size.headerBubble,
-                height: BookingMetrics.Size.headerBubble
-            )
-            .offset(
-                x: BookingMetrics.Size.headerBubble / 3,
-                y: -BookingMetrics.Size.headerBubble / 3
-            )
+            .frame(width: diameter, height: diameter + stretch)
+            .offset(x: diameter / 3, y: -diameter / 3)
     }
 }
 
 #if DEBUG
 #Preview("З найближчим вікном") {
-    BookingHeader(
-        clientName: "Олена",
-        nearestSlot: BookingSlot(
-            id: "b1",
-            date: DateFormat.date.string(from: BookingPreviewData.reference),
-            startTime: "10:00"
+    ScrollView {
+        BookingHeader(
+            clientName: "Олена",
+            nearestSlot: BookingSlot(
+                id: "b1",
+                date: DateFormat.date.string(from: BookingPreviewData.reference),
+                startTime: "10:00"
+            ),
+            topInset: 0
         )
-    )
-    .padding(.horizontal, BookingMetrics.Spacing.horizontalPadding)
+    }
     .background(Color.background)
 }
 
 #Preview("Без вікон") {
-    BookingHeader(clientName: "Олена", nearestSlot: nil)
-        .padding(.horizontal, BookingMetrics.Spacing.horizontalPadding)
-        .background(Color.background)
+    ScrollView {
+        BookingHeader(
+            clientName: "Олена",
+            nearestSlot: nil,
+            topInset: 0
+        )
+    }
+    .background(Color.background)
 }
 #endif
