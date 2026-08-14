@@ -411,6 +411,65 @@ this file is just "what's done, what's next," not a design doc.
     клоужер не рахується** в правилі «3+ аргументи — по рядку на аргумент»: рахуються лише
     аргументи в дужках, інакше довелося б розбивати кожен `VStack`/`ForEach` у застосунку.
 
+- **PR15 — Client «Запис»: підтвердження і бронювання (branch `feature/pr-15-confirmBooking`,
+  6 задач)**: клієнтка реально записується — блок стає `pending` у Firestore, і це **перший запис
+  клієнта в застосунку**. PR15 і PR16 з черги нижче свідомо злиті в один: попап без запису був би
+  декоративною заглушкою, а зріз має бути наскрізним.
+  - **Доменні дрібниці**: `BookingSlot.startsAt: Date?` (дзеркалить `Block+StartDate`),
+    `Confirm/BookingConfirmContext.swift` (`Identifiable`, **не** `Hashable` — у навігацію не йде,
+    тож `Service` не довелось робити `Hashable` заради попапа), `Confirm/BookingFailure.swift`
+    (enum із `messageKey`, за зразком `ServicesFailure` — сирий `error.localizedDescription`
+    від Firestore англійський і технічний).
+  - **`permissionDenied` → `BookingError.slotUnavailable`**: `firestore.rules` має
+    `resource.data.status == "available"` в `isClientBooking()`, тож перехоплений слот сервер
+    відбиває `permissionDenied` — це не мережева помилка, це «час зайняли». Мапінг живе
+    **всередині** `FirestoreBlockRepository` (private `NSError.isSlotUnavailable`), бо шар
+    протоколів не імпортує Firebase; `Services/Repositories/BookingError.swift` — доменний тип,
+    який бачить view model. Самі правила **не змінювались**, передеплой не потрібен.
+  - **`BookingConfirmViewModel`**: два guard-и (`Service.id`, `isUpcoming`), виклик репозиторію,
+    три помилки, `isBooked`. `isUpcoming` читає `.now`, а **не** зафіксований `now` батька — список
+    фільтрує минуле раз на 60 с, тож на момент тапу дані протухлі до хвилини. Це закриває пункт
+    беклогу «past filter is up to 60 s stale». `guard isSaving == false` — той самий фікс, що PR12
+    зробив `ServiceFormViewModel.submit()`.
+  - **`BookingConfirmPopup` — один попап, два стани** (підтвердження → успіх: галочка, текст про
+    очікування підтвердження, «Готово»), на наявному `PopupContainer`. Помилки **інлайн у попапі**,
+    не алертом: алерт поверх попапа поверх `fullScreenCover` це три шари презентації.
+    `.animation(_:value:)` обовʼязково **з `value:`** — контейнер анімує лише власну появу, без
+    цього картка стрибком міняє висоту; тривалість 0.2 збігається з `PopupContainerLayout.fade`.
+    `PopupContainer(onDismiss:)` отримує `exit`, а не `onDismiss`: після успіху **обидва** виходи
+    (тап по фону і «Готово») мусять перемикати таб, інакше однаковий стан поводиться по-різному.
+  - **Попап показується з двох екранів**: чіп години на картці списку відкриває його **напряму**
+    (а не веде в календар), і кнопка «Продовжити» у `ConfirmBar`. Тому `ServiceOfferCard` отримав
+    `onSelect: (BookingSlot) -> Void`, чіп із `NavigationLink` став `Button`, а
+    `.navigationDestination(for: BookingSlot.self)` і заглушка `Confirm/BookingConfirmView.swift`
+    (PR13) видалені. `NavigationLink(value: offer)` під карткою лишився — кнопка й лінк це різні
+    контроли, вкладених лінків не зʼявилось.
+  - **`BookingViewModel` став композиційним коренем** клієнтського таба: єдиний тримає `clientId`
+    (з `profile.uid`, не з `AuthRepository`) і `BlockRepository`, роздає дочірні VM фабриками
+    (`makeDatesViewModel(for:)`, `makeConfirmViewModel(context:)`), тож репозиторій не витікає у
+    вʼюхи — прийом із `MyServicesViewModel.makeFormViewModel(for:)` (PR11). Дефолтні репозиторії
+    дозволені **тільки тут**. `BookingDatesViewModel` теж отримав `clientId`/`blockRepository` і
+    власну фабрику, бо попап відкривається і з календаря.
+  - **Після «Готово» перемикається таб** на «Мої записи» (поки заглушка — усвідомлено: факт запису
+    вже підтверджено попапом). Стек «Запису» попити не треба: роутер перебудовує вʼюху при зміні
+    таба, тож `NavigationStack` скидається сам — PR15 **спирається** на пункт беклогу про
+    перебудову view models, але не лікує його.
+  - **`FakeBlockRepository` став мутабельним `final class`** (як `FakeServiceRepository` після
+    PR11): стрім більше не завершується після першого `yield`, мутації транслюються підписникам, а
+    `book` повторює серверне правило (`guard status == .available else throw .slotUnavailable`).
+    Завдяки цьому прев'ю проганяє весь ланцюг без Firestore: тап по чіпу → попап → «Забронювати» →
+    успіх → картка перебудувалась, слот зник із чипів. Друге прев'ю попапа віддає фейк **без
+    блоків** і показує червоний рядок «час зайняли». Це заодно оживило `BookingPreviewData.clientId`
+    (був мертвим із PR13).
+  - `withoutPresentationAnimation` на обох показах/закриттях кавера — без нього системний слайд-ап
+    бʼється з власним фейдом `PopupContainer`.
+  - Локалізація: 7 нових ключів (`booking.action.book`, `booking.confirm.note`,
+    `booking.error.expired`, `booking.error.generic`, `booking.error.slotTaken`,
+    `booking.success.message`, `booking.success.title`) — `en`+`uk`, `translated`, за абеткою.
+    Переюзано `booking.confirm.title` (тепер заголовок попапа, не екрана),
+    `common.action.cancel`, `common.action.done`.
+  - **Не в цьому PR**: скасування запису клієнткою і справжній екран «Мої записи».
+
 ## Screens (in order)
 
 This is the actual work queue, and the only numbered list here. The ordering follows the **data
@@ -440,20 +499,12 @@ those items are referred to by name, so the list can grow without renumbering an
      from what was planned here: deletion ships **without** a confirmation step, and the mockup's
      per-row "Змінити" link was still not built — editing is entered by tapping the row instead,
      while the row's star became a real activity toggle (a scope addition, not a substitution).
-2. ~~**Client — "Запис" (Booking)**~~ (mockup screen 03) — **partially done** (PR13 + PR14, обидва
-   під "Done" above): the service list is wired to real `available` blocks, and tapping a card's
-   chevron now opens a real screen — month calendar with green-underlined available dates, hour
-   chips of the selected day, and a footer with the chosen service, slot and price. Everything is
-   still **read-only**. What's left is two slices:
-   - **PR15 — попап підтвердження**: the footer's "Продовжити" button currently has an empty
-     action; that is the single point PR15 changes. `BookingConfirmView` (the PR13 shell behind a
-     card's hour chip) either becomes that popup or dies with it — the `.navigationDestination(for:
-     BookingSlot.self)` in `BookingView` was deliberately left untouched by PR14 for that reason.
-   - **PR16 — власне запис**: writing the `pending` block via
-     `BlockRepository.book(blockId:clientId:bookedServiceId:)` — the first client write in the app,
-     so it also needs `clientId` threaded in (the PR13 view model deliberately has none). Carry in:
-     the past filter is up to 60 s stale, so guard at the booking call rather than trusting the list.
-   Still gates screens 4 and 5.
+2. ~~**Client — "Запис" (Booking)**~~ (mockup screen 03) — **done** (PR13 + PR14 + PR15, усі три
+   під "Done" above): the service list is wired to real `available` blocks, a card's chevron opens
+   the month calendar with green-underlined available dates and hour chips, and an hour — from
+   either screen — opens a confirmation popup that really writes the `pending` block and drops the
+   client into the "Мої записи" tab. The planned PR15/PR16 split was collapsed into one PR: a popup
+   that doesn't write would have been a decorative stub. No longer gates screens 3–5.
 3. **Client — "Мої записи" (My bookings)**: list of own pending/confirmed blocks, cancel action.
    Thin follow-on to screen 2 — same repository, same models.
 4. **Master — "Заявки" (Requests)**: list of `pending` blocks with confirm/decline, reusing
@@ -485,19 +536,20 @@ numbering drifts every time an item is added or closed (it already did once: PR9
 
 - **Extract the screen header and the list status overlay into `Assets/UICommons/`** — agreed after
   PR13's final review to ship as its own small refactor PR, so PR13 stays purely client-side. The
-  back-button header now exists in **three** copies (`MyServicesView`, `BookingDatesView`,
-  `BookingConfirmView`), identical modifier for modifier, and the `ProgressView` /
+  back-button header now exists in **two** copies (`MyServicesView`, `BookingDatesView` — the third,
+  `BookingConfirmView`, was deleted by PR15), identical modifier for modifier, and the `ProgressView` /
   `ContentUnavailableView` status overlay in two (`MyServicesView`, `BookingView`). Both are
   domain-free, so unlike `BlockStatusPill` there's no "does UICommons get to know about the domain"
   question. Target: `ScreenHeader(titleKey:onBack:)` and `ListStatusOverlay(hasLoaded:titleKey:messageKey:)`,
   each with file-scope private constants; then delete `backIcon`/`backTapTarget` from both
   `BookingMetrics` and `ServicesMetrics` (they hold the same 26/44 twice).
 - **PR13 leftovers from the final whole-branch review** — all Minor, none blocking:
-  - `BookingPreviewData.clientId` is dead (PR13 writes nothing); the confirm-popup slice re-adds it.
+  - ~~`BookingPreviewData.clientId` is dead~~ — **fixed by PR15**: it feeds every confirm-popup and
+    calendar preview now that the fake repository actually books.
   - ~~`ServiceOffer.id`'s unreachable fallback~~ — **fixed before merge**: `id` is now a stored
     `let`, assigned from the already-unwrapped `serviceId`.
-  - The past filter is up to 60 s stale (`now` is re-read on the tick, not per render). Harmless
-    while read-only; once booking writes exist, guard at the call rather than ticking faster.
+  - ~~The past filter is up to 60 s stale~~ — **fixed by PR15**: `BookingConfirmViewModel.book()`
+    guards on `.now` at the call site instead of trusting the list's ticked `now`.
   - The booking design spec (`docs/superpowers/specs/2026-08-08-client-booking-design.md`) was
     **deleted** together with the PR13 plan file once the code landed, per the CLAUDE.md rule that
     these are throwaway artifacts. The parts of it worth keeping are folded into the PR13 entry

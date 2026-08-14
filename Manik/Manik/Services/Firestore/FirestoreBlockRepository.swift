@@ -27,11 +27,15 @@ final class FirestoreBlockRepository: BlockRepository {
         clientId: String,
         bookedServiceId: String
     ) async throws {
-        try await db.collection("blocks").document(blockId).updateData([
-            "status": BlockStatus.pending.rawValue,
-            "clientId": clientId,
-            "bookedServiceId": bookedServiceId
-        ])
+        do {
+            try await db.collection("blocks").document(blockId).updateData([
+                "status": BlockStatus.pending.rawValue,
+                "clientId": clientId,
+                "bookedServiceId": bookedServiceId
+            ])
+        } catch let error as NSError where error.isSlotUnavailable {
+            throw BookingError.slotUnavailable
+        }
     }
 
     func confirm(blockId: String) async throws {
@@ -54,5 +58,11 @@ final class FirestoreBlockRepository: BlockRepository {
             "clientId": FieldValue.delete(),
             "bookedServiceId": FieldValue.delete()
         ])
+    }
+}
+
+private extension NSError {
+    var isSlotUnavailable: Bool {
+        domain == FirestoreErrorDomain && code == FirestoreErrorCode.permissionDenied.rawValue
     }
 }

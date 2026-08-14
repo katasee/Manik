@@ -2,18 +2,22 @@ import SwiftUI
 
 struct BookingView: View {
     @State private var viewModel: BookingViewModel
+    @State private var confirmContext: BookingConfirmContext?
 
     let clientName: String
     let bottomClearance: CGFloat
+    let onBooked: () -> Void
 
     init(
         viewModel: BookingViewModel,
         clientName: String,
-        bottomClearance: CGFloat
+        bottomClearance: CGFloat,
+        onBooked: @escaping () -> Void
     ) {
         _viewModel = State(initialValue: viewModel)
         self.clientName = clientName
         self.bottomClearance = bottomClearance
+        self.onBooked = onBooked
     }
 
     var body: some View {
@@ -40,12 +44,18 @@ struct BookingView: View {
             .toolbar(.hidden, for: .navigationBar)
             .navigationDestination(for: ServiceOffer.self) { offer in
                 BookingDatesView(
-                    viewModel: BookingDatesViewModel(offer: offer),
-                    bottomClearance: bottomClearance
+                    viewModel: viewModel.makeDatesViewModel(for: offer),
+                    bottomClearance: bottomClearance,
+                    onBooked: onBooked
                 )
             }
-            .navigationDestination(for: BookingSlot.self) { slot in
-                BookingConfirmView(slot: slot)
+            .fullScreenCover(item: $confirmContext) { context in
+                BookingConfirmPopup(
+                    viewModel: viewModel.makeConfirmViewModel(context: context),
+                    onDismiss: dismissConfirm,
+                    onFinish: finishConfirm
+                )
+                .presentationBackground(.clear)
             }
         }
         .task {
@@ -81,12 +91,32 @@ struct BookingView: View {
     private var list: some View {
         LazyVStack(spacing: BookingMetrics.Spacing.listSpacing) {
             ForEach(viewModel.offers) { offer in
-                ServiceOfferCard(offer: offer)
+                ServiceOfferCard(
+                    offer: offer,
+                    onSelect: { presentConfirm(offer: offer, slot: $0) }
+                )
             }
         }
         .padding(.horizontal, BookingMetrics.Spacing.horizontalPadding)
         .padding(.top, BookingMetrics.Spacing.listTopPadding)
         .padding(.bottom, bottomClearance)
+    }
+
+    private func presentConfirm(offer: ServiceOffer, slot: BookingSlot) {
+        withoutPresentationAnimation {
+            confirmContext = BookingConfirmContext(service: offer.service, slot: slot)
+        }
+    }
+
+    private func dismissConfirm() {
+        withoutPresentationAnimation {
+            confirmContext = nil
+        }
+    }
+
+    private func finishConfirm() {
+        dismissConfirm()
+        onBooked()
     }
     
     @ViewBuilder
@@ -112,22 +142,26 @@ struct BookingView: View {
 #Preview("З пропозиціями") {
     BookingView(
         viewModel: BookingViewModel(
+            clientId: BookingPreviewData.clientId,
             blockRepository: FakeBlockRepository(blocks: BookingPreviewData.blocks),
             serviceRepository: FakeServiceRepository(services: BookingPreviewData.services)
         ),
         clientName: "Олена",
-        bottomClearance: 0
+        bottomClearance: 0,
+        onBooked: {}
     )
 }
 
 #Preview("Порожньо") {
     BookingView(
         viewModel: BookingViewModel(
+            clientId: BookingPreviewData.clientId,
             blockRepository: FakeBlockRepository(blocks: []),
             serviceRepository: FakeServiceRepository(services: BookingPreviewData.services)
         ),
         clientName: "Олена",
-        bottomClearance: 0
+        bottomClearance: 0,
+        onBooked: {}
     )
 }
 #endif

@@ -4,6 +4,7 @@ struct ServiceOfferCard: View {
     private static let maxChips = 3
 
     let offer: ServiceOffer
+    let onSelect: (BookingSlot) -> Void
 
     private var chips: [BookingSlot] {
         Array(offer.nearestDaySlots.prefix(Self.maxChips))
@@ -54,7 +55,9 @@ struct ServiceOfferCard: View {
     private var slotRow: some View {
         HStack(spacing: BookingMetrics.Spacing.chipSpacing) {
             ForEach(chips) { slot in
-                NavigationLink(value: slot) {
+                Button {
+                    onSelect(slot)
+                } label: {
                     SlotChip(slot: slot)
                 }
                 .buttonStyle(.plain)
@@ -106,7 +109,7 @@ struct ServiceOfferCard: View {
     return NavigationStack {
         VStack(spacing: BookingMetrics.Spacing.listSpacing) {
             ForEach(offers) { offer in
-                ServiceOfferCard(offer: offer)
+                ServiceOfferCard(offer: offer, onSelect: { _ in })
             }
         }
         .padding()
