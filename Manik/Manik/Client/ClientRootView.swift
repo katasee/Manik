@@ -12,9 +12,10 @@ struct ClientRootView: View {
                 switch selectedTab {
                 case .booking:
                     BookingView(
-                        viewModel: BookingViewModel(),
+                        viewModel: BookingViewModel(clientId: profile.uid),
                         clientName: profile.name,
-                        bottomClearance: TabBarMetrics.Size.reservedClearance
+                        bottomClearance: TabBarMetrics.Size.reservedClearance,
+                        onBooked: showMyBookings
                     )
                 case .myBookings:
                     placeholder
@@ -30,6 +31,10 @@ struct ClientRootView: View {
 
             CustomTabBar(kind: .client(selection: $selectedTab))
         }
+    }
+
+    private func showMyBookings() {
+        selectedTab = .myBookings
     }
 
     private var placeholder: some View {

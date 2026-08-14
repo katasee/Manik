@@ -12,5 +12,11 @@ xcuserdata/
 # Firebase config — regenerate per environment from Firebase Console, don't commit
 GoogleService-Info.plist
 
+# Superpowers per-feature working artifacts — throwaway, deleted once the feature ships.
+# The product-wide MVP spec is the one permanent file here and stays tracked.
+docs/superpowers/plans/
+docs/superpowers/specs/*
+!docs/superpowers/specs/2026-07-15-manik-mvp-design.md
+
 # macOS
 .DS_Store

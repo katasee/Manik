@@ -38,7 +38,7 @@ struct WeekDayStrip: View {
     }
 
     private func shiftWeek(forward: Bool) {
-        guard let newDate = Self.calendar.date(byAdding: .day, value: forward ? 7 : -7, to: selectedDate) else {
+        guard let newDate = DateFormat.salonCalendar.date(byAdding: .day, value: forward ? 7 : -7, to: selectedDate) else {
             return
         }
         withAnimation(Layout.selectionAnimation) {
@@ -59,8 +59,8 @@ struct WeekDayStrip: View {
     }
 
     private func dayCell(_ day: Date) -> some View {
-        let isSelected = Self.calendar.isDate(day, inSameDayAs: selectedDate)
-        let isToday = Self.calendar.isDateInToday(day)
+        let isSelected = DateFormat.salonCalendar.isDate(day, inSameDayAs: selectedDate)
+        let isToday = DateFormat.salonCalendar.isDateInToday(day)
 
         return Button {
             withAnimation(Layout.selectionAnimation) {
@@ -91,16 +91,9 @@ struct WeekDayStrip: View {
         .buttonStyle(.plain)
     }
 
-    private static let calendar: Calendar = {
-        var calendar = Calendar(identifier: .gregorian)
-        calendar.timeZone = DateFormat.salonTimeZone
-        calendar.firstWeekday = 2
-        return calendar
-    }()
-
     private static func weekDates(containing date: Date) -> [Date] {
-        let startOfWeek = calendar.dateInterval(of: .weekOfYear, for: date)?.start ?? date
-        return (0..<7).compactMap { calendar.date(byAdding: .day, value: $0, to: startOfWeek) }
+        let startOfWeek = DateFormat.salonCalendar.dateInterval(of: .weekOfYear, for: date)?.start ?? date
+        return (0..<7).compactMap { DateFormat.salonCalendar.date(byAdding: .day, value: $0, to: startOfWeek) }
     }
 }
 
