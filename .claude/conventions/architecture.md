@@ -12,7 +12,20 @@
   genuinely private to that feature; anything referenced from more than one feature belongs in
   `Manik/Manik/Models/` instead — that's where `UserProfile`, `Service`, and `Block` live, since all
   three get read from both the master and client cabinets (e.g. a client's name shown in the
-  master's requests list), not just from the screen that created them. The same principle applies
+  master's requests list), not just from the screen that created them. `Models/` is the **domain
+  layer** — the M of MVVM — not "files that contain a struct": it also holds derived properties of
+  domain types (`Block/Block+Minutes.swift`, `Block/Block+StartDate.swift`) and domain
+  configuration with no fields at all (`WorkHours.swift`). The rule for extensions is **an extension
+  of our type lives beside the type; an extension of a foreign type lives where it's used** — which
+  is why `View+Shadow.swift` and `Extension+ElmsSans.swift` sit in `Assets/UICommons/` next to the
+  components that consume them, and not in some `Extensions/` folder. A folder grouping files by
+  the `extension` keyword would organize by language construct, exactly the layer-first mistake this
+  section rejects. A type gets its own subfolder (`Models/Block/`) once it spans more than one file;
+  single-file types stay flat. A feature also owns **presentation models** — `BookingSlot`,
+  `ServiceOffer` — built from a persistence model and never written back. They carry ready-made
+  display strings so views never touch `DateFormat` or a raw stored value, and they keep persistence
+  fields the screen has no business with (`status`, `clientId`) out of reach of the view. The same
+  principle applies
   to reusable *views*: a component used (or reusable) across more than one feature lives in
   `Manik/Manik/Assets/UICommons/` (e.g. `WeekDayStrip`, `DashedSlot`, `View+BrandShadow`, the
   `ElmsSans` font extension), not in a feature folder, and must not depend on any feature's types
@@ -32,6 +45,22 @@
   the router. To keep a custom fade instead of the system slide-up, wrap the *state mutation* in a
   `Transaction` with `disablesAnimations = true` and animate inside the popup; never put
   `.transaction { }` on the modifier, which disables animations for the whole subtree.
+- **A screen that owns a `NavigationStack` inside a tab does not inherit the router's bottom
+  inset.** `MasterRootView`/`ClientRootView` reserve room for `CustomTabBar` with
+  `.safeAreaInset(edge: .bottom)` on the tab `Group`, and that is enough for a plain screen like
+  `MyServicesView`. A `NavigationStack` expands into the safe area, so the inset never reaches a
+  `ScrollView` inside it and the last row stays clipped even when scrolled fully down. Such a screen
+  takes an explicit `bottomClearance: CGFloat` parameter and applies it as the scroll content's
+  bottom padding; the router passes `TabBarMetrics.Size.reservedClearance`, so the feature still
+  doesn't import the tab bar's metrics (`BookingView` does this). Standalone `#Preview`s pass `0` —
+  there is no tab bar there. If a third such screen appears, turn this into a shared modifier
+  instead of repeating the parameter.
+- **Nested `NavigationLink`s don't work.** Wrapping a whole card in a link and then putting a link
+  inside it is unpredictable in SwiftUI — the inner one may never receive taps, or both fire. If a
+  card needs more than one destination, don't wrap the card: give each control its own link
+  (`ServiceOfferCard` does this — each hour chip pushes that slot, the round chevron pushes the
+  whole offer). Accept that the card body then stops being tappable, and give any icon-only control
+  an `accessibilityLabel`, since it is otherwise silent to VoiceOver.
 - **A `Task {}` created inside a `View`'s helper method does not inherit `MainActor`.** `Task`
   captures isolation *statically*, from the enclosing declaration — and helper methods on a `View`
   struct are nonisolated (only `body` carries the protocol's `@MainActor`). So anything

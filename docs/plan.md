@@ -266,6 +266,89 @@ this file is just "what's done, what's next," not a design doc.
     `await onAuthenticated()` (асинхронний виклик сам стрибає на потрібний актор), другі живуть
     усередині `@MainActor`-класу.
 
+- **PR13 — Client «Запис» (Booking, branch `feature/pr-13-clientBooking`, 5 задач)**: перший
+  клієнтський екран, що читає реальні `available`-блоки й пропонує послуги. Дата-шар лишився
+  read-only — жодного запису в PR13 (немає `clientId`, немає бронювання; вибір дати — порожній
+  екран-заглушка до наступного зрізу).
+  - **Задача 1 — доменний шар**: `Models/Block/Block+StartDate.swift` (`startsAt: Date?`),
+    `Client/Booking/BookingSlot.swift`, `ServiceOffer.swift`, `BookingAvailability.swift`
+    (`offers(blocks:services:now:)` — фільтр `available` + майбутній час + непорожні
+    `offeredServiceIds`, сортування хронологічно потім за назвою; тайбрейкер по `id` при однаковому
+    старті, як у `ScheduleViewModel.chronologically`). `DateFormat` отримав `dateTime` (storage) та
+    `dayMonth`/`dayMonthShort` (display). Тут уперше в застосунку зʼявилось поняття «минуле» —
+    код майстра його ніде не фільтрує.
+  - **Задача 2 — фікстури прев'ю**: `Client/Booking/Preview/BookingPreviewData.swift`. Прийняте
+    відхилення від `code-style.md` (людина підтвердила 2026-08-11): літеральні масиви
+    `Service(...)`/`block(...)` лишились компактними — табличний вигляд читається краще, файл суто
+    `#if DEBUG`, і `ServicesPreviewData.swift` уже змішує обидва стилі. Не зафіксовано окремим
+    пунктом у `code-style.md` — якщо конвенція знову спливе поза прев'ю-фікстурами, розглянути
+    формальний запис винятку.
+  - **Задача 3 — картки списку**: `Assets.xcassets/FreeSlot.colorset` (display-p3,
+    `localizable: true` — нормалізовано під сиблінгів, план-файл мав застарілий JSON),
+    `Client/Booking/BookingMetrics.swift`, `Components/BookingHeader.swift`,
+    `Components/ServiceOfferCard.swift`. Картка несе **до трьох чіпів годин** найближчого дня
+    (`Components/SlotChip.swift`, `ServiceOffer.nearestDaySlots`), як у макеті — підпис показує саму
+    дату, а час перейшов у чіпи.
+    **Картка навмисно не загорнута в `NavigationLink` цілком.** Тригерів два й вони різні: чіп веде
+    на `BookingConfirmView` тієї конкретної години, кругла кнопка «›» — на `BookingDatesView` з
+    усіма датами. Спершу було зроблено навпаки — картка цілком була лінком, а чіпи просто
+    малювались, — але тоді чіп не міг стати кнопкою: вкладений `NavigationLink` у SwiftUI не працює
+    передбачувано (внутрішній або не отримує тапів, або спрацьовують обидва). Тіло картки (назва,
+    ціна, підпис дати) тепер не натискне — так само, як у макеті, де афорданс це кнопка «›».
+    Іконочна кнопка отримала `accessibilityLabel` (`booking.card.allDates`), бо для VoiceOver вона
+    інакше німа.
+  - **Задача 4 — екран + view model**: `BookingViewModel` (`@MainActor @Observable`,
+    `observeBlocks()`/`observeServices()`/`refreshAvailability()` — 60-секундний тик,
+    навмисно без `clientId`, бо PR13 нічого не пише; `nearestSlot` береться з уже порахованих
+    `offers`, а не окремим слабшим фільтром — інакше пілюля в шапці могла показувати вікно над
+    порожнім списком, бо видалення послуги не чистить `offeredServiceIds`), `BookingView` (власний
+    `NavigationStack`, ховає нав-бар сам, реєструє два призначення — `ServiceOffer` →
+    `Dates/BookingDatesView`, `BookingSlot` → `Confirm/BookingConfirmView`; обидва екрани поки
+    порожні, лише заголовок і «назад»).
+    `BookingView` приймає `bottomClearance: CGFloat` і кладе його нижнім відступом контенту
+    `ScrollView`. Це не косметика: `ClientRootView` резервує місце під таб бар через
+    `.safeAreaInset(edge: .bottom)`, і для `MyServicesView` цього досить, а для `BookingView` ні —
+    він єдиний екран із власним `NavigationStack`, а стек розширюється в безпечну зону, тож інсет
+    із роутера до `ScrollView` не доходить і остання картка лишалась підрізаною навіть у самому
+    низу прокрутки. **Будь-який наступний екран із власним `NavigationStack` усередині таба матиме
+    те саме**; якщо такий зʼявиться третім, це має стати спільним модифікатором, а не параметром.
+  - **Задача 5 — роутер**: `Client/ClientRootView.swift` переписано — таб «Запис» показує
+    `BookingView(viewModel: BookingViewModel(), clientName: profile.name)` замість заглушки; кнопка
+    виходу переїхала в таб «Акаунт» (як і раніше — простий `Text(name)` + `Text(email)` + кнопка,
+    повноцінний екран лишається кроком 6 черги нижче). Таб «Мої записи» лишається заглушкою.
+    Тимчасове прев'ю `BookingAvailability`'s `#Preview("Availability")` (задача 2, крок 2) видалено
+    в межах задачі 5, оскільки жодна наступна задача не мала б це зробити.
+  - Локалізація: 10 нових ключів (`booking.greeting`, `booking.title`, `booking.nearestWindow`,
+    `booking.card.nearest`, `booking.card.allDates`, `booking.section.services`,
+    `booking.empty.title`, `booking.empty.message`, `booking.dates.title`, `booking.confirm.title`)
+    — усі `en`+`uk`, `translated`; плюс переюзані
+    `client.placeholder.title`/`common.action.back`/`common.action.signOut`/`tabBar.tab.*`.
+    Каталог перевпорядковано за абеткою — задачі 3-4 вставили `booking.*` перед `auth.*`, а Xcode
+    пересортовує файл при першому ж збереженні й дав би ~130 рядків шумного дифу в чужому PR.
+  - **Прибирання по ходу PR**, усе за наслідками рев'ю або обговорення:
+    - `ServiceOffer.id` став збереженим `let id: String` замість обчислюваного
+      `service.id ?? service.name`. Фолбек був недосяжний — `offer(for:among:)` вище стоїть
+      `guard let serviceId = service.id`, — і при цьому приховував інваріант. Тепер id приходить у
+      конструктор уже розгорнутим, і з типу видно: якщо `ServiceOffer` існує, у нього є справжній id.
+    - `DateFormat.dayMonth`/`dayMonthShort` перейшли з фіксованих патернів (`"d MMMM"`) на
+      `setLocalizedDateFormatFromTemplate` (`"dMMMM"`). Фіксований патерн жорстко задає порядок:
+      українською «12 серпня» правильно, англійською виходило «12 August» замість «August 12».
+      Зʼявилась третя фабрика `templateFormatter(_:)`, і `clockTime` згорнувся в один рядок через
+      неї. `monthYear` навмисно лишився `"LLLL y"` — `LLLL` це standalone форма, називний відмінок
+      («Серпень 2026»); шаблон дав би родовий («серпня 2026»), що для заголовка місяця неправильно.
+    - `Block.swift`, `Block+Minutes.swift`, `Block+StartDate.swift` переїхали в `Models/Block/`.
+      `Service`/`UserProfile`/`WorkHours` лишились на верхньому рівні — теку типу заводимо тоді,
+      коли в нього більше одного файлу.
+  - **Була зроблена й відкочена спроба окремого «екрана годин»** (2026-08-11). Вона додавала
+    `BookingDay` + `BookingAvailability.days(in:)`, і `BookingDatesView` показував секції днів із
+    сіткою чіпів. Відкочено не через якість — код пройшов рев'ю, — а тому що список днів стоїть на
+    місці календаря-місяця з дизайну і його довелося б викидати. `SlotChip` і `BookingConfirmView`
+    з тієї спроби лишились, бо переживуть появу календаря. Даних на цей екран вистачає без моків:
+    `ServiceOffer.slots` уже несе **всі** майбутні слоти послуги, а не лише найближчий.
+    Єдиний справжній дефект, знайдений тоді, вартий запамʼятовування:
+    `LazyVGrid(columns:spacing:alignment:)` **не компілюється** — SwiftUI оголошує `alignment`
+    перед `spacing`, а Swift вимагає позначені аргументи в порядку оголошення.
+
 ## Screens (in order)
 
 This is the actual work queue, and the only numbered list here. The ordering follows the **data
@@ -295,9 +378,19 @@ those items are referred to by name, so the list can grow without renumbering an
      from what was planned here: deletion ships **without** a confirmation step, and the mockup's
      per-row "Змінити" link was still not built — editing is entered by tapping the row instead,
      while the row's star became a real activity toggle (a scope addition, not a substitution).
-2. **Client — "Запис" (Booking)** (mockup screen 03): month calendar → time chips → service picker
-   → footer bar with "Продовжити". This is the first place a `pending` block can be born, so it
-   gates screens 4 and 5.
+2. ~~**Client — "Запис" (Booking)**~~ (mockup screen 03) — **partially done** (PR13, see the PR13
+   entry under "Done" above): the service list is wired to real `available` blocks and each card
+   already offers up to three hour chips of the nearest day. Two destination screens exist but are
+   empty shells — `BookingDatesView` (behind the chevron) and `BookingConfirmView` (behind a chip).
+   What's left is filling them: the **month calendar** with green-underlined available dates and the
+   hour grid under it, the footer showing the chosen service with the option to change it, and
+   actually writing the `pending` block via `BlockRepository.book(blockId:clientId:bookedServiceId:)`
+   — which is the first client write in the app, so it also needs `clientId` threaded in (the PR13
+   view model deliberately has none). Build the calendar and the hours in **one** slice: an
+   hours-only version was written and reverted precisely because a day list without the calendar is
+   code you throw away. Two things to carry in: `ServiceOffer.slots` already holds every future slot
+   of the service, so no new query is needed; and the past filter is up to 60 s stale, so guard at
+   the booking call rather than trusting the list. Still gates screens 4 and 5.
 3. **Client — "Мої записи" (My bookings)**: list of own pending/confirmed blocks, cancel action.
    Thin follow-on to screen 2 — same repository, same models.
 4. **Master — "Заявки" (Requests)**: list of `pending` blocks with confirm/decline, reusing
@@ -315,9 +408,10 @@ those items are referred to by name, so the list can grow without renumbering an
    послуги" from screen 1 replacing PR10's temporary text link. Last of the data-chain screens because the numbers
    derive from real `confirmed`/cancelled blocks, which only exist once the booking chain above
    works.
-6. **Client — "Акаунт" (Account)**: currently an `EmptyView()` placeholder behind the 3rd client
-   tab (`ClientTab.account`) — needs real content (profile info, sign out moved here from the
-   temporary root placeholder, etc.).
+6. **Client — "Акаунт" (Account)**: behind the 3rd client tab (`ClientTab.account`) — PR13 moved
+   sign-out here (name + email + sign-out button, same minimal content the booking-tab placeholder
+   used to show) so the account still has an exit once "Запис" became a real screen, but it's not a
+   real screen yet — still needs actual profile-management content.
 
 ## Backlog and tech debt (unordered)
 
@@ -326,6 +420,33 @@ something nearby is already being touched. **No numbers on purpose** — cite th
 numbering drifts every time an item is added or closed (it already did once: PR9's entry pointed at
 "step 9" for what was item 10).
 
+- **Extract the screen header and the list status overlay into `Assets/UICommons/`** — agreed after
+  PR13's final review to ship as its own small refactor PR, so PR13 stays purely client-side. The
+  back-button header now exists in **three** copies (`MyServicesView`, `BookingDatesView`,
+  `BookingConfirmView`), identical modifier for modifier, and the `ProgressView` /
+  `ContentUnavailableView` status overlay in two (`MyServicesView`, `BookingView`). Both are
+  domain-free, so unlike `BlockStatusPill` there's no "does UICommons get to know about the domain"
+  question. Target: `ScreenHeader(titleKey:onBack:)` and `ListStatusOverlay(hasLoaded:titleKey:messageKey:)`,
+  each with file-scope private constants; then delete `backIcon`/`backTapTarget` from both
+  `BookingMetrics` and `ServicesMetrics` (they hold the same 26/44 twice).
+- **PR13 leftovers from the final whole-branch review** — all Minor, none blocking:
+  - `BookingPreviewData.clientId` is dead (PR13 writes nothing); the confirm-popup slice re-adds it.
+  - ~~`ServiceOffer.id`'s unreachable fallback~~ — **fixed before merge**: `id` is now a stored
+    `let`, assigned from the already-unwrapped `serviceId`.
+  - The past filter is up to 60 s stale (`now` is re-read on the tick, not per render). Harmless
+    while read-only; once booking writes exist, guard at the call rather than ticking faster.
+  - The booking design spec (`docs/superpowers/specs/2026-08-08-client-booking-design.md`) was
+    **deleted** together with the PR13 plan file once the code landed, per the CLAUDE.md rule that
+    these are throwaway artifacts. The parts of it worth keeping are folded into the PR13 entry
+    above and into the screen-2 item below; the month calendar with green-underlined available
+    dates is the one design decision that has not shipped yet, so it is recorded there rather than
+    only in a deleted file.
+- **View models are rebuilt on every tab switch** in both routers — `MasterRootView.swift:14` and
+  `ClientRootView.swift:14` construct them inside `body`, and the `switch` gives each tab its own
+  view identity, so leaving and returning tears down the Firestore listeners and re-registers them:
+  a full re-read plus a spinner flash per visit. Pre-existing pattern, but «Запис» is the client's
+  default tab, so it's now user-facing. Fix means hoisting the view models above the `switch` in
+  both routers.
 - ~~**Deploy `firestore.rules`**~~ — **done (2026-08-08, after PR12)**: the file was edited by PR12
   (`hasValidServiceFormat()`, and `services`' `write` split into `create, update` / `delete`) and
   published to the Console for project `manik-5a2b8`. Deployment stays manual — Console

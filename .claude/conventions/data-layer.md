@@ -12,6 +12,14 @@
   `DateFormat.hourLabel(for:)`/`displayTime(_:)` rather than printing the stored `HH:mm` string —
   those use `setLocalizedDateFormatFromTemplate("jmm")`, so an English device gets "9:00 AM". Use
   the `"jmm"` template, not `"j"`: the latter silently drops minutes.
+  **Any display formatter that combines more than one field must go through
+  `templateFormatter(_:)`, never a fixed `dateFormat` string.** A fixed pattern pins the *order* of
+  the fields and lets the locale change only the words: `"d MMMM"` gives the correct "12 серпня" in
+  Ukrainian and the wrong "12 August" in English, where the convention is "August 12". The template
+  (`"dMMMM"`) states which fields are wanted and lets the locale order them. The one deliberate
+  exception is `monthYear`, which keeps the fixed `"LLLL y"`: `LLLL` is the *standalone* month form
+  ("Серпень 2026"), while a template would produce the genitive "серпня 2026" — wrong for a bare
+  month header. Don't "fix" that one.
 - Firestore's Codable convenience methods — `setData(from:)`, `addDocument(from:)` — have **no
   `async` overload** in this SDK version, only `throws` with an optional completion closure.
   Writing `try await someRef.setData(from: model)` compiles but silently resolves to the sync

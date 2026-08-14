@@ -6,6 +6,9 @@ enum DateFormat {
     static let dayNumber = displayFormatter("d")
     static let weekdayLetter = displayFormatter("EEEEE")
     static let monthYear = displayFormatter("LLLL y")
+    static let dateTime = storageFormatter("yyyy-MM-dd HH:mm")
+    static let dayMonth = templateFormatter("dMMMM")
+    static let dayMonthShort = templateFormatter("dMMM")
 
     static let salonTimeZone = TimeZone(identifier: "Europe/Warsaw") ?? .current
 
@@ -29,13 +32,7 @@ enum DateFormat {
         return clockTime.string(from: date)
     }
 
-    private static let clockTime: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.locale = .current
-        formatter.timeZone = salonTimeZone
-        formatter.setLocalizedDateFormatFromTemplate("jmm")
-        return formatter
-    }()
+    private static let clockTime = templateFormatter("jmm")
 
     private static let salonCalendar: Calendar = {
         var calendar = Calendar(identifier: .gregorian)
@@ -49,6 +46,14 @@ enum DateFormat {
 
     private static func displayFormatter(_ format: String) -> DateFormatter {
         formatter(format, locale: .current)
+    }
+
+    private static func templateFormatter(_ template: String) -> DateFormatter {
+        let formatter = DateFormatter()
+        formatter.locale = .current
+        formatter.timeZone = salonTimeZone
+        formatter.setLocalizedDateFormatFromTemplate(template)
+        return formatter
     }
 
     private static func formatter(_ format: String, locale: Locale) -> DateFormatter {
