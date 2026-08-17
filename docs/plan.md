@@ -470,6 +470,56 @@ this file is just "what's done, what's next," not a design doc.
     `common.action.cancel`, `common.action.done`.
   - **Не в цьому PR**: скасування запису клієнткою і справжній екран «Мої записи».
 
+- **PR17 — Client «Мої записи», read-only список (branch `feature/pr-17-myBookings`, 8 задач)**:
+  таб «Мої записи» показує справжні записи клієнтки замість `client.placeholder.title`. Дата-шар не
+  змінювався взагалі — `observeBlocks()` віддає всі блоки, фільтрація по `clientId` локальна, як у
+  `BookingView`; `firestore.rules` не чіпались (`allow read: if isSignedIn()` на `blocks` уже є).
+  - **Дві секції — «Майбутні» + «Минулі»**, минулі обрізані до `MyBookingsList.pastLimit = 5`.
+    Порожня секція не рендериться зовсім (не заголовок над пусткою). Скасовані записи відпадають
+    самі: скасування повертає блок у `available` і чистить `clientId`, тож фільтр
+    `status != .available` покриває це без окремої логіки.
+  - **Картка показує діапазон часу, а не тривалість** — `Service` не має поля тривалості з PR11
+    (його видалили саме тому, що межі блоку і є тривалістю). Це заодно дало
+    `Models/Block/Block+TimeRange.swift` (`timeRangeLabel`): рядок `"14:00 – 15:30"` уже був
+    продубльований у `ScheduleBlockCard` і `BlockDetailPopup`, картка «Моїх записів» була б третьою
+    копією. Тире — **en dash**, як в обох оригіналах.
+  - **У минулих немає піла статусу** — секція вже і є статусом. Приглушення тримається на двох
+    речах: піл не рендериться і акцентна смужка стає сірою напівпрозорою
+    (`MyBookingsMetrics.Opacity.pastAccent`, застосована **лише** до смужки). `.opacity(0.5)` на всій
+    картці опустив би `Color.textSecondary` на `Color.surface` до ~2:1 і зробив би рядок дати
+    нечитним — текст навмисно лишається повноконтрастним.
+  - **`BlockStatusPill` + `BlockStatusStyle` переїхали з `Master/Schedule/Components/` у
+    `Assets/UICommons/`** (райдер із черги нижче) — це їхній другий кабінет-споживач. Піл отримав
+    власний `private enum Layout` замість `ScheduleMetrics.StatusPill`, який видалено; ключі
+    лишились із префіксом `schedule.status.*` — перейменування зачепило б каталог і три екрани
+    майстра без користі. Окрему `Assets/DomainUI/` **не заводили** — двох компонентів замало.
+  - **`schedule.service.unknown` → `common.service.unknown`**: запасна назва видаленої послуги тепер
+    спільна для двох кабінетів (`ScheduleViewModel` і `MyBookingsList`).
+  - `Client/MyBookings/`: `MyBooking` (презентаційна модель — без `clientId`/`bookedServiceId`/сирих
+    дат, `priceLabel` опціональний, бо видалена послуга ціни не має), `MyBookingSection` (+`Kind`,
+    **без** `LocalizedStringKey` — модель рівня даних не тягне SwiftUI, мапінг живе в
+    `MyBookingSectionView`), `MyBookingsList` (чиста `sections(blocks:services:clientId:now:)`),
+    `MyBookingsViewModel`, `MyBookingsView`, `MyBookingsMetrics`, `Components/`, `Preview/`.
+  - **`hasLoaded` вимагає обох потоків** (`hasBlocks && hasServices`): після самих блоків блимало б
+    «Записів ще немає», поки їдуть послуги; після самих послуг назви були б запасними.
+    `refreshSections()` — 60-секундний тик за зразком `BookingViewModel.refreshAvailability()`, без
+    нього запис не переїжджав би з «Майбутніх» у «Минулі», поки екран відкритий; `rebuild()` бере
+    `.now` сам, а не збережений момент. `clientId` — **без дефолту**, репозиторії з дефолтами.
+  - **Екран не бере `bottomClearance`** — він не володіє власним `NavigationStack` (переходити
+    нікуди), тож `safeAreaInset` роутера доїжджає до скролу сам. Конвенція вимагає цей параметр
+    лише для екрана з власним стеком, як `BookingView`.
+  - `VStack`, не `LazyVStack`: ліні на рівні максимум двох секцій не буває, справжній список карток
+    лежить у вкладеному стеку і будується однаково в обох випадках.
+  - **`.accessibilityElement(children: .combine)` на картці свідомо не додано** — рев'ю це
+    пропонувало, але `ServiceOfferCard.nearestLabel` уже той самий тришаровий `Text`, а схожу
+    пропозицію відхилили ще в PR11. Додати «заодно» означало б розійтися з рештою застосунку.
+  - Локалізація: 5 нових ключів (`myBookings.title`, `myBookings.section.upcoming`,
+    `myBookings.section.past`, `myBookings.empty.title`, `myBookings.empty.message`) — `en`+`uk`,
+    `translated`, за абеткою. Заголовки секцій у каталозі у звичайному регістрі, верхній робить
+    `.textCase(.uppercase)` у в'юсі — локаль без регістру тоді нічого не ламає.
+    `client.placeholder.title` видалено разом із мертвою властивістю `ClientRootView.placeholder`.
+  - **Не в цьому PR**: скасування запису (PR18).
+
 ## Screens (in order)
 
 This is the actual work queue, and the only numbered list here. The ordering follows the **data
@@ -491,7 +541,8 @@ those items are referred to by name, so the list can grow without renumbering an
    is the first screen that isn't a popup); the add/edit form is a popup on the existing
    `PopupContainer`, not a full screen, since it's two fields; deleting a service used by
    existing blocks is **allowed** without a cross-collection check — the ids go dangling and the
-   already-present `schedule.service.unknown` fallback covers it.
+   already-present unknown-service fallback covers it (the key was `schedule.service.unknown` then;
+   PR17 renamed it to `common.service.unknown` once both cabinets needed it).
    - ~~**PR10 — read-only list**~~ — **done**, see the PR10 entry under "Done" above.
    - ~~**PR11 — add a service**~~ — **done**, see the PR11 entry under "Done" above. Note it also
      deleted `Service.durationMinutes` outright, so the form is two fields, not three.
@@ -511,16 +562,15 @@ those items are referred to by name, so the list can grow without renumbering an
    decorative stub that PR15 deliberately avoided when it collapsed the planned PR15/PR16 split.
    Both halves read real data; `firestore.rules` and `BlockRepository` need no changes at all
    (`allow read: if isSignedIn()` on `blocks`, and `cancel(blockId:)` exists since PR1).
-   - **PR17 — read-only list** (branch `feature/pr-17-myBookings`): the client sees her own bookings.
-     `observeBlocks()` filtered by `clientId` locally, the way `BookingView` already does it. This is
-     the slice that closes the loudest loose end after PR15 — "Готово" currently drops the client onto
-     `client.placeholder.title`. Built on PR16's `ScreenHeader` (no back button — it's a tab root) and
-     `ListStatusOverlay`.
+   - ~~**PR17 — read-only list**~~ — **done**, see the PR17 entry under "Done" above. Two things it
+     settled beyond the plan: the card shows a **time range**, not a duration (`Service` has had no
+     duration field since PR11), which produced the shared `Block.timeRangeLabel`; and past bookings
+     are capped at five with no status pill, since the section heading already carries that meaning.
    - **PR18 — cancel a booking**: the affordance plus `BlockRepository.cancel(blockId:)`, confirmation
      and error handling.
-   - Rider for whichever of the two first needs it: move `BlockStatusPill` + `BlockStatusStyle` out of
-     `Master/Schedule/Components/`. This screen — not "Заявки" as recorded under screen 4 — is their
-     second consumer, so the move happens here.
+   - ~~Rider for whichever of the two first needs it: move `BlockStatusPill` + `BlockStatusStyle` out
+     of `Master/Schedule/Components/`~~ — **done in PR17**: both now live in `Assets/UICommons/`, the
+     pill carries its own `private enum Layout`, and `ScheduleMetrics.StatusPill` is gone.
 4. **Master — "Заявки" (Requests)**: list of `pending` blocks with confirm/decline, reusing
    `BlockDetailPopup` as the detail surface (PR9 shipped the detail half). By now screens 2–3 supply
    real `pending` data instead of hand-seeded documents. Two riders that belong with this slice:
@@ -528,10 +578,8 @@ those items are referred to by name, so the list can grow without renumbering an
      show the client's name on both the request row and the detail popup — this is the screen that
      finally gives `pending` blocks a way to exist, so the missing name from PR9 becomes visible.
    - ~~Move `BlockStatusPill` + `BlockStatusStyle` out of `Master/Schedule/Components/` once Requests
-     becomes their second consumer~~ — **reassigned to screen 3**, which now gets there first. The open
-     question travels with it: they'd be the first domain-aware components in `Assets/UICommons/` (they
-     switch on `BlockStatus`), so if two or three more accumulate, a separate `Assets/DomainUI/` is the
-     alternative.
+     becomes their second consumer~~ — **done in PR17** (screen 3 got there first). The open question
+     it carried is now a standalone backlog item below.
 5. **Master — "Статистика" (Stats)**: month summary (revenue/visits/cancellations) inside the
    `Master/Stats/StatsView.swift` shell PR10 created, plus the permanent entry point to "Мої
    послуги" from screen 1 replacing PR10's temporary text link. Last of the data-chain screens because the numbers
@@ -569,11 +617,24 @@ numbering drifts every time an item is added or closed (it already did once: PR9
     dates is the one design decision that has not shipped yet, so it is recorded there rather than
     only in a deleted file.
 - **View models are rebuilt on every tab switch** in both routers — `MasterRootView.swift:14` and
-  `ClientRootView.swift:14` construct them inside `body`, and the `switch` gives each tab its own
+  `ClientRootView.swift:14,21` construct them inside `body`, and the `switch` gives each tab its own
   view identity, so leaving and returning tears down the Firestore listeners and re-registers them:
   a full re-read plus a spinner flash per visit. Pre-existing pattern, but «Запис» is the client's
   default tab, so it's now user-facing. Fix means hoisting the view models above the `switch` in
   both routers.
+  - **PR17 made this two-for-two on the client side** — `MyBookingsViewModel` is now built in the
+    same `switch`, so switching tabs back and forth resets `hasLoaded` to `false` and empties
+    `sections`/`offers`: a spinner blinks instead of the already-loaded list. Deliberately not fixed
+    in PR17 because it touches PR13's code. The fix is `@State` on `ClientRootView` itself, built in
+    its `init` from `profile.uid`. It does **not** reduce allocations (`init` runs on every parent
+    re-evaluation too, and `State(initialValue:)` only takes on the first) — the win is purely
+    keeping the state. **Not verified in the simulator** — derived from the code; confirm by
+    switching tabs back and forth.
+- **If a couple more domain-aware components accumulate in `Assets/UICommons/`, split off
+  `Assets/DomainUI/`.** `BlockStatusPill`/`BlockStatusStyle` landed there in PR17 and are the first
+  two that switch on a domain type (`BlockStatus`) rather than being purely presentational. Two is
+  not enough to justify a folder; carried over from screen 4's rider, and no longer tied to any
+  queued screen.
 - ~~**Deploy `firestore.rules`**~~ — **done (2026-08-08, after PR12)**: the file was edited by PR12
   (`hasValidServiceFormat()`, and `services`' `write` split into `create, update` / `delete`) and
   published to the Console for project `manik-5a2b8`. Deployment stays manual — Console
@@ -618,8 +679,10 @@ numbering drifts every time an item is added or closed (it already did once: PR9
   - On a *card*, a block's status is still conveyed only by the accent-capsule color, and
     VoiceOver never reads it. PR9 built `BlockStatusPill` as the second signal and wired it to
     `\.accessibilityDifferentiateWithoutColor` in `ScheduleBlockCard`, then removed that wiring
-    on request — the pill now appears only in `BlockDetailPopup`'s header, unconditionally.
-    Re-adding it to the card is a three-line change.
+    on request — on the master's side the pill appears only in `BlockDetailPopup`'s header,
+    unconditionally. Re-adding it to the card is a three-line change. (Since PR17 the pill also
+    renders on the client's `MyBookingCard` for upcoming bookings, and lives in
+    `Assets/UICommons/` — the master's card is still the gap.)
   - `SwipeToDelete`'s trash button has no text label (removed on request), so VoiceOver announces
     the raw SF Symbol name.
   - PR12 added one more: the star toggle in `ServiceRow` is a `Button` with no `accessibilityLabel`
@@ -707,6 +770,17 @@ numbering drifts every time an item is added or closed (it already did once: PR9
     capture the same `Service` value and compute the same new `isActive`, so the second write is
     redundant rather than a flip-back — no data corruption, and an `isToggling` flag would add more
     state than it removes.
+- **Stacked `.padding` calls that share one value should be merged with an `Edge.Set` literal** —
+  `.padding([.vertical, .leading], inset)`, not two calls with the same constant. Purely mechanical:
+  the edges don't overlap, so one modifier produces identical geometry with one less wrapper view.
+  PR17 applied it in the only two places that existed (`MyBookingCard`'s and `ScheduleBlockCard`'s
+  accent capsules, both `[.vertical, .leading]` on `accentInset`) and an app-wide sweep found **no
+  other candidates** — every remaining stack uses two *different* constants (`horizontal` +
+  `top`, `horizontal` + `vertical`), where merging is impossible. So this is a convention for new
+  code, not outstanding cleanup. Do **not** "fix" pairs whose distinct constants happen to hold the
+  same number (`ServicesMetrics.rowHorizontalPadding`/`rowVerticalPadding`): the separate names
+  document intent and are meant to be able to diverge. Not written into
+  `.claude/conventions/code-style.md` yet — do that if it comes up a second time.
 - **Two stashes are outstanding** (`git stash list`):
   - `stash@{0}` — the full first cut of PR8 (proportional timeline, block detail popup + delete,
     `UserRepository`, popup scaffold components, 13 localization keys). PR8 and PR9 between them
