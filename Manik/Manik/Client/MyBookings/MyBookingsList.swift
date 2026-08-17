@@ -44,6 +44,7 @@ enum MyBookingsList {
 
         return MyBooking(
             id: block.id ?? "\(block.date)-\(block.startTime)",
+            cancelId: isPast ? nil : block.id,
             serviceName: service?.name ?? String(localized: "common.service.unknown"),
             dayLabel: dayLabel(for: block),
             timeRangeLabel: block.timeRangeLabel,

@@ -34,6 +34,13 @@ final class MyBookingsViewModel {
         self.serviceRepository = serviceRepository
     }
 
+    func makeCancelViewModel(context: CancelBookingContext) -> CancelBookingViewModel {
+        CancelBookingViewModel(
+            context: context,
+            blockRepository: blockRepository
+        )
+    }
+
     func observeBlocks() async {
         for await updatedBlocks in blockRepository.observeBlocks() {
             blocks = updatedBlocks
