@@ -18,7 +18,7 @@ struct ClientRootView: View {
                         onBooked: showMyBookings
                     )
                 case .myBookings:
-                    placeholder
+                    MyBookingsView(viewModel: MyBookingsViewModel(clientId: profile.uid))
                 case .account:
                     account
                 }
@@ -35,12 +35,6 @@ struct ClientRootView: View {
 
     private func showMyBookings() {
         selectedTab = .myBookings
-    }
-
-    private var placeholder: some View {
-        Text("client.placeholder.title")
-            .font(.elmsSans(.bold, 24))
-            .foregroundStyle(Color.ink)
     }
 
     private var account: some View {
