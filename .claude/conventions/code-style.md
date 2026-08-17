@@ -26,6 +26,12 @@ One agreed exception: **literal fixture arrays inside `#if DEBUG` preview data m
 calls reads as a table, which is the point of the file, and none of it ships. The exception is for
 fixture *literals* only — production code and preview *views* follow the normal rule.
 
+**`#if DEBUG` around a `#Preview` is a feature-folder convention, not an app-wide one.** Feature
+views wrap their previews because those previews reference `*PreviewData` fixtures, which are
+themselves `#if DEBUG` — without the wrapper the file wouldn't compile for release. A component in
+`Assets/UICommons/` builds its preview from literals and fakes nothing, so it needs no wrapper, and
+none of the components there has one. Match the folder you're writing in.
+
 User-facing strings never sit as bare literals in a View — they go in
 `Manik/Manik/Localizable.xcstrings` (String Catalog) under a `feature.kind.name` key
 (e.g. `auth.field.email`, `auth.action.signUp`) and get pulled in via `String(localized: "key")`.

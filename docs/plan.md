@@ -506,17 +506,32 @@ those items are referred to by name, so the list can grow without renumbering an
    client into the "Мої записи" tab. The planned PR15/PR16 split was collapsed into one PR: a popup
    that doesn't write would have been a decorative stub. No longer gates screens 3–5.
 3. **Client — "Мої записи" (My bookings)**: list of own pending/confirmed blocks, cancel action.
-   Thin follow-on to screen 2 — same repository, same models.
+   Thin follow-on to screen 2 — same repository, same models. Ships as **two** PRs, split by
+   capability rather than by layer (decided 2026-08-17): a UI-only PR on fixtures would be the
+   decorative stub that PR15 deliberately avoided when it collapsed the planned PR15/PR16 split.
+   Both halves read real data; `firestore.rules` and `BlockRepository` need no changes at all
+   (`allow read: if isSignedIn()` on `blocks`, and `cancel(blockId:)` exists since PR1).
+   - **PR17 — read-only list** (branch `feature/pr-17-myBookings`): the client sees her own bookings.
+     `observeBlocks()` filtered by `clientId` locally, the way `BookingView` already does it. This is
+     the slice that closes the loudest loose end after PR15 — "Готово" currently drops the client onto
+     `client.placeholder.title`. Built on PR16's `ScreenHeader` (no back button — it's a tab root) and
+     `ListStatusOverlay`.
+   - **PR18 — cancel a booking**: the affordance plus `BlockRepository.cancel(blockId:)`, confirmation
+     and error handling.
+   - Rider for whichever of the two first needs it: move `BlockStatusPill` + `BlockStatusStyle` out of
+     `Master/Schedule/Components/`. This screen — not "Заявки" as recorded under screen 4 — is their
+     second consumer, so the move happens here.
 4. **Master — "Заявки" (Requests)**: list of `pending` blocks with confirm/decline, reusing
    `BlockDetailPopup` as the detail surface (PR9 shipped the detail half). By now screens 2–3 supply
    real `pending` data instead of hand-seeded documents. Two riders that belong with this slice:
    - Pull `UserRepository`/`FirestoreUserRepository`/`FakeUserRepository` out of `stash@{0}` and
      show the client's name on both the request row and the detail popup — this is the screen that
      finally gives `pending` blocks a way to exist, so the missing name from PR9 becomes visible.
-   - Move `BlockStatusPill` + `BlockStatusStyle` from `Master/Schedule/Components/` to
-     `Assets/UICommons/` once Requests becomes their second consumer. Note they'd be the first
-     domain-aware components in that folder (they switch on `BlockStatus`); if two or three more
-     accumulate, a separate `Assets/DomainUI/` is the alternative.
+   - ~~Move `BlockStatusPill` + `BlockStatusStyle` out of `Master/Schedule/Components/` once Requests
+     becomes their second consumer~~ — **reassigned to screen 3**, which now gets there first. The open
+     question travels with it: they'd be the first domain-aware components in `Assets/UICommons/` (they
+     switch on `BlockStatus`), so if two or three more accumulate, a separate `Assets/DomainUI/` is the
+     alternative.
 5. **Master — "Статистика" (Stats)**: month summary (revenue/visits/cancellations) inside the
    `Master/Stats/StatsView.swift` shell PR10 created, plus the permanent entry point to "Мої
    послуги" from screen 1 replacing PR10's temporary text link. Last of the data-chain screens because the numbers
@@ -534,15 +549,12 @@ something nearby is already being touched. **No numbers on purpose** — cite th
 numbering drifts every time an item is added or closed (it already did once: PR9's entry pointed at
 "step 9" for what was item 10).
 
-- **Extract the screen header and the list status overlay into `Assets/UICommons/`** — agreed after
-  PR13's final review to ship as its own small refactor PR, so PR13 stays purely client-side. The
-  back-button header now exists in **two** copies (`MyServicesView`, `BookingDatesView` — the third,
-  `BookingConfirmView`, was deleted by PR15), identical modifier for modifier, and the `ProgressView` /
-  `ContentUnavailableView` status overlay in two (`MyServicesView`, `BookingView`). Both are
-  domain-free, so unlike `BlockStatusPill` there's no "does UICommons get to know about the domain"
-  question. Target: `ScreenHeader(titleKey:onBack:)` and `ListStatusOverlay(hasLoaded:titleKey:messageKey:)`,
-  each with file-scope private constants; then delete `backIcon`/`backTapTarget` from both
-  `BookingMetrics` and `ServicesMetrics` (they hold the same 26/44 twice).
+- ~~**Extract the screen header and the list status overlay into `Assets/UICommons/`**~~ — **done
+  (PR16, see the entry under "Done" above)**. Two departures from what was planned here: the
+  constants live in a nested `private enum Layout` rather than at file scope (that matches four of
+  the six existing components; file scope is only forced on the generic `SwipeToDelete`), and
+  `ListStatusOverlay` takes `isEmpty` as a parameter — the planned
+  `ListStatusOverlay(hasLoaded:titleKey:messageKey:)` had no way to know the list was empty.
 - **PR13 leftovers from the final whole-branch review** — all Minor, none blocking:
   - ~~`BookingPreviewData.clientId` is dead~~ — **fixed by PR15**: it feeds every confirm-popup and
     calendar preview now that the fake repository actually books.
