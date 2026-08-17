@@ -20,7 +20,7 @@ struct BookingDatesView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            header
+            ScreenHeader(titleKey: "booking.dates.title", onBack: goBack)
             content
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -114,34 +114,6 @@ struct BookingDatesView: View {
             }
         }
         .padding(.bottom, bottomClearance)
-    }
-
-    private var header: some View {
-        ZStack {
-            Text("booking.dates.title")
-                .font(.elmsSans(.bold, 22))
-                .foregroundStyle(Color.ink)
-
-            HStack {
-                backButton
-
-                Spacer()
-            }
-        }
-        .padding(.horizontal, BookingMetrics.Spacing.horizontalPadding)
-    }
-
-    private var backButton: some View {
-        Button("common.action.back", systemImage: "chevron.left", action: goBack)
-            .labelStyle(.iconOnly)
-            .font(.elmsSans(.regular, BookingMetrics.Size.backIcon))
-            .foregroundStyle(Color.ink)
-            .frame(
-                minWidth: BookingMetrics.Size.backTapTarget,
-                minHeight: BookingMetrics.Size.backTapTarget,
-                alignment: .leading
-            )
-            .contentShape(.rect)
     }
 
     private func goBack() {

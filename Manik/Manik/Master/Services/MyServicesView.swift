@@ -13,7 +13,7 @@ struct MyServicesView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            header
+            ScreenHeader(titleKey: "services.title", onBack: goBack)
             intro
             sectionHeader
             list
@@ -37,37 +37,6 @@ struct MyServicesView: View {
             )
             .presentationBackground(.clear)
         }
-    }
-
-    private var header: some View {
-        ZStack {
-            title
-
-            HStack {
-                backButton
-                Spacer()
-            }
-        }
-        .padding(.horizontal, ServicesMetrics.Spacing.horizontalPadding)
-    }
-
-    private var backButton: some View {
-        Button("common.action.back", systemImage: "chevron.left", action: goBack)
-            .labelStyle(.iconOnly)
-            .font(.elmsSans(.regular, ServicesMetrics.Size.backIcon))
-            .foregroundStyle(Color.ink)
-            .frame(
-                minWidth: ServicesMetrics.Size.backTapTarget,
-                minHeight: ServicesMetrics.Size.backTapTarget,
-                alignment: .leading
-            )
-            .contentShape(.rect)
-    }
-
-    private var title: some View {
-        Text("services.title")
-            .font(.elmsSans(.bold, 22))
-            .foregroundStyle(Color.ink)
     }
 
     private var intro: some View {
@@ -146,24 +115,13 @@ struct MyServicesView: View {
             .padding(.horizontal, ServicesMetrics.Spacing.horizontalPadding)
             .padding(.top, ServicesMetrics.Spacing.listTopPadding)
         }
-        .overlay { statusOverlay }
-    }
-
-    @ViewBuilder
-    private var statusOverlay: some View {
-        if viewModel.hasLoaded == false {
-            ProgressView()
-                .tint(Color.ink)
-        } else if viewModel.services.isEmpty {
-            ContentUnavailableView {
-                Text("services.empty.title")
-                    .font(.elmsSans(.bold, 18))
-                    .foregroundStyle(Color.ink)
-            } description: {
-                Text("services.empty.message")
-                    .font(.elmsSans(.regular, 14))
-                    .foregroundStyle(Color.textSecondary)
-            }
+        .overlay {
+            ListStatusOverlay(
+                hasLoaded: viewModel.hasLoaded,
+                isEmpty: viewModel.services.isEmpty,
+                titleKey: "services.empty.title",
+                messageKey: "services.empty.message"
+            )
         }
     }
 

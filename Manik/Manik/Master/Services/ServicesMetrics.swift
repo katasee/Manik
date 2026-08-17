@@ -8,8 +8,6 @@ enum ServicesMetrics {
         static let rowIconBorder: CGFloat = 1
         static let addButton: CGFloat = 52
         static let addIcon: CGFloat = 20
-        static let backIcon: CGFloat = 26
-        static let backTapTarget: CGFloat = 44
     }
 
     enum Spacing {

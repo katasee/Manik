@@ -37,7 +37,14 @@ struct BookingView: View {
                 }
                 .scrollIndicators(.hidden)
                 .ignoresSafeArea(.container, edges: .top)
-                .overlay { statusOverlay }
+                .overlay {
+                    ListStatusOverlay(
+                        hasLoaded: viewModel.hasLoaded,
+                        isEmpty: viewModel.offers.isEmpty,
+                        titleKey: "booking.empty.title",
+                        messageKey: "booking.empty.message"
+                    )
+                }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(Color.background)
@@ -117,24 +124,6 @@ struct BookingView: View {
     private func finishConfirm() {
         dismissConfirm()
         onBooked()
-    }
-    
-    @ViewBuilder
-    private var statusOverlay: some View {
-        if viewModel.hasLoaded == false {
-            ProgressView()
-                .tint(Color.ink)
-        } else if viewModel.offers.isEmpty {
-            ContentUnavailableView {
-                Text("booking.empty.title")
-                    .font(.elmsSans(.bold, 18))
-                    .foregroundStyle(Color.ink)
-            } description: {
-                Text("booking.empty.message")
-                    .font(.elmsSans(.regular, 14))
-                    .foregroundStyle(Color.textSecondary)
-            }
-        }
     }
 }
 
