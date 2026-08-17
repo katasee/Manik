@@ -9,8 +9,6 @@ enum BookingMetrics {
         static let chevron: CGFloat = 15
         static let chevronButton: CGFloat = 44
         static let successIcon: CGFloat = 44
-        static let backIcon: CGFloat = 26
-        static let backTapTarget: CGFloat = 44
         static let chipCornerRadius: CGFloat = 14
         static let chipHeight: CGFloat = 44
         static let chipMinWidth: CGFloat = 72
