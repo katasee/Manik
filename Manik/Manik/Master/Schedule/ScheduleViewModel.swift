@@ -121,7 +121,7 @@ final class ScheduleViewModel {
         guard let bookedServiceId = block.bookedServiceId else { return "" }
 
         return services.first { $0.id == bookedServiceId }?.name
-            ?? String(localized: "schedule.service.unknown")
+            ?? String(localized: "common.service.unknown")
     }
 
     private static func chronologically(_ lhs: Block, _ rhs: Block) -> Bool {

@@ -1,6 +1,6 @@
 import Foundation
 
-struct BookingSlot: Identifiable, Hashable {
+struct BookingSlot: Identifiable, Equatable {
     let id: String
     let date: String
     let startTime: String

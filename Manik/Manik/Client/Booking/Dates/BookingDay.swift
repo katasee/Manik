@@ -1,4 +1,4 @@
-struct BookingDay: Identifiable, Hashable {
+struct BookingDay: Identifiable {
     let date: String
     let numberLabel: String
     let isInMonth: Bool

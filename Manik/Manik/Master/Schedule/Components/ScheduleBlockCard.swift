@@ -6,7 +6,7 @@ struct ScheduleBlockCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: ScheduleMetrics.Card.contentSpacing) {
-            Text(timeRange)
+            Text(block.timeRangeLabel)
                 .font(.elmsSans(.bold, 17))
                 .foregroundStyle(Color.ink)
 
@@ -33,13 +33,8 @@ struct ScheduleBlockCard: View {
             Capsule()
                 .fill(block.status.accentColor)
                 .frame(width: ScheduleMetrics.Card.accentWidth)
-                .padding(.vertical, ScheduleMetrics.Card.accentInset)
-                .padding(.leading, ScheduleMetrics.Card.accentInset)
+                .padding([.vertical, .leading], ScheduleMetrics.Card.accentInset)
         }
-    }
-
-    private var timeRange: String {
-        "\(DateFormat.displayTime(block.startTime)) – \(DateFormat.displayTime(block.endTime))"
     }
 }
 

@@ -27,11 +27,6 @@ enum ScheduleMetrics {
         static let minHeight: CGFloat = 64
     }
 
-    enum StatusPill {
-        static let horizontalPadding: CGFloat = 8
-        static let verticalPadding: CGFloat = 3
-    }
-
     enum Detail {
         static let rowSpacing: CGFloat = 4
         static let headerSpacing: CGFloat = 6

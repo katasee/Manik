@@ -488,22 +488,6 @@
         }
       }
     },
-    "client.placeholder.title" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Client Cabinet"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Кабінет клієнтки"
-          }
-        }
-      }
-    },
     "common.action.back" : {
       "localizations" : {
         "en" : {
@@ -584,6 +568,22 @@
         }
       }
     },
+    "common.service.unknown" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unknown service"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Невідома послуга"
+          }
+        }
+      }
+    },
     "master.placeholder.title" : {
       "localizations" : {
         "en" : {
@@ -596,6 +596,86 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Кабінет майстра"
+          }
+        }
+      }
+    },
+    "myBookings.empty.message" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pick a service in the Booking tab and it will show up here"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Оберіть послугу в табі «Запис» — і запис зʼявиться тут"
+          }
+        }
+      }
+    },
+    "myBookings.empty.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No bookings yet"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Записів ще немає"
+          }
+        }
+      }
+    },
+    "myBookings.section.past" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Past"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Минулі"
+          }
+        }
+      }
+    },
+    "myBookings.section.upcoming" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Upcoming"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Майбутні"
+          }
+        }
+      }
+    },
+    "myBookings.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "My bookings"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Мої записи"
           }
         }
       }
@@ -916,22 +996,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Послуги"
-          }
-        }
-      }
-    },
-    "schedule.service.unknown" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Unknown service"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Невідома послуга"
           }
         }
       }

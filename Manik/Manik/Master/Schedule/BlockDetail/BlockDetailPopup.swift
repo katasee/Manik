@@ -59,7 +59,7 @@ struct BlockDetailPopup: View {
 
     private var header: some View {
         VStack(alignment: .leading, spacing: ScheduleMetrics.Detail.headerSpacing) {
-            Text(timeRange)
+            Text(context.block.timeRangeLabel)
                 .font(.elmsSans(.bold, 22))
                 .foregroundStyle(Color.ink)
 
@@ -89,10 +89,6 @@ struct BlockDetailPopup: View {
                 .font(.elmsSans(.regular, 13))
                 .foregroundStyle(Color.destructive)
         }
-    }
-
-    private var timeRange: String {
-        "\(DateFormat.displayTime(context.block.startTime)) – \(DateFormat.displayTime(context.block.endTime))"
     }
 }
 
