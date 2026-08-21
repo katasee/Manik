@@ -600,6 +600,70 @@
         }
       }
     },
+    "myBookings.action.cancel" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancel"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Скасувати"
+          }
+        }
+      }
+    },
+    "myBookings.cancel.confirm" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yes, cancel"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Так, скасувати"
+          }
+        }
+      }
+    },
+    "myBookings.cancel.note" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The time will become available to other clients again."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Час знову стане доступним для інших клієнток."
+          }
+        }
+      }
+    },
+    "myBookings.cancel.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancel this booking?"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Скасувати запис?"
+          }
+        }
+      }
+    },
     "myBookings.empty.message" : {
       "localizations" : {
         "en" : {
@@ -628,6 +692,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Записів ще немає"
+          }
+        }
+      }
+    },
+    "myBookings.error.generic" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't cancel the booking. Please try again."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не вдалося скасувати запис. Спробуйте ще раз."
           }
         }
       }

@@ -2,6 +2,7 @@ import SwiftUI
 
 struct MyBookingSectionView: View {
     let section: MyBookingSection
+    let onCancel: (CancelBookingContext) -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: MyBookingsMetrics.Spacing.listSpacing) {
@@ -12,7 +13,7 @@ struct MyBookingSectionView: View {
                 .foregroundStyle(Color.textSecondary)
 
             ForEach(section.bookings) { booking in
-                MyBookingCard(booking: booking)
+                MyBookingCard(booking: booking, onCancel: onCancel)
             }
         }
     }
@@ -37,7 +38,7 @@ struct MyBookingSectionView: View {
     return ScrollView {
         VStack(alignment: .leading, spacing: MyBookingsMetrics.Spacing.sectionSpacing) {
             ForEach(sections) { section in
-                MyBookingSectionView(section: section)
+                MyBookingSectionView(section: section, onCancel: { _ in })
             }
         }
         .padding()

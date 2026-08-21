@@ -5,6 +5,7 @@ enum MyBookingsMetrics {
         static let cardCornerRadius: CGFloat = 24
         static let accentWidth: CGFloat = 4
         static let accentInset: CGFloat = 12
+        static let cancelTapTarget: CGFloat = 44
     }
 
     enum Spacing {

@@ -2,6 +2,7 @@ import SwiftUI
 
 struct MyBookingsView: View {
     @State private var viewModel: MyBookingsViewModel
+    @State private var cancelContext: CancelBookingContext?
 
     init(viewModel: MyBookingsViewModel) {
         _viewModel = State(initialValue: viewModel)
@@ -14,7 +15,7 @@ struct MyBookingsView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: MyBookingsMetrics.Spacing.sectionSpacing) {
                     ForEach(viewModel.sections) { section in
-                        MyBookingSectionView(section: section)
+                        MyBookingSectionView(section: section, onCancel: showCancel)
                     }
                 }
                 .padding(.horizontal, MyBookingsMetrics.Spacing.horizontalPadding)
@@ -32,6 +33,13 @@ struct MyBookingsView: View {
                 messageKey: "myBookings.empty.message"
             )
         }
+        .fullScreenCover(item: $cancelContext) { context in
+            CancelBookingPopup(
+                viewModel: viewModel.makeCancelViewModel(context: context),
+                onDismiss: dismissCancel
+            )
+            .presentationBackground(.clear)
+        }
         .task {
             await viewModel.observeBlocks()
         }
@@ -40,6 +48,18 @@ struct MyBookingsView: View {
         }
         .task {
             await viewModel.refreshSections()
+        }
+    }
+
+    private func showCancel(_ context: CancelBookingContext) {
+        withoutPresentationAnimation {
+            cancelContext = context
+        }
+    }
+
+    private func dismissCancel() {
+        withoutPresentationAnimation {
+            cancelContext = nil
         }
     }
 }

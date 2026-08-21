@@ -27,7 +27,7 @@ struct BookingConfirmPopup: View {
                 confirmContent(dismiss: dismiss)
             }
         }
-        .animation(.easeOut(duration: 0.2), value: viewModel.isBooked)
+        .animation(PopupContainerLayout.fade, value: viewModel.isBooked)
     }
 
     @ViewBuilder
