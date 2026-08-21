@@ -520,6 +520,54 @@ this file is just "what's done, what's next," not a design doc.
     `client.placeholder.title` видалено разом із мертвою властивістю `ClientRootView.placeholder`.
   - **Не в цьому PR**: скасування запису (PR18).
 
+- **PR18 — Client скасування запису (branch `feature/pr-18-cancelBooking`, 5 із 6 задач плану)**: клієнтка
+  скасовує майбутній запис із «Моїх записів», блок повертається в `available`. Дата-шар і
+  `firestore.rules` **не змінювались взагалі** — `BlockRepository.cancel(blockId:)` існує з PR1,
+  `isClientCanceling()` уже дозволяє рівно цю операцію. Цим закривається екран 3 повністю і
+  замикається повний цикл клієнтки: запис → список → скасування.
+  - **Афорданс — текстова кнопка в картці**, не свайп і не попап деталей. Свайп із кошиком у цьому
+    застосунку означає «видалити» (`SwipeToDelete` у «Моїх послугах»), а тут дія інша; попап
+    деталей вимагав би дзеркала майстерського `BlockDetailPopup` заради однієї дії.
+  - **Підтвердження — попап на наявному `PopupContainer`, не `.alert`**: алерт малюється системним
+    шрифтом і випадає з дизайн-системи, а помилку довелось би показувати другим алертом.
+    `Client/MyBookings/Cancel/`: `CancelBookingContext` (id + три готові рядки), `CancelBookingPopup`,
+    `CancelBookingViewModel`. VM видає фабрика `MyBookingsViewModel.makeCancelViewModel(context:)`,
+    тож `BlockRepository` не витікає у в'юху — той самий прийом, що `makeConfirmViewModel` у PR15.
+  - **Скасувати можна будь-який майбутній запис** — і `pending`, і `confirmed`, без часового вікна,
+    і **без guard'а «час уже минув»** (на відміну від `BookingConfirmViewModel.book()`).
+    Забронювати слот у минулому неправильно; скасувати запис, що почався хвилину тому — ні, і
+    сервер це дозволяє. Клієнтського правила, якого немає в `firestore.rules`, не вигадуємо.
+  - **Success-стану в попапі немає** — після успіху він просто фейдиться назад. PR15 показував
+    галочку, бо новий `pending` було ніде не видно; тут картка зникає зі списку через realtime, і
+    це саме́ й є підтвердженням.
+  - **Помилка — інлайн у попапі, один кейс**: `hasFailed: Bool` + `myBookings.error.generic`, без
+    enum на один варіант (як `BookingFailure` у PR15). Заведемо enum, якщо кейсів стане два.
+  - **`MyBooking.cancelId: String?` гейтить кнопку** (`nil` для минулих і для блока без документного
+    id) — одне опціональне поле кодує і «чи є кнопка», і «що саме скасовувати», як `priceLabel`
+    поруч. У `CancelBookingContext` `id` уже **необов'язковий**: урок PR13 (`ServiceOffer.id`) —
+    недосяжний фолбек ховає інваріант.
+  - `priceRow` став `footerRow` (ціна ліворуч, «Скасувати» праворуч) і рендериться, лише якщо є
+    бодай одне з двох. Тап-таргет `44` — через `.frame(minHeight:)` **всередині** лейбла кнопки, не
+    на самій `Button` (урок PR14: рамка на кнопці збільшує layout, а не зону натискання).
+  - **`PopupContainerLayout` перестав бути `private`**, обидва попапи беруть `.fade` звідти замість
+    літерала `.easeOut(duration: 0.2)` — правився **і** `BookingConfirmPopup`, лишати дубль в
+    одному з двох місць не можна (принцип, за яким PR12 відхилив вибіркове прибирання
+    `Button("common.action.ok")`). Показ/закриття кавера — через `withoutPresentationAnimation`, як
+    у PR15.
+  - **`FailingBlockRepository` — окремий файл** у `Services/Fakes/`, а не хвіст
+    `FakeBlockRepository.swift`: кожен метод кидає, і друге прев'ю попапа показує червоний рядок
+    помилки без Firestore.
+  - **`accessibilityLabel` на кнопці «Скасувати» свідомо не додано** — у списку було б кілька кнопок
+    з ідентичним VoiceOver-лейблом. За прецедентом PR9/PR12/PR17 accessibility-борг ведеться
+    списком у беклозі, а не гаситься попутно.
+  - Локалізація: 5 нових ключів (`myBookings.action.cancel`, `myBookings.cancel.confirm`,
+    `myBookings.cancel.note`, `myBookings.cancel.title`, `myBookings.error.generic`) — `en`+`uk`,
+    `translated`, за абеткою. Переюзано `common.action.back`.
+  - **Не в цьому PR**: борг «view models перебудовуються при перемиканні табів» був у плані
+    задачею 6 (`@State` на `ClientRootView` + `.id(profile.uid)` у `RootView`), але **не
+    реалізований** — `ClientRootView` досі будує всі три VM усередині `switch`. Пункт беклогу
+    лишається відкритим.
+
 ## Screens (in order)
 
 This is the actual work queue, and the only numbered list here. The ordering follows the **data
@@ -556,8 +604,10 @@ those items are referred to by name, so the list can grow without renumbering an
    either screen — opens a confirmation popup that really writes the `pending` block and drops the
    client into the "Мої записи" tab. The planned PR15/PR16 split was collapsed into one PR: a popup
    that doesn't write would have been a decorative stub. No longer gates screens 3–5.
-3. **Client — "Мої записи" (My bookings)**: list of own pending/confirmed blocks, cancel action.
-   Thin follow-on to screen 2 — same repository, same models. Ships as **two** PRs, split by
+3. ~~**Client — "Мої записи" (My bookings)**~~ — **done** (PR17 + PR18, both under "Done" above):
+   list of own pending/confirmed blocks in two sections, plus a cancel action that really returns
+   the block to `available`. This closes the client's full loop — book → see it → cancel it.
+   Thin follow-on to screen 2 — same repository, same models. Shipped as **two** PRs, split by
    capability rather than by layer (decided 2026-08-17): a UI-only PR on fixtures would be the
    decorative stub that PR15 deliberately avoided when it collapsed the planned PR15/PR16 split.
    Both halves read real data; `firestore.rules` and `BlockRepository` need no changes at all
@@ -566,8 +616,11 @@ those items are referred to by name, so the list can grow without renumbering an
      settled beyond the plan: the card shows a **time range**, not a duration (`Service` has had no
      duration field since PR11), which produced the shared `Block.timeRangeLabel`; and past bookings
      are capped at five with no status pill, since the section heading already carries that meaning.
-   - **PR18 — cancel a booking**: the affordance plus `BlockRepository.cancel(blockId:)`, confirmation
-     and error handling.
+   - ~~**PR18 — cancel a booking**~~ — **done**, see the PR18 entry under "Done" above. Two things it
+     settled beyond the plan: the affordance is a **text button in the card** (not a swipe — that
+     reads as "delete" here), and the confirmation is a `PopupContainer` popup rather than an
+     `.alert`, so the error can render inline instead of stacking a second alert. It also did
+     **not** ship the tab-switch debt fix its plan had queued as task 6 — that stays in the backlog.
    - ~~Rider for whichever of the two first needs it: move `BlockStatusPill` + `BlockStatusStyle` out
      of `Master/Schedule/Components/`~~ — **done in PR17**: both now live in `Assets/UICommons/`, the
      pill carries its own `private enum Layout`, and `ScheduleMetrics.StatusPill` is gone.
@@ -630,6 +683,11 @@ numbering drifts every time an item is added or closed (it already did once: PR9
     re-evaluation too, and `State(initialValue:)` only takes on the first) — the win is purely
     keeping the state. **Not verified in the simulator** — derived from the code; confirm by
     switching tabs back and forth.
+  - **PR18 queued exactly that fix as its task 6 and did not ship it** — the commit touches neither
+    `ClientRootView` nor `RootView`, so all three client view models are still built inside the
+    `switch`. The written-out fix (`@State` on `ClientRootView` built in its `init`, plus
+    `.id(profile.uid)` on it in `RootView` as insurance for `State(initialValue:)` taking only on
+    the first evaluation) is the plan of record; it just needs doing.
 - **If a couple more domain-aware components accumulate in `Assets/UICommons/`, split off
   `Assets/DomainUI/`.** `BlockStatusPill`/`BlockStatusStyle` landed there in PR17 and are the first
   two that switch on a domain type (`BlockStatus`) rather than being purely presentational. Two is
@@ -688,6 +746,11 @@ numbering drifts every time an item is added or closed (it already did once: PR9
   - PR12 added one more: the star toggle in `ServiceRow` is a `Button` with no `accessibilityLabel`
     or `accessibilityValue`, and the row's `onTapGesture` carries no `.isButton` trait. Both were
     explicitly cut from PR12's scope, not overlooked.
+  - PR18 added one more: every "Скасувати" button in `MyBookingCard` reads as the bare word
+    "Скасувати" to VoiceOver, so a list of upcoming bookings gives several identically-labelled
+    buttons with no way to tell which is which. The fix is an `accessibilityLabel` naming the
+    service and the slot — declined in PR18 by the same precedent as PR9/PR12/PR17, which is why
+    it lands here rather than in that PR.
 - **Slot creation can overlap an existing block**: since PR8 an hour still offers
   "+ Додати вільний час" while ≤20 min of it is taken, but `CreateBlockContext` carries only
   `startHour` (no minutes), so the popup opens at the top of the hour and can produce an
@@ -737,7 +800,14 @@ numbering drifts every time an item is added or closed (it already did once: PR9
   it a coherent reviewable chunk (or sooner, at your discretion).
 - **Throwaway feature docs are cleaned up**: the PR10 plan, both PR11 artifacts and both PR12
   artifacts (spec + plan) were deleted, per `CLAUDE.md`; everything from them that outlives a
-  branch is folded into this file. `docs/superpowers/` now holds only the permanent MVP spec.
+  branch is folded into this file. `docs/superpowers/` tracks only the permanent MVP spec —
+  `plans/` and `specs/*` are gitignored, so newer artifacts never reach a commit and exist only on
+  the machine that wrote them.
+  - **Still on disk, pending the merge of their branches**: `plans/2026-08-17-client-my-bookings.md`,
+    `specs/2026-08-17-client-my-bookings-design.md` (PR17) and
+    `plans/2026-08-17-client-booking-cancellation.md` (PR18). Everything from all three that
+    outlives the branch is already folded into the PR17/PR18 entries above — delete them once
+    `feature/pr-18-cancelBooking` lands on `main`.
 - **Currency is settled: `PLN`, whole units only.** The design mockup showed грн, but the salon
   works in the Polish time zone; `ServiceFormat.currencyCode` stays `"PLN"`. Decided 2026-08-07,
   before PR11 put a price field in front of the user — don't reopen without a product reason. PR12
