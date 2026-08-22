@@ -2,8 +2,14 @@ import Foundation
 
 #if DEBUG
 final class FailingBlockRepository: BlockRepository {
+    private let blocks: [Block]
+
+    init(blocks: [Block] = []) {
+        self.blocks = blocks
+    }
+
     func observeBlocks() -> AsyncStream<[Block]> {
-        AsyncStream { $0.yield([]) }
+        AsyncStream { [blocks] in $0.yield(blocks) }
     }
 
     func addBlock(_ block: Block) async throws {

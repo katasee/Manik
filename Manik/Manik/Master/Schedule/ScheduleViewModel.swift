@@ -79,7 +79,7 @@ final class ScheduleViewModel {
         let dateString = DateFormat.date.string(from: selectedDate)
         let todaysBlocks = blocks
             .filter { $0.date == dateString }
-            .sorted(by: Self.chronologically)
+            .sorted(by: Block.chronologically)
 
         scheduledBlocks = cascade(todaysBlocks)
         freeHours = Set(WorkHours.working.filter { isFree($0, among: todaysBlocks) })
@@ -122,11 +122,5 @@ final class ScheduleViewModel {
 
         return services.first { $0.id == bookedServiceId }?.name
             ?? String(localized: "common.service.unknown")
-    }
-
-    private static func chronologically(_ lhs: Block, _ rhs: Block) -> Bool {
-        lhs.startMinutes == rhs.startMinutes
-            ? (lhs.id ?? "") < (rhs.id ?? "")
-            : lhs.startMinutes < rhs.startMinutes
     }
 }

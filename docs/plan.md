@@ -565,8 +565,130 @@ this file is just "what's done, what's next," not a design doc.
     `translated`, за абеткою. Переюзано `common.action.back`.
   - **Не в цьому PR**: борг «view models перебудовуються при перемиканні табів» був у плані
     задачею 6 (`@State` на `ClientRootView` + `.id(profile.uid)` у `RootView`), але **не
-    реалізований** — `ClientRootView` досі будує всі три VM усередині `switch`. Пункт беклогу
-    лишається відкритим.
+    реалізований**. Закрито пізніше, у PR19.
+
+- **PR19 — Master «Заявки» (branch `feature/pr-19-masterRequests`, 6 задач)**: таб «Заявки» показує
+  майбутні `pending`-блоки з іменем клієнтки й парою кнопок «Відхилити»/«Підтвердити». Цим
+  замикається повний цикл обох кабінетів: клієнтка записалась → майстер підтвердив. `firestore.rules`
+  **не змінювались і не передеплоювались** — `users` уже читається майстром
+  (`allow read: if isMaster() || request.auth.uid == uid`), а `confirm`/`decline` існують у
+  `BlockRepository` з PR1.
+  - **Дії — дві кнопки прямо в картці, не тап у попап деталей.** Це свідоме скасування того, що
+    планувалось у пункті екрана 4 нижче: `BlockDetailPopup` (PR9) у PR19 не змінювався взагалі.
+    Причина — заявки це черга, де кожен рядок вимагає рішення; додатковий тап на кожну заявку це
+    податок на основний сценарій. Переюзано не попап, а `BlockAction` + `BlockActionButton`, які
+    вже несуть спінер, `disabled` і алерт підтвердження для «Відхилити».
+  - **`BlockAction` + `BlockActionButton` переїхали в `Assets/UICommons/`** — той самий переїзд, що
+    PR17 зробив для `BlockStatusPill`/`BlockStatusStyle`, коли з'явився другий кабінет-споживач.
+    Наслідок: у `UICommons/` тепер **чотири** доменно-обізнані компоненти, тобто умова беклогу про
+    `Assets/DomainUI/` настала (див. нижче).
+    - **Це не був чистий переїзд** (початкова редакція цього запису казала «вміст не змінювався ні
+      на рядок» — неправда, виправлено 2026-08-21). `BlockActionButton` отримав
+      `enum BlockActionButtonStyle { case popup, card }` і параметр `style` з дефолтом `.popup`;
+      `button` став `@ViewBuilder` зі `switch`, де гілка `.popup` — це колишній
+      `PopupPrimaryButton` слово в слово, а `.card` — новий `CardActionButton`. `BlockAction`
+      доріс двома властивостями суто для картки: `iconName` (SF Symbol) та `isPreferred`
+      («цю дію пропонуємо за замовчуванням» → залита капсула проти обведеної).
+    - Дефолт `.popup` — навмисний: єдиний наявний споживач `BlockDetailPopup.swift:49` не
+      змінився жодним рядком і виглядає точно як до PR19. Тобто попап не переробляли, а **додали
+      другий стиль поруч**.
+    - `isPreferred` спершу звався `isAffirmative`, перейменований на прохання після рев'ю: назва
+      описує намір, а не оформлення, і не конфліктує з наявним `PopupPrimaryButton`, де слово
+      «primary» означає інше. Споживач і далі приймає його як `isProminent` — межа між
+      «яку дію пропонуємо» (домен дії) і «намалюй акцентно» (оформлення) лишається явною, тому
+      `CardActionButton` не знає нічого про записи.
+  - **Минулі заявки ховаються.** Блок, що лишився `pending` після свого часу, зі списку зникає й
+    лишається `pending` назавжди, видимий лише в «Розкладі». Свідомий компроміс: черга має показувати
+    те, що ще має сенс підтверджувати. Саме через цей фільтр екрану потрібен 60-секундний тік
+    (`refreshRequests()`), інакше заявка, чий час минув при відкритому екрані, висіла б у списку.
+  - **Імена клієнток — ледачий fetch із кешем, а не батч і не денормалізація.** Це перше місце, де
+    асинхронне джерело мусить співіснувати з синхронним `didSet → rebuild()`, на якому побудовані всі
+    наявні view models. Рішення: імена це **третє джерело в тому ж патерні** —
+    `clientNames: [String: String]` з власним `didSet`, а білдер `RequestsList` лишається чистою
+    синхронною функцією. `inFlightNames: Set<String>` не дає читати той самий uid двічі, поки
+    снепшоти йдуть частіше за читання; невдале читання **не кешується** (наступний снепшот спробує
+    ще раз) — кеш негативних результатів додав би стан заради випадку, якого в одному салоні бути
+    не повинно.
+  - **`hasLoaded` чекає й на імена, а фолбек-напису більше немає** — переглянуто в кінці PR19
+    (2026-08-21) після скарги, що при перемиканні табів на секунду блимає «Клієнтка», а тоді
+    підміняється справжнім іменем. Початкове рішення було зворотним (`hasBlocks && hasServices`,
+    як у PR17, плюс ключ `requests.client.unknown` як заглушка). Обидві половини скасовані:
+    ключ **видалено з каталогу**, а `hasLoaded` тепер додатково вимагає `hasResolvedNames(now:)`.
+    Спалах був подвійної природи — гейт не чекав імен *і* view models перебудовувались на кожному
+    перемиканні таба (див. хойстинг нижче); полагоджено обидві.
+    - **`hasLoaded` залатчений**: `guard hasLoaded == false else { return }` перед присвоєнням.
+      Без латча звичайне присвоєння регресує — нова `pending`-заявка від некешованої клієнтки
+      знову зробила б його `false` і підмінила **вже намальований** список повноекранним
+      `ProgressView`. Хойстинг зробив це не теоретичним: VM тепер справді отримує снепшоти,
+      поки екран не видно.
+    - **Заявка з нечитабельним профілем не ховається мовчки.** `unreadableClientIds: Set<String>`
+      (з власним `didSet → rebuild()`, четверте джерело в тому ж патерні) наповнюється тими uid,
+      чиє читання провалилось, і `RequestsList` малює для них маркер
+      `requests.client.unavailable` замість того, щоб викидати рядок. Інакше заявка зникала б
+      зовсім, екран показував би «Заявок немає» — брехню — а разом із фільтром минулих заявок
+      така заявка ставала б **назавжди невидимою й вічно `pending`**. Найгірше це в офлайні з
+      холодним кешем: блоки приходять зі снепшот-кешу, а `getDocument` падає.
+    - Три стани імені тепер розрізняються явно: є в `clientNames` → ім'я; є в
+      `unreadableClientIds` → маркер; немає ніде → `nil`, тобто **«ще летить»**, і рядок чекає.
+      Приховування лишилось, але стало тимчасовим, а не остаточним.
+    - **Що свідомо лишилось зламаним**: офлайн і видалений `users/{uid}` дають однаковий маркер.
+      `fetchProfile` не має клієнтського таймауту, а нечитабельний uid перечитується кожні 60 с
+      без кінця. Розрізнення причин вимагає доменного типу помилки в репозиторії (щоб VM і далі
+      не імпортувала Firebase) — винесено в окремий PR «Стани помилок» разом із error-станом у
+      `ListStatusOverlay` (його зараз бракує всім трьом спискам) і переходом на
+      `AsyncThrowingStream`.
+  - **`loadMissingNames()` запускається окремою `Task`, а не через `await` у циклі снепшотів** —
+    знахідка рев'ю `swiftui-pro` на етапі планування. `fetchProfile` іде в мережу без клієнтського
+    таймауту; поки він висить, `for await` не забирає наступні снепшоти, і список перестає
+    оновлюватись у реальному часі, хоча дані вже прийшли (`AsyncStream` буферизує unbounded, тож
+    губиться не дата, а свіжість). Незструктурована `Task` тут прийнятна саме тому, що робота
+    коротка й ідемпотентна завдяки `inFlightNames`.
+  - **`Block.chronologically` винесено в `Models/Block/Block+Chronological.swift`** — `RequestsList`
+    була б третьою копією, рівно поріг, на якому PR17 витягнув `Block.timeRangeLabel`. Важлива
+    деталь: дві наявні копії **не були ідентичні** — `MyBookingsList` порівнював
+    `date` → `startMinutes` → `id`, а `ScheduleViewModel` лише `startMinutes` → `id`, бо його вхід
+    уже звужений до одного `selectedDate`. Спільною стала **повна** версія з датою: для одноденного
+    входу порівняння дат — гарантований no-op, тож поведінка «Розкладу» не змінилась. Зворотний
+    напрямок був би багом.
+  - **Кнопка виходу майстра переїхала в `StatsView`**, який тепер бере `profile` і `onSignOut`. Вона
+    жила в заглушці таба «Заявки», і новий екран її витіснив. Четвертий таб «Акаунт» не заводили —
+    MVP-спека фіксує три таби в майстра, а «Статистика» вже є входом у налаштування («Мої послуги»).
+    Без цього переїзду `MasterRootView.profile` став би мертвим полем.
+  - `Master/Requests/`: `BookingRequest` (презентаційна модель — **без `status`**, бо всі рядки
+    `pending` за побудовою і піл на кожній картці повторював би заголовок екрана; статус несе лише
+    акцентна смужка), `RequestsList` (чиста
+    `requests(blocks:services:clientNames:unreadableClientIds:now:)` + `pendingClientIds(in:now:)` —
+    обидві через спільний приватний `pending(in:now:)`, щоб «які рядки показуємо» і «чиї імена
+    вантажимо» не розійшлись), `RequestsViewModel`, `RequestsView`, `RequestsMetrics`,
+    `Components/RequestCard`, `Preview/RequestsPreviewData`.
+  - **Екран не бере `bottomClearance`** — власного `NavigationStack` немає, тож `safeAreaInset`
+    роутера доїжджає до скролу сам (правило PR17). `VStack`, не `LazyVStack`.
+  - **`FailingBlockRepository` отримав `init(blocks: [Block] = [])`** — його `observeBlocks()` віддавав
+    порожній масив, тобто в прев'ю помилки не було на що натиснути. Дефолт лишив єдиного наявного
+    споживача (`CancelBookingPopup`, PR18) без правок.
+  - Локалізація: 5 нових ключів (`requests.title`, `requests.empty.title`, `requests.empty.message`,
+    `requests.client.unavailable`, `requests.error.generic`) — `en`+`uk`, `translated`, за абеткою.
+    `requests.client.unavailable` («Профіль недоступний») з'явився наприкінці PR19 **замість**
+    видаленого `requests.client.unknown` («Клієнтка»): перший — маркер збою, який показується
+    поруч із реальною заявкою, другий був заглушкою на час завантаження. Підміна не косметична —
+    див. блок про `hasLoaded` вище.
+    Переюзано без перейменування `schedule.action.confirm/decline`, `schedule.confirm.decline.*`,
+    `common.service.unknown`, `common.action.ok`, `common.action.signOut`. Префікс `schedule.*` на
+    екрані заявок лишено свідомо — те саме рішення, що PR17 прийняв для `schedule.status.*`.
+  - **Хойстинг view models у роутери таки зроблений** — спершу планувався поза PR19, але виявився
+    другою половиною причини блимання імені, тож без нього гейт на іменах не мав сенсу.
+    `MasterRootView` тримає `scheduleViewModel`/`requestsViewModel`, `ClientRootView` —
+    `bookingViewModel`/`myBookingsViewModel` (обидві через `init` + `State(initialValue:)`, бо їм
+    потрібен `profile.uid`), плюс `.id(profile.uid)` на обох роутерах у `RootView`. Закриває
+    беклог-пункт «View models are rebuilt on every tab switch», який PR17 і PR18 по черзі
+    відкладали. Роутери й далі **не читають** ці view models у `body` — лише передають униз, тобто
+    лишаються роутерами, а не екранами; ознака зриву була б у зверненні на кшталт
+    `myBookingsViewModel.count` заради бейджа.
+  - **Не в цьому PR**: живий бейдж на табі, виділення `Assets/DomainUI/` — обидва лишаються в
+    беклозі. Туди ж, уже після роботи над екраном, відклався **редизайн `BlockDetailPopup`**
+    (картковий стиль дій замість зелено-червоних капсул + хрестик замість текстового «Close»):
+    зроблений, але зістешений як `stash@{0}` «BlockDetailPopup redesign», бо це історія про
+    попапи, а не про заявки. Відділився чисто саме завдяки дефолту `style: .popup`.
 
 ## Screens (in order)
 
@@ -624,12 +746,20 @@ those items are referred to by name, so the list can grow without renumbering an
    - ~~Rider for whichever of the two first needs it: move `BlockStatusPill` + `BlockStatusStyle` out
      of `Master/Schedule/Components/`~~ — **done in PR17**: both now live in `Assets/UICommons/`, the
      pill carries its own `private enum Layout`, and `ScheduleMetrics.StatusPill` is gone.
-4. **Master — "Заявки" (Requests)**: list of `pending` blocks with confirm/decline, reusing
-   `BlockDetailPopup` as the detail surface (PR9 shipped the detail half). By now screens 2–3 supply
-   real `pending` data instead of hand-seeded documents. Two riders that belong with this slice:
-   - Pull `UserRepository`/`FirestoreUserRepository`/`FakeUserRepository` out of `stash@{0}` and
-     show the client's name on both the request row and the detail popup — this is the screen that
-     finally gives `pending` blocks a way to exist, so the missing name from PR9 becomes visible.
+4. ~~**Master — "Заявки" (Requests)**~~ — **done** (PR19, under "Done" above): list of upcoming
+   `pending` blocks with the client's name and inline confirm/decline. Two departures from what was
+   planned here:
+   - **`BlockDetailPopup` was not reused.** The plan expected it as the detail surface; PR19 put the
+     two actions straight in the card instead, because a queue where every row needs a decision
+     shouldn't charge an extra tap per row. What got reused is `BlockAction` + `BlockActionButton`
+     (spinner, disabled state, and the decline confirmation alert), both moved into
+     `Assets/UICommons/`. The popup is untouched.
+   - **Past `pending` blocks are hidden**, so a request the master never answered stays `pending`
+     forever and is visible only in the Schedule. Deliberate: the queue lists what is still worth
+     confirming.
+   - ~~Pull `UserRepository`/`FirestoreUserRepository`/`FakeUserRepository` out of the stash and show
+     the client's name~~ — **done in PR19**. Note the stash index in the old text was wrong; see
+     Housekeeping.
    - ~~Move `BlockStatusPill` + `BlockStatusStyle` out of `Master/Schedule/Components/` once Requests
      becomes their second consumer~~ — **done in PR17** (screen 3 got there first). The open question
      it carried is now a standalone backlog item below.
@@ -669,12 +799,22 @@ numbering drifts every time an item is added or closed (it already did once: PR9
     above and into the screen-2 item below; the month calendar with green-underlined available
     dates is the one design decision that has not shipped yet, so it is recorded there rather than
     only in a deleted file.
-- **View models are rebuilt on every tab switch** in both routers — `MasterRootView.swift:14` and
-  `ClientRootView.swift:14,21` construct them inside `body`, and the `switch` gives each tab its own
-  view identity, so leaving and returning tears down the Firestore listeners and re-registers them:
-  a full re-read plus a spinner flash per visit. Pre-existing pattern, but «Запис» is the client's
-  default tab, so it's now user-facing. Fix means hoisting the view models above the `switch` in
-  both routers.
+- ~~**View models are rebuilt on every tab switch**~~ — **done in PR19** (see its entry under
+  "Done"). Both routers now hold them as `@State` above the `switch`; `ClientRootView` builds its
+  two in `init` from `profile.uid`, and `RootView` carries `.id(profile.uid)` on both routers so a
+  change of account rebuilds them. Kept below in full because three PRs deferred it and the
+  reasoning is worth preserving — including the part that turned out to be **wrong**: this was
+  filed as a performance/flash item, but the sharper bug was correctness. A `body` re-evaluation
+  while *staying* on a tab injected a fresh empty view model into a view whose identity had not
+  changed, so its `.task` did **not** restart — the old task kept observing the old object while
+  the screen read the new, permanently empty one. That failure is intermittent and does not
+  reproduce by switching tabs, which is why it survived three reviews.
+  - Original wording: in both routers — `MasterRootView.swift:14` and
+    `ClientRootView.swift:14,21` construct them inside `body`, and the `switch` gives each tab its own
+    view identity, so leaving and returning tears down the Firestore listeners and re-registers them:
+    a full re-read plus a spinner flash per visit. Pre-existing pattern, but «Запис» is the client's
+    default tab, so it's now user-facing. Fix means hoisting the view models above the `switch` in
+    both routers.
   - **PR17 made this two-for-two on the client side** — `MyBookingsViewModel` is now built in the
     same `switch`, so switching tabs back and forth resets `hasLoaded` to `false` and empties
     `sections`/`offers`: a spinner blinks instead of the already-loaded list. Deliberately not fixed
@@ -688,11 +828,12 @@ numbering drifts every time an item is added or closed (it already did once: PR9
     `switch`. The written-out fix (`@State` on `ClientRootView` built in its `init`, plus
     `.id(profile.uid)` on it in `RootView` as insurance for `State(initialValue:)` taking only on
     the first evaluation) is the plan of record; it just needs doing.
-- **If a couple more domain-aware components accumulate in `Assets/UICommons/`, split off
-  `Assets/DomainUI/`.** `BlockStatusPill`/`BlockStatusStyle` landed there in PR17 and are the first
-  two that switch on a domain type (`BlockStatus`) rather than being purely presentational. Two is
-  not enough to justify a folder; carried over from screen 4's rider, and no longer tied to any
-  queued screen.
+- **Split off `Assets/DomainUI/` — the condition has now been met.** `BlockStatusPill`/
+  `BlockStatusStyle` landed in `Assets/UICommons/` in PR17 as the first two components that switch on
+  a domain type (`BlockStatus`) rather than being purely presentational; **PR19 added
+  `BlockAction`/`BlockActionButton`**, making four. The original wording said "if a couple more
+  accumulate" — they have. PR19 deliberately did not do it, to keep its diff about the Requests
+  screen; it's a pure file move (Swift has no intra-module imports, so nothing else changes).
 - ~~**Deploy `firestore.rules`**~~ — **done (2026-08-08, after PR12)**: the file was edited by PR12
   (`hasValidServiceFormat()`, and `services`' `write` split into `create, update` / `delete`) and
   published to the Console for project `manik-5a2b8`. Deployment stays manual — Console
@@ -751,6 +892,10 @@ numbering drifts every time an item is added or closed (it already did once: PR9
     buttons with no way to tell which is which. The fix is an `accessibilityLabel` naming the
     service and the slot — declined in PR18 by the same precedent as PR9/PR12/PR17, which is why
     it lands here rather than in that PR.
+  - PR19 added one more, and it is the same shape: every card in «Заявки» carries a "Підтвердити"
+    and a "Відхилити" button, so a queue of requests reads to VoiceOver as several identically
+    labelled pairs with no way to tell which request each belongs to. Fix is an `accessibilityLabel`
+    naming the client and the slot on both buttons. Declined in PR19 by the same precedent.
 - **Slot creation can overlap an existing block**: since PR8 an hour still offers
   "+ Додати вільний час" while ≤20 min of it is taken, but `CreateBlockContext` carries only
   `startHour` (no minutes), so the popup opens at the top of the hour and can produce an
@@ -770,6 +915,11 @@ numbering drifts every time an item is added or closed (it already did once: PR9
   on this list: since PR11 its view model is built in `MasterRootView.body`, which *is*
   main-actor isolated.) The same migration is where the deliberately-declined
   `FakeServiceRepository` race below should be revisited.
+  - PR19 added one instance of a different flavour: `RequestsViewModel.fetchNames(for:)` passes
+    `userRepository` into a `withTaskGroup` child task via a capture list, and `UserRepository` is a
+    plain protocol with no `Sendable` conformance. Legal under `minimal` checking, a warning under
+    `-strict-concurrency=complete`. Don't paper over it with `@unchecked Sendable` on the protocol —
+    fix it as part of the migration.
   - PR12 patched a symptom of the same root cause: helper methods on `View` structs are
     nonisolated, so a `Task {}` created inside one does **not** inherit `MainActor` and any
     synchronous UI call after an `await` runs off the main thread. Three popups were fixed with
@@ -783,6 +933,38 @@ numbering drifts every time an item is added or closed (it already did once: PR9
   snapshot case but not this one. The real fix is the `AsyncThrowingStream` switch that
   `data-layer.md` already names as the intended escalation path; it touches both repository
   protocols, both Firestore implementations, the fakes, and both view models.
+- **A booking points at a service by reference, so editing the service rewrites history** (raised
+  while walking through `RequestsList` after PR19, 2026-08-21). Every screen that needs a booked
+  service's name or price resolves it live — `RequestsList.swift:51`, `MyBookingsList.swift:43`,
+  `ScheduleViewModel.swift:123` all do `services.first { $0.id == block.bookedServiceId }`. That
+  asks "what is this service *now*", where the honest question is "what was it *when she booked*".
+  - Deletion is only the loudest symptom (the row falls back to `common.service.unknown` and loses
+    its price). Renaming and repricing corrupt the same data more quietly: raise 250 → 300 and a
+    booking the client agreed to at 250 retroactively displays 300, with nothing to signal it.
+  - Fix is the shopping-receipt pattern — snapshot the values onto the booking instead of linking
+    to them: `var bookedServiceName: String?` and `var bookedServicePrice: Int?` on `Block`,
+    **optional** per the `data-layer.md` rule about new fields on a populated collection, written
+    alongside `bookedServiceId` at booking time (`FirestoreBlockRepository.swift:28-34`, reached
+    from `BookingConfirmViewModel.swift:57`). `bookedServiceId` stays — the rules validate against
+    it, and "book the same thing again" will want it. The three read sites then stop looking
+    anything up, and `common.service.unknown` narrows to pre-migration documents only.
+  - **The rules wrinkle, which is the reason this isn't trivial**: `isClientBooking()` currently
+    lets a client's write touch only `status`/`clientId`/`bookedServiceId`, so she cannot influence
+    price at all. Make her write `bookedServicePrice` and she can put any number there. Either the
+    rule verifies it with a cross-document
+    `get(/databases/$(database)/documents/services/$(...))` — supported, but it bills a read on
+    every booking — or the master stamps the fields on confirm, which leaves «Заявки» (a
+    pending-only screen) still resolving by reference and so defeats half the point.
+  - Cheaper half-measure worth weighing: stop hard-deleting services
+    (`FirestoreServiceRepository.swift:33-34`) and reuse the existing `isActive`/`isOffered` flag as
+    a soft delete, so the document survives and every reference still resolves. Fixes deletion only;
+    rename and reprice still rewrite the past.
+  - **Timing matters**: `StatsView` is still a stub and nothing sums prices anywhere, so today this
+    is display-only. Do this **before** the Stats screen computes revenue, or reported income will
+    drift every time the master edits her price list.
+  - Same shape as, and should probably ship with, denormalizing `clientName` onto `Block` — which
+    would also retire the whole `clientNames`/`unreadableClientIds`/`fetchNames` machinery in
+    `RequestsViewModel` and the `requests.client.unavailable` marker PR19 added.
 - **Service names don't follow the device language** (raised during PR11 planning, deliberately
   out of its scope): `Service.name` is master-entered *data*, stored as one `String`, so a client
   on an English device sees whatever the master typed. Only the chrome around it localizes —
@@ -804,10 +986,11 @@ numbering drifts every time an item is added or closed (it already did once: PR9
   `plans/` and `specs/*` are gitignored, so newer artifacts never reach a commit and exist only on
   the machine that wrote them.
   - **Still on disk, pending the merge of their branches**: `plans/2026-08-17-client-my-bookings.md`,
-    `specs/2026-08-17-client-my-bookings-design.md` (PR17) and
-    `plans/2026-08-17-client-booking-cancellation.md` (PR18). Everything from all three that
-    outlives the branch is already folded into the PR17/PR18 entries above — delete them once
-    `feature/pr-18-cancelBooking` lands on `main`.
+    `specs/2026-08-17-client-my-bookings-design.md` (PR17),
+    `plans/2026-08-17-client-booking-cancellation.md` (PR18),
+    `specs/2026-08-21-master-requests-design.md` and `plans/2026-08-21-master-requests.md` (PR19).
+    Everything from all five that outlives its branch is already folded into the PR17/PR18/PR19
+    entries above — delete each once its branch lands on `main`.
 - **Currency is settled: `PLN`, whole units only.** The design mockup showed грн, but the salon
   works in the Polish time zone; `ServiceFormat.currencyCode` stays `"PLN"`. Decided 2026-08-07,
   before PR11 put a price field in front of the user — don't reopen without a product reason. PR12
@@ -851,12 +1034,13 @@ numbering drifts every time an item is added or closed (it already did once: PR9
   same number (`ServicesMetrics.rowHorizontalPadding`/`rowVerticalPadding`): the separate names
   document intent and are meant to be able to diverge. Not written into
   `.claude/conventions/code-style.md` yet — do that if it comes up a second time.
-- **Two stashes are outstanding** (`git stash list`):
-  - `stash@{0}` — the full first cut of PR8 (proportional timeline, block detail popup + delete,
-    `UserRepository`, popup scaffold components, 13 localization keys). PR8 and PR9 between them
-    re-implemented everything in it from a clean tree **except the `UserRepository` trio**, which is
-    the only reason it's still around — the Requests screen (screen 4) needs it for client names.
-    Take those three files then, and drop the stash; popping it wholesale **will** conflict across
-    `ScheduleView`/`ScheduleViewModel`/`HourlyTimelineView`/`MasterRootView`/`ScheduleMetrics`.
-  - `stash@{1}` — the older PR5 stash (it shifted down from `stash@{0}` when the PR8 stash was
-    pushed). Largely superseded by PR8; review, then drop.
+- **Two stashes are outstanding** (`git stash list`) — and the indices in this file were wrong until
+  PR19 checked them. The actual list is:
+  - `stash@{0}` — `pr-14 calendar wip`. Superseded by PR14, which shipped; review, then drop.
+  - `stash@{1}` — the full first cut of PR8 (proportional timeline, block detail popup + delete,
+    `UserRepository`, popup scaffold components, 13 localization keys). **The `UserRepository` trio
+    was the only reason it survived, and PR19 took it**, so this stash can now be dropped.
+    Note the trio lived in the stash's **untracked** commit, not its index — the working extraction
+    was `git show 'stash@{1}^3:<path>'`, three files, no `pop`. Popping wholesale **will** conflict
+    across `ScheduleView`/`ScheduleViewModel`/`HourlyTimelineView`/`MasterRootView`/`ScheduleMetrics`.
+  - The old PR5 stash referenced here previously is gone — it is not in the list any more.

@@ -5,6 +5,15 @@ struct ClientRootView: View {
     let onSignOut: () -> Void
 
     @State private var selectedTab: ClientTab = .booking
+    @State private var bookingViewModel: BookingViewModel
+    @State private var myBookingsViewModel: MyBookingsViewModel
+
+    init(profile: UserProfile, onSignOut: @escaping () -> Void) {
+        self.profile = profile
+        self.onSignOut = onSignOut
+        _bookingViewModel = State(initialValue: BookingViewModel(clientId: profile.uid))
+        _myBookingsViewModel = State(initialValue: MyBookingsViewModel(clientId: profile.uid))
+    }
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -12,13 +21,13 @@ struct ClientRootView: View {
                 switch selectedTab {
                 case .booking:
                     BookingView(
-                        viewModel: BookingViewModel(clientId: profile.uid),
+                        viewModel: bookingViewModel,
                         clientName: profile.name,
                         bottomClearance: TabBarMetrics.Size.reservedClearance,
                         onBooked: showMyBookings
                     )
                 case .myBookings:
-                    MyBookingsView(viewModel: MyBookingsViewModel(clientId: profile.uid))
+                    MyBookingsView(viewModel: myBookingsViewModel)
                 case .account:
                     account
                 }
