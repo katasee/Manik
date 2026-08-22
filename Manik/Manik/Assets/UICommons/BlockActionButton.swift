@@ -1,13 +1,7 @@
 import SwiftUI
 
-enum BlockActionButtonStyle {
-    case popup
-    case card
-}
-
 struct BlockActionButton: View {
     let action: BlockAction
-    var style: BlockActionButtonStyle = .popup
     let isLoading: Bool
     let isEnabled: Bool
     let perform: (BlockAction) async -> Bool
@@ -30,27 +24,15 @@ struct BlockActionButton: View {
         }
     }
 
-    @ViewBuilder
     private var button: some View {
-        switch style {
-        case .popup:
-            PopupPrimaryButton(
-                titleKey: action.titleKey,
-                color: action.color,
-                isLoading: isLoading,
-                isEnabled: isEnabled,
-                action: request
-            )
-        case .card:
-            CardActionButton(
-                titleKey: action.titleKey,
-                systemImage: action.iconName,
-                isProminent: action.isPreferred,
-                isLoading: isLoading,
-                isEnabled: isEnabled,
-                action: request
-            )
-        }
+        CardActionButton(
+            titleKey: action.titleKey,
+            systemImage: action.iconName,
+            isProminent: action.isPreferred,
+            isLoading: isLoading,
+            isEnabled: isEnabled,
+            action: request
+        )
     }
 
     private func request() {

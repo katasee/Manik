@@ -71,7 +71,6 @@ struct RequestCard: View {
             ForEach(Self.actions) { action in
                 BlockActionButton(
                     action: action,
-                    style: .card,
                     isLoading: runningAction == action,
                     isEnabled: isBusy == false,
                     perform: perform,
