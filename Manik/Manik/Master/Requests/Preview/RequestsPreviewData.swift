@@ -42,13 +42,17 @@ enum RequestsPreviewData {
         client: String?,
         status: BlockStatus = .pending
     ) -> Block {
-        Block(
+        let booked = services.first { $0.id == service }
+
+        return Block(
             id: id,
             date: date(dayOffset),
             startTime: start,
             endTime: end,
             offeredServiceIds: [service].compactMap { $0 },
             bookedServiceId: service,
+            bookedServiceName: booked?.name,
+            bookedServicePrice: booked?.price,
             status: status,
             clientId: client
         )

@@ -54,7 +54,11 @@ final class BookingConfirmViewModel {
             try await blockRepository.book(
                 blockId: context.slot.id,
                 clientId: clientId,
-                bookedServiceId: serviceId
+                service: BookedService(
+                    id: serviceId,
+                    name: context.service.name,
+                    price: context.service.price
+                )
             )
             isBooked = true
         } catch BookingError.slotUnavailable {

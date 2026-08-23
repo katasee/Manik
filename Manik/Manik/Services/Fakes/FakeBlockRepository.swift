@@ -38,6 +38,8 @@ final class FakeBlockRepository: BlockRepository {
             $0.status = .available
             $0.clientId = nil
             $0.bookedServiceId = nil
+            $0.bookedServiceName = nil
+            $0.bookedServicePrice = nil
         }
     }
 
@@ -46,13 +48,15 @@ final class FakeBlockRepository: BlockRepository {
             $0.status = .available
             $0.clientId = nil
             $0.bookedServiceId = nil
+            $0.bookedServiceName = nil
+            $0.bookedServicePrice = nil
         }
     }
 
     func book(
         blockId: String,
         clientId: String,
-        bookedServiceId: String
+        service: BookedService
     ) async throws {
         guard blocks.first(where: { $0.id == blockId })?.status == .available else {
             throw BookingError.slotUnavailable
@@ -61,7 +65,9 @@ final class FakeBlockRepository: BlockRepository {
         update(blockId) {
             $0.status = .pending
             $0.clientId = clientId
-            $0.bookedServiceId = bookedServiceId
+            $0.bookedServiceId = service.id
+            $0.bookedServiceName = service.name
+            $0.bookedServicePrice = service.price
         }
     }
 

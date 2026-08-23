@@ -11,19 +11,13 @@ final class RequestsViewModel {
     var hasFailed = false
 
     private let blockRepository: BlockRepository
-    private let serviceRepository: ServiceRepository
     private let userRepository: UserRepository
 
     private var hasBlocks = false
-    private var hasServices = false
     private var inFlightNames: Set<String> = []
     private var running: RunningAction?
 
     private var blocks: [Block] = [] {
-        didSet { rebuild() }
-    }
-
-    private var services: [Service] = [] {
         didSet { rebuild() }
     }
 
@@ -42,11 +36,9 @@ final class RequestsViewModel {
 
     init(
         blockRepository: BlockRepository = FirestoreBlockRepository(),
-        serviceRepository: ServiceRepository = FirestoreServiceRepository(),
         userRepository: UserRepository = FirestoreUserRepository()
     ) {
         self.blockRepository = blockRepository
-        self.serviceRepository = serviceRepository
         self.userRepository = userRepository
     }
 
@@ -68,13 +60,6 @@ final class RequestsViewModel {
             Task { [weak self] in
                 await self?.loadMissingNames()
             }
-        }
-    }
-
-    func observeServices() async {
-        for await updatedServices in serviceRepository.observeServices() {
-            hasServices = true
-            services = updatedServices
         }
     }
 
@@ -158,7 +143,6 @@ final class RequestsViewModel {
 
         requests = RequestsList.requests(
             blocks: blocks,
-            services: services,
             clientNames: clientNames,
             unreadableClientIds: unreadableClientIds,
             now: now
@@ -166,7 +150,7 @@ final class RequestsViewModel {
 
         guard hasLoaded == false else { return }
 
-        hasLoaded = hasBlocks && hasServices && hasResolvedNames(now: now)
+        hasLoaded = hasBlocks && hasResolvedNames(now: now)
     }
 
     private func hasResolvedNames(now: Date) -> Bool {

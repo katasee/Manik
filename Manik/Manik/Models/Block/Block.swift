@@ -13,6 +13,8 @@ struct Block: Identifiable, Codable {
     var endTime: String
     var offeredServiceIds: [String]
     var bookedServiceId: String?
+    var bookedServiceName: String?
+    var bookedServicePrice: Int?
     var status: BlockStatus
     var clientId: String?
 }

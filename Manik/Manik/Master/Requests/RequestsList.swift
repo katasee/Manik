@@ -3,7 +3,6 @@ import Foundation
 enum RequestsList {
     static func requests(
         blocks: [Block],
-        services: [Service],
         clientNames: [String: String],
         unreadableClientIds: Set<String>,
         now: Date
@@ -13,7 +12,6 @@ enum RequestsList {
             .compactMap {
                 request(
                     $0,
-                    services: services,
                     clientNames: clientNames,
                     unreadableClientIds: unreadableClientIds
                 )
@@ -36,7 +34,6 @@ enum RequestsList {
 
     private static func request(
         _ block: Block,
-        services: [Service],
         clientNames: [String: String],
         unreadableClientIds: Set<String>
     ) -> BookingRequest? {
@@ -48,15 +45,13 @@ enum RequestsList {
                   unreadableClientIds: unreadableClientIds
               ) else { return nil }
 
-        let service = services.first { $0.id == block.bookedServiceId }
-
         return BookingRequest(
             id: id,
             clientName: clientName,
-            serviceName: service?.name ?? String(localized: "common.service.unknown"),
+            serviceName: block.bookedServiceLabel,
             dayLabel: dayLabel(for: block),
             timeRangeLabel: block.timeRangeLabel,
-            priceLabel: service.map { ServiceFormat.price($0.price) }
+            priceLabel: block.bookedServicePrice.map { ServiceFormat.price($0) }
         )
     }
 

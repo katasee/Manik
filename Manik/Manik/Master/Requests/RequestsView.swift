@@ -44,9 +44,6 @@ struct RequestsView: View {
             await viewModel.observeBlocks()
         }
         .task {
-            await viewModel.observeServices()
-        }
-        .task {
             await viewModel.refreshRequests()
         }
     }
@@ -57,7 +54,6 @@ struct RequestsView: View {
     RequestsView(
         viewModel: RequestsViewModel(
             blockRepository: FakeBlockRepository(blocks: RequestsPreviewData.blocks),
-            serviceRepository: FakeServiceRepository(services: RequestsPreviewData.services),
             userRepository: FakeUserRepository(profiles: RequestsPreviewData.profiles)
         )
     )
@@ -67,7 +63,6 @@ struct RequestsView: View {
     RequestsView(
         viewModel: RequestsViewModel(
             blockRepository: FakeBlockRepository(blocks: []),
-            serviceRepository: FakeServiceRepository(services: RequestsPreviewData.services),
             userRepository: FakeUserRepository(profiles: RequestsPreviewData.profiles)
         )
     )
@@ -77,7 +72,6 @@ struct RequestsView: View {
     RequestsView(
         viewModel: RequestsViewModel(
             blockRepository: FakeBlockRepository(blocks: RequestsPreviewData.unreadableClient),
-            serviceRepository: FakeServiceRepository(services: RequestsPreviewData.services),
             userRepository: FakeUserRepository(profiles: RequestsPreviewData.profiles)
         )
     )
@@ -87,7 +81,6 @@ struct RequestsView: View {
     RequestsView(
         viewModel: RequestsViewModel(
             blockRepository: FailingBlockRepository(blocks: RequestsPreviewData.blocks),
-            serviceRepository: FakeServiceRepository(services: RequestsPreviewData.services),
             userRepository: FakeUserRepository(profiles: RequestsPreviewData.profiles)
         )
     )

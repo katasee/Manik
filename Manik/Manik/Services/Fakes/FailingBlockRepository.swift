@@ -35,7 +35,7 @@ final class FailingBlockRepository: BlockRepository {
     func book(
         blockId: String,
         clientId: String,
-        bookedServiceId: String
+        service: BookedService
     ) async throws {
         throw BookingError.slotUnavailable
     }

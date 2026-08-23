@@ -93,7 +93,6 @@ struct RequestCard: View {
 #Preview {
     let requests = RequestsList.requests(
         blocks: RequestsPreviewData.blocks,
-        services: RequestsPreviewData.services,
         clientNames: [
             "client-olena": "Олена Ковальчук",
             "client-maria": "Марія Ткаченко",

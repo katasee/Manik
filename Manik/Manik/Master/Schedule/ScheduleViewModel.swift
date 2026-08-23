@@ -118,9 +118,8 @@ final class ScheduleViewModel {
     }
 
     private func bookedServiceName(for block: Block) -> String {
-        guard let bookedServiceId = block.bookedServiceId else { return "" }
+        guard block.bookedServiceId != nil else { return "" }
 
-        return services.first { $0.id == bookedServiceId }?.name
-            ?? String(localized: "common.service.unknown")
+        return block.bookedServiceLabel
     }
 }

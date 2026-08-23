@@ -723,6 +723,62 @@ this file is just "what's done, what's next," not a design doc.
     відновлення `BlockAction.color` плюс гілки стилю.
   - `firestore.rules` не змінювались. Локалізація не змінювалась.
 
+- **M-21 — знімок послуги в бронюванні (branch `feature/pr21-Booking-service-snapshot`, 6 задач)**:
+  бронювання перестало посилатись на послугу й почало нести її назву та ціну в собі. Це закриває
+  беклог-пункт «A booking points at a service by reference» — редагування прайсу більше не
+  переписує вже наявні записи. Нових ключів локалізації немає, `common.service.unknown`
+  перевикористано.
+  - **Два опціональні поля на `Block`**: `bookedServiceName: String?`, `bookedServicePrice: Int?`.
+    Опціональні **обов'язково**, за правилом `data-layer.md`: синтезований `init(from:)` не бере
+    дефолт властивості, тож `var bookedServiceName = ""` кинуло б `keyNotFound` на кожному
+    документі, записаному до цього PR, і весь список став би порожнім. Опціональність заодно лишила
+    memberwise-ініціалізатор сумісним — жоден наявний виклик `Block(...)` не правився.
+  - **`struct BookedService { id, name, price }` живе у `BlockRepository.swift`**, над протоколом.
+    Усі три поля неопціональні й **не `Codable`**: це носій параметрів одного виклику репозиторію, а
+    не вкладений документ. Реальна причина, чому тип узагалі є, одна — `id` тут **неопціональний**,
+    на відміну від `Service.id` (`@DocumentID var id: String?`), тож із типу видно, що знімок
+    повний, і репозиторію нічого не доводиться розгортати. Аргумент «тип не дасть розійтись назві й
+    ціні» у Swift слабкий (лейбли аргументів і так не дають переплутати), а варіант із трьома
+    плоскими параметрами програє лише тим, що роздуває `book` до п'яти.
+    - **План закладав окремий файл `Services/Repositories/BookedService.swift` — від нього
+      відмовились одразу після реалізації** (2026-08-23). Обґрунтування в плані («доменний тип, файл
+      не імпортує Firebase») не витримує перевірки: сусідній `Block` у тій же сигнатурі імпортує
+      `FirebaseFirestore` заради `@DocumentID`, тож Firebase у контракті і так присутній. Прецедент
+      теж вказує в інший бік: `BookingError` стоїть окремо, бо ходить між шарами (кидає репозиторій,
+      ловить view model), а тип, невіддільний від одного оголошення, у цьому проєкті кладуть поруч —
+      `BlockStatus` у `Block.swift`, роль у `UserProfile.swift`, пара в `BlockAction.swift`.
+      `BookedService` має рівно одного споживача й поза сигнатурою `book` сенсу не має.
+  - **`Models/Block/Block+BookedService.swift`** — `bookedServiceLabel`, тобто
+    `bookedServiceName ?? String(localized: "common.service.unknown")`. Заведене одразу, а не після
+    факту: читачів рівно три, а це той самий поріг, на якому PR17 витяг `Block.timeRangeLabel`.
+  - **`decline`/`cancel` чистять знімок** (`FieldValue.delete()` на обидва нові поля разом із
+    `clientId`/`bookedServiceId`), інакше він висів би у звільненому блоці. `confirm` не чіпає —
+    блок лишається заброньованим.
+  - **Правила звіряють знімок через cross-document `get()`**: нова функція `bookedService()` читає
+    `services/{bookedServiceId}`, і `isClientBooking()` вимагає рівності назви й ціни. Без цього
+    клієнтка, яка тепер **пише** ціну, могла б поставити туди будь-яке число. Ціна рішення — один
+    зайвий read на кожне бронювання; альтернатива (майстер штампує поля на `confirm`) лишила б
+    «Заявки» — екран **виключно** `pending`-блоків — резолвити наживо, тобто половину сенсу PR.
+    `isClientCanceling()` дзеркально забороняє залишковий знімок. Правила задеплоєні вручну через
+    Console (див. Housekeeping).
+  - **Фолбеку немає навмисно** — жодне з трьох місць читання більше нічого не шукає, і саме тому з
+    коду пішло помітно більше, ніж прийшло: `observeServices()` зник із `MyBookingsViewModel` і
+    `RequestsViewModel` цілком, разом із `serviceRepository`, `services` і відповідними `.task`-ами
+    у в'юхах; `MyBookingsList.sections` і `RequestsList.requests` втратили параметр `services`.
+    **Двопотоковий `hasLoaded` із PR17 (`hasBlocks && hasServices`) згорнувся** не тому, що умову
+    послабили, а тому що другого потоку більше немає. У «Заявках» гейт лишився складеним
+    (`hasBlocks && hasResolvedNames`) — імена клієнток і далі їдуть окремо.
+  - **`ScheduleViewModel` зберіг `services`** — і це не недогляд. Сусідній `serviceNames(for:)`
+    резолвить `offeredServiceIds`, тобто живий список пропозицій майстра; резолвити його наживо
+    правильно. Знімок стосується лише того, що клієнтка вже обрала.
+  - **Фікстури `svc-removed` змінили сенс**: `mine-5` і `req-3` більше не означають «видалену
+    послугу» (знімок пережив би видалення) — тепер це **документ, записаний до цього PR**, і саме
+    вони тримають живою гілку `common.service.unknown`. Хелпери `block(...)` в обох
+    `*PreviewData` тепер самі дістають назву й ціну з локального масиву `services`.
+  - `SchedulePreviewData.bookedServiceName(for:)` **видалено**, а не спрощено: після знімка він
+    звівся б до `block.bookedServiceName ?? ""` — обгортка на один рядок з єдиним викликачем у тому
+    ж файлі. Виклик заінлайнено; сусідній `offeredServiceNames(for:)` лишився, він справді резолвить.
+
 ## Screens (in order)
 
 This is the actual work queue, and the only numbered list here. The ordering follows the **data
@@ -871,11 +927,37 @@ numbering drifts every time an item is added or closed (it already did once: PR9
   (`hasValidServiceFormat()`, and `services`' `write` split into `create, update` / `delete`) and
   published to the Console for project `manik-5a2b8`. Deployment stays manual — Console
   copy-paste, no CLI/CI hookup — so re-verify after any future edit to the file.
-  - The `price` audit that came with it is **also done**: the `services` collection holds a single
-    document, written by a post-PR12 build (it already carries `isActive`), with `price: 1000` —
-    whole, so it decodes into `Int` cleanly. No fractional prices exist to migrate. Note this also
+  - The `price` audit that came with it is **also done**: at the time the `services` collection held
+    a single document, written by a post-PR12 build (it already carried `isActive`), with
+    `price: 1000` — whole, so it decodes into `Int` cleanly. No fractional prices existed to
+    migrate. (By M-21 the collection holds **four** documents, all app-written, so the audit's
+    conclusion still stands — but don't quote "a single document" as current fact.) Note this also
     means the "legacy document without `isActive`" case has no instance in the live database; the
     optional stays anyway, since a hand-made Console document would recreate it for free.
+  - ~~**Re-deploy for M-21**~~ — **done (2026-08-23)**: the file gained `bookedService()` plus the
+    snapshot checks in `isClientBooking()`/`isClientCanceling()`, and was published to the Console
+    for project `manik-5a2b8`. The Console text was diffed against the local file and matches line
+    for line. Order was deliberate and matters: the app shipped the two new fields **before** the
+    rules began requiring them — publishing first would have broken booking between deploys.
+  - **Both halves were verified in the Rules Playground** (2026-08-23), and it is worth recording
+    that only the pair proves anything: a correct snapshot → *allowed*; the same request with
+    `bookedServicePrice: 1` → *denied*. Three earlier "denied" results were false positives, each
+    from a different cause, and each looked like success:
+    - the seeded blocks' `offeredServiceIds` point at `svc-classic`/`svc-hybrid`/
+      `svc-gel-correction`, which are **preview fixture ids that do not exist in `services`** — so
+      `bookedService()`'s `get()` returned null and the rule errored out before ever comparing a
+      price. (Real service ids are Firestore auto-ids.)
+    - the Playground's document builder is typed: `offeredServiceIds` entered as a `string` rather
+      than an `array`, or `bookedServicePrice` as a `string` rather than `int64`, fails an unrelated
+      comparison. Check the grey JSON preview for brackets and for the absence of quotes around the
+      price before trusting a result.
+    - `clientId` typed by hand differed from `request.auth.uid` by `I` vs `l`, which the Console
+      font renders identically. Copy the uid from the auth payload into both places.
+  - **The builder resets on every open** — nine fields per run, no JSON paste, no retained state.
+    That is the argument for `@firebase/rules-unit-testing` against the local emulator if rules
+    verification ever needs repeating; it would also mean adopting the Firebase CLI, which this
+    project deliberately does not have. Not scoped — noted so the next person doesn't rediscover the
+    cost from scratch.
 - **Popups disagree on how you close them** (created by M-20, 2026-08-22, deliberately not fixed
   there). `BlockDetailPopup` now closes via a small `xmark` in its header; the other four —
   `AddNewSlotBlock`, `ServiceFormPopup`, `BookingConfirmPopup`, `CancelBookingPopup` — still carry a
@@ -981,7 +1063,13 @@ numbering drifts every time an item is added or closed (it already did once: PR9
   snapshot case but not this one. The real fix is the `AsyncThrowingStream` switch that
   `data-layer.md` already names as the intended escalation path; it touches both repository
   protocols, both Firestore implementations, the fakes, and both view models.
-- **A booking points at a service by reference, so editing the service rewrites history** (raised
+- ~~**A booking points at a service by reference, so editing the service rewrites history**~~ —
+  **done in M-21** (see its entry under "Done"). Shipped exactly as the receipt pattern below
+  describes, including the cross-document `get()` in the rules; the "master stamps on confirm"
+  alternative was rejected for the reason named here. Kept in full because the reasoning is the
+  design record. The **soft-delete half-measure below is no longer needed for this problem** — the
+  snapshot survives a hard delete, so hard-deleting services stays fine; revisit soft delete only if
+  some other feature wants the document to survive. Original wording follows. (raised
   while walking through `RequestsList` after PR19, 2026-08-21). Every screen that needs a booked
   service's name or price resolves it live — `RequestsList.swift:51`, `MyBookingsList.swift:43`,
   `ScheduleViewModel.swift:123` all do `services.first { $0.id == block.bookedServiceId }`. That
@@ -1013,6 +1101,25 @@ numbering drifts every time an item is added or closed (it already did once: PR9
   - Same shape as, and should probably ship with, denormalizing `clientName` onto `Block` — which
     would also retire the whole `clientNames`/`unreadableClientIds`/`fetchNames` machinery in
     `RequestsViewModel` and the `requests.client.unavailable` marker PR19 added.
+- **`permissionDenied` now means two different things, and the client is told the wrong one**
+  (created by M-21, 2026-08-23). `FirestoreBlockRepository.book` maps any `permissionDenied` to
+  `BookingError.slotUnavailable` → «Цей час уже зайняли» (PR15's mapping, which was accurate when
+  the only client-facing rule was `resource.data.status == "available"`). M-21 added a second way to
+  fail the same rule: if the master edits the service's name or price while the confirm popup is
+  open, the snapshot the client is about to write no longer matches the service document, the write
+  is denied — and she is told her time was taken, which is a lie. The slot is still free.
+  - Narrow window (popup open across a master edit) and no data damage — she can retry and the
+    second attempt carries the fresh snapshot. Filed so the wrong message isn't mistaken for a
+    booking bug later.
+  - **Deletion is the same window and fails harder**: if the service document is gone,
+    `bookedService()`'s `get()` returns null, `.data` errors, and the rule denies — again reported as
+    "time taken". Confirmed in the Playground on 2026-08-23, where blocks pointing at non-existent
+    service ids denied for exactly this reason. Unreachable through the UI (a deleted service leaves
+    the offer list, so it can't be picked), but reachable across an open popup.
+  - The fix belongs with the **`AsyncThrowingStream` / real domain error types** item above: one
+    `permissionDenied` cannot be split apart at the `NSError` level, so distinguishing "slot taken"
+    from "price changed" needs the rules failure to carry more than a status code, or a re-read of
+    the block before mapping. Don't add a second guess-by-heuristic mapping inside the repository.
 - **Service names don't follow the device language** (raised during PR11 planning, deliberately
   out of its scope): `Service.name` is master-entered *data*, stored as one `String`, so a client
   on an English device sees whatever the master typed. Only the chrome around it localizes —
@@ -1033,12 +1140,16 @@ numbering drifts every time an item is added or closed (it already did once: PR9
   branch is folded into this file. `docs/superpowers/` tracks only the permanent MVP spec —
   `plans/` and `specs/*` are gitignored, so newer artifacts never reach a commit and exist only on
   the machine that wrote them.
-  - **Still on disk, pending the merge of their branches**: `plans/2026-08-17-client-my-bookings.md`,
-    `specs/2026-08-17-client-my-bookings-design.md` (PR17),
-    `plans/2026-08-17-client-booking-cancellation.md` (PR18),
-    `specs/2026-08-21-master-requests-design.md` and `plans/2026-08-21-master-requests.md` (PR19).
-    Everything from all five that outlives its branch is already folded into the PR17/PR18/PR19
-    entries above — delete each once its branch lands on `main`.
+  - **The PR17/PR18/PR19 artifacts were deleted on 2026-08-23**, once M-17/M-18/M-19/M-20 were all
+    on `main`: `plans/2026-08-17-client-my-bookings.md`,
+    `specs/2026-08-17-client-my-bookings-design.md`,
+    `plans/2026-08-17-client-booking-cancellation.md`,
+    `plans/2026-08-21-master-requests.md`, `specs/2026-08-21-master-requests-design.md`.
+    Everything from them that outlives a branch is folded into the PR17/PR18/PR19 entries above.
+  - **Still on disk, pending the merge of its branch**:
+    `plans/2026-08-22-booking-service-snapshot.md` and
+    `specs/2026-08-22-booking-service-snapshot-design.md` (M-21) — delete both once
+    `feature/pr21-Booking-service-snapshot` lands on `main`.
 - **Currency is settled: `PLN`, whole units only.** The design mockup showed грн, but the salon
   works in the Polish time zone; `ServiceFormat.currencyCode` stays `"PLN"`. Decided 2026-08-07,
   before PR11 put a price field in front of the user — don't reopen without a product reason. PR12
