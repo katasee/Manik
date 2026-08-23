@@ -106,7 +106,7 @@ struct BookingView: View {
         }
         .padding(.horizontal, BookingMetrics.Spacing.horizontalPadding)
         .padding(.top, BookingMetrics.Spacing.listTopPadding)
-        .padding(.bottom, bottomClearance)
+        .bottomClearance(bottomClearance)
     }
 
     private func presentConfirm(offer: ServiceOffer, slot: BookingSlot) {

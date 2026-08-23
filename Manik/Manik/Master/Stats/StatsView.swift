@@ -1,48 +1,169 @@
 import SwiftUI
 
 struct StatsView: View {
-    let profile: UserProfile
-    let onSignOut: () -> Void
+    @State private var viewModel: StatsViewModel
+
+    private let onSignOut: () -> Void
+    private let bottomClearance: CGFloat
+
+    init(
+        viewModel: StatsViewModel,
+        onSignOut: @escaping () -> Void,
+        bottomClearance: CGFloat
+    ) {
+        _viewModel = State(initialValue: viewModel)
+        self.onSignOut = onSignOut
+        self.bottomClearance = bottomClearance
+    }
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 16) {
-                Text("master.placeholder.title")
-                    .font(.elmsSans(.bold, 24))
-                    .foregroundStyle(Color.ink)
+            VStack(spacing: 0) {
+                ScreenHeader(titleKey: "stats.title")
 
-                Text(verbatim: profile.name)
-                    .font(.elmsSans(.regular, 16))
-                    .foregroundStyle(Color.textSecondary)
+                monthRow
 
-                myServicesLink
-
-                signOutButton
+                content
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(Color.background)
             .toolbar(.hidden, for: .navigationBar)
+            .navigationDestination(for: StatsRoute.self) { _ in
+                MyServicesView(viewModel: MyServicesViewModel())
+            }
+            .task {
+                await viewModel.observeBlocks()
+            }
+            .task {
+                await viewModel.refreshStats()
+            }
         }
     }
 
-    private var myServicesLink: some View {
-        NavigationLink {
-            MyServicesView(viewModel: MyServicesViewModel())
-        } label: {
-            Text("services.action.open")
-                .font(.elmsSans(.bold, 14.5))
+    private var monthRow: some View {
+        MonthHeader(
+            title: viewModel.monthTitle,
+            canGoBack: true,
+            canGoForward: viewModel.canGoForward,
+            onPrevious: viewModel.showPreviousMonth,
+            onNext: viewModel.showNextMonth
+        )
+        .padding(.horizontal, StatsMetrics.Spacing.horizontalPadding)
+        .padding(.top, StatsMetrics.Spacing.monthTopPadding)
+    }
+
+    private var content: some View {
+        ScrollView {
+            VStack(spacing: StatsMetrics.Spacing.cardSpacing) {
+                RevenueCard(stats: viewModel.stats)
+
+                Grid(
+                    horizontalSpacing: StatsMetrics.Spacing.cardSpacing,
+                    verticalSpacing: StatsMetrics.Spacing.cardSpacing
+                ) {
+                    GridRow {
+                        visitsCard
+                        hoursCard
+                    }
+
+                    GridRow {
+                        clientsCard
+                        slotsCard
+                    }
+                }
+
+                servicesLink
+
+                signOutButton
+            }
+            .padding(.horizontal, StatsMetrics.Spacing.horizontalPadding)
+            .padding(.top, StatsMetrics.Spacing.contentTopPadding)
+            .bottomClearance(bottomClearance)
         }
+        .scrollIndicators(.hidden)
+        .overlay {
+            if viewModel.hasLoaded == false {
+                ProgressView()
+                    .tint(Color.ink)
+            }
+        }
+    }
+
+    private var visitsCard: some View {
+        StatCard(
+            iconName: "checkmark.circle",
+            tint: Color.statusConfirmed,
+            value: viewModel.stats.visitsLabel,
+            titleKey: "stats.card.visits"
+        )
+    }
+
+    private var hoursCard: some View {
+        StatCard(
+            iconName: "clock",
+            tint: Color.statusPending,
+            value: viewModel.stats.hoursLabel,
+            unitKey: "stats.hours.unit",
+            titleKey: "stats.card.hours"
+        )
+    }
+
+    private var clientsCard: some View {
+        StatCard(
+            iconName: "person.2",
+            tint: Color.freeSlot,
+            value: viewModel.stats.clientsLabel,
+            titleKey: "stats.card.clients",
+            trend: viewModel.stats.clientsTrend
+        )
+    }
+
+    private var slotsCard: some View {
+        StatCard(
+            iconName: "square.dashed",
+            tint: Color.statusAvailable,
+            value: viewModel.stats.freeSlotsLabel,
+            titleKey: viewModel.stats.isMonthFinished
+                ? "stats.card.unbookedSlots"
+                : "stats.card.freeSlots"
+        )
+    }
+
+    private var servicesLink: some View {
+        StatsLinkRow(
+            titleKey: "services.action.open",
+            iconName: "list.bullet.rectangle",
+            tint: Color.statusPending,
+            route: .services
+        )
     }
 
     private var signOutButton: some View {
         Button("common.action.signOut", action: onSignOut)
-            .font(.elmsSans(.bold, 14.5))
+            .font(.elmsSans(.medium, 14.5))
+            .foregroundStyle(Color.textSecondary)
+            .padding(.top, StatsMetrics.Spacing.signOutTopPadding)
     }
 }
 
-#Preview {
+#if DEBUG
+#Preview("Статистика") {
     StatsView(
-        profile: UserProfile(uid: "preview", role: .master, name: "Марина", email: "master@example.com"),
-        onSignOut: {}
+        viewModel: StatsViewModel(
+            blockRepository: FakeBlockRepository(blocks: StatsPreviewData.blocks)
+        ),
+        onSignOut: {},
+        bottomClearance: 0
     )
 }
+
+#Preview("Порожній місяць") {
+    StatsView(
+        viewModel: StatsViewModel(
+            blockRepository: FakeBlockRepository(blocks: StatsPreviewData.emptyMonth)
+        ),
+        onSignOut: {},
+        bottomClearance: 0
+    )
+}
+#endif
