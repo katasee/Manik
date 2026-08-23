@@ -723,61 +723,75 @@ this file is just "what's done, what's next," not a design doc.
     відновлення `BlockAction.color` плюс гілки стилю.
   - `firestore.rules` не змінювались. Локалізація не змінювалась.
 
-- **M-21 — знімок послуги в бронюванні (branch `feature/pr21-Booking-service-snapshot`, 6 задач)**:
-  бронювання перестало посилатись на послугу й почало нести її назву та ціну в собі. Це закриває
-  беклог-пункт «A booking points at a service by reference» — редагування прайсу більше не
-  переписує вже наявні записи. Нових ключів локалізації немає, `common.service.unknown`
-  перевикористано.
-  - **Два опціональні поля на `Block`**: `bookedServiceName: String?`, `bookedServicePrice: Int?`.
-    Опціональні **обов'язково**, за правилом `data-layer.md`: синтезований `init(from:)` не бере
-    дефолт властивості, тож `var bookedServiceName = ""` кинуло б `keyNotFound` на кожному
-    документі, записаному до цього PR, і весь список став би порожнім. Опціональність заодно лишила
-    memberwise-ініціалізатор сумісним — жоден наявний виклик `Block(...)` не правився.
-  - **`struct BookedService { id, name, price }` живе у `BlockRepository.swift`**, над протоколом.
-    Усі три поля неопціональні й **не `Codable`**: це носій параметрів одного виклику репозиторію, а
-    не вкладений документ. Реальна причина, чому тип узагалі є, одна — `id` тут **неопціональний**,
-    на відміну від `Service.id` (`@DocumentID var id: String?`), тож із типу видно, що знімок
-    повний, і репозиторію нічого не доводиться розгортати. Аргумент «тип не дасть розійтись назві й
-    ціні» у Swift слабкий (лейбли аргументів і так не дають переплутати), а варіант із трьома
-    плоскими параметрами програє лише тим, що роздуває `book` до п'яти.
-    - **План закладав окремий файл `Services/Repositories/BookedService.swift` — від нього
-      відмовились одразу після реалізації** (2026-08-23). Обґрунтування в плані («доменний тип, файл
-      не імпортує Firebase») не витримує перевірки: сусідній `Block` у тій же сигнатурі імпортує
-      `FirebaseFirestore` заради `@DocumentID`, тож Firebase у контракті і так присутній. Прецедент
-      теж вказує в інший бік: `BookingError` стоїть окремо, бо ходить між шарами (кидає репозиторій,
-      ловить view model), а тип, невіддільний від одного оголошення, у цьому проєкті кладуть поруч —
-      `BlockStatus` у `Block.swift`, роль у `UserProfile.swift`, пара в `BlockAction.swift`.
-      `BookedService` має рівно одного споживача й поза сигнатурою `book` сенсу не має.
-  - **`Models/Block/Block+BookedService.swift`** — `bookedServiceLabel`, тобто
-    `bookedServiceName ?? String(localized: "common.service.unknown")`. Заведене одразу, а не після
-    факту: читачів рівно три, а це той самий поріг, на якому PR17 витяг `Block.timeRangeLabel`.
-  - **`decline`/`cancel` чистять знімок** (`FieldValue.delete()` на обидва нові поля разом із
-    `clientId`/`bookedServiceId`), інакше він висів би у звільненому блоці. `confirm` не чіпає —
-    блок лишається заброньованим.
-  - **Правила звіряють знімок через cross-document `get()`**: нова функція `bookedService()` читає
-    `services/{bookedServiceId}`, і `isClientBooking()` вимагає рівності назви й ціни. Без цього
-    клієнтка, яка тепер **пише** ціну, могла б поставити туди будь-яке число. Ціна рішення — один
-    зайвий read на кожне бронювання; альтернатива (майстер штампує поля на `confirm`) лишила б
-    «Заявки» — екран **виключно** `pending`-блоків — резолвити наживо, тобто половину сенсу PR.
-    `isClientCanceling()` дзеркально забороняє залишковий знімок. Правила задеплоєні вручну через
-    Console (див. Housekeeping).
-  - **Фолбеку немає навмисно** — жодне з трьох місць читання більше нічого не шукає, і саме тому з
-    коду пішло помітно більше, ніж прийшло: `observeServices()` зник із `MyBookingsViewModel` і
-    `RequestsViewModel` цілком, разом із `serviceRepository`, `services` і відповідними `.task`-ами
-    у в'юхах; `MyBookingsList.sections` і `RequestsList.requests` втратили параметр `services`.
-    **Двопотоковий `hasLoaded` із PR17 (`hasBlocks && hasServices`) згорнувся** не тому, що умову
-    послабили, а тому що другого потоку більше немає. У «Заявках» гейт лишився складеним
-    (`hasBlocks && hasResolvedNames`) — імена клієнток і далі їдуть окремо.
-  - **`ScheduleViewModel` зберіг `services`** — і це не недогляд. Сусідній `serviceNames(for:)`
-    резолвить `offeredServiceIds`, тобто живий список пропозицій майстра; резолвити його наживо
-    правильно. Знімок стосується лише того, що клієнтка вже обрала.
-  - **Фікстури `svc-removed` змінили сенс**: `mine-5` і `req-3` більше не означають «видалену
-    послугу» (знімок пережив би видалення) — тепер це **документ, записаний до цього PR**, і саме
-    вони тримають живою гілку `common.service.unknown`. Хелпери `block(...)` в обох
-    `*PreviewData` тепер самі дістають назву й ціну з локального масиву `services`.
-  - `SchedulePreviewData.bookedServiceName(for:)` **видалено**, а не спрощено: після знімка він
-    звівся б до `block.bookedServiceName ?? ""` — обгортка на один рядок з єдиним викликачем у тому
-    ж файлі. Виклик заінлайнено; сусідній `offeredServiceNames(for:)` лишився, він справді резолвить.
+- **M-21 — booking service snapshot (branch `feature/pr21-Booking-service-snapshot`, 6 tasks)**: a
+  booking stopped pointing at a service and started carrying its name and price inside itself. This
+  closes the backlog item "A booking points at a service by reference" — editing the price list no
+  longer rewrites bookings that already exist. No new localization keys; `common.service.unknown` is
+  reused. **This is also the first entry written in English after the language rule in `CLAUDE.md`**
+  — see the note there about why PR11–M-20 stay Ukrainian.
+  - **Two optional fields on `Block`**: `bookedServiceName: String?`, `bookedServicePrice: Int?`.
+    Optional is **mandatory** here, per the `data-layer.md` rule: the synthesized `init(from:)` does
+    not fall back to a property's default, so `var bookedServiceName = ""` would throw `keyNotFound`
+    on every document written before this PR and empty the whole list. Optionality also kept the
+    memberwise initializer source-compatible — not one existing `Block(...)` call site was touched.
+  - **`struct BookedService { id, name, price }` lives in `BlockRepository.swift`**, above the
+    protocol. All three fields are non-optional and it is deliberately **not `Codable`**: it carries
+    the arguments of one repository call, it is not a nested document. There is exactly one real
+    reason the type exists — its `id` is **non-optional**, unlike `Service.id`
+    (`@DocumentID var id: String?`), so "the snapshot is complete" becomes a fact of the type and the
+    repository has nothing to unwrap. The "a type stops the name and price drifting apart" argument
+    is weak in Swift (argument labels already prevent the mix-up); three flat parameters would have
+    been equally safe and lose only by inflating `book` to five.
+    - **The plan specified a separate `Services/Repositories/BookedService.swift` file and it was
+      dropped immediately after implementation** (2026-08-23). The plan's justification ("a domain
+      type, the file doesn't import Firebase") does not survive inspection: `Block`, in that same
+      signature, imports `FirebaseFirestore` for `@DocumentID`, so Firebase is in the contract
+      either way. Precedent points the other way too — `BookingError` stands alone because it
+      travels between layers (thrown by the repository, caught by a view model), while a type
+      inseparable from a single declaration is co-located in this project: `BlockStatus` in
+      `Block.swift`, the role enum in `UserProfile.swift`, the pair in `BlockAction.swift`.
+      `BookedService` has exactly one consumer and means nothing outside `book`'s signature.
+  - **`Models/Block/Block+BookedService.swift`** — `bookedServiceLabel`, i.e.
+    `bookedServiceName ?? String(localized: "common.service.unknown")`. Introduced up front rather
+    than after the fact: there are exactly three readers, which is the same threshold at which PR17
+    extracted `Block.timeRangeLabel`. The separate file is not overthinking — the whole of
+    `Models/Block/` is built as one derived attribute per `Block+X` file, and this is the fifth.
+  - **`decline`/`cancel` wipe the snapshot** (`FieldValue.delete()` on both new fields alongside
+    `clientId`/`bookedServiceId`), otherwise it would hang around inside a freed block. `confirm`
+    leaves it alone — the block stays booked.
+  - **The rules verify the snapshot with a cross-document `get()`**: a new `bookedService()` function
+    reads `services/{bookedServiceId}`, and `isClientBooking()` requires the name and price to match.
+    Without it a client — who now **writes** the price — could put any number there. The cost is one
+    extra read per booking; the alternative (the master stamps the fields on `confirm`) would have
+    left "Заявки", a screen of **exclusively** `pending` blocks, still resolving live, which defeats
+    half the point of the PR. `isClientCanceling()` mirrors this by forbidding a leftover snapshot.
+    Rules deployed by hand through the Console (see Housekeeping).
+  - **There is deliberately no fallback** — none of the three read sites looks anything up any more,
+    which is why noticeably more code left than arrived: `observeServices()` is gone from
+    `MyBookingsViewModel` and `RequestsViewModel` entirely, together with `serviceRepository`,
+    `services` and the matching `.task`s in the views; `MyBookingsList.sections` and
+    `RequestsList.requests` lost their `services` parameter. **PR17's two-stream `hasLoaded`
+    (`hasBlocks && hasServices`) collapsed** not because the condition was weakened but because the
+    second stream no longer exists. In "Заявки" the gate stays compound
+    (`hasBlocks && hasResolvedNames`) — client names still arrive separately.
+  - **`ScheduleViewModel` kept its `services`**, and that is not an oversight. The neighbouring
+    `serviceNames(for:)` resolves `offeredServiceIds`, which is the master's live list of offers, and
+    resolving that live is correct. The snapshot only concerns what the client already picked.
+    - Known consequence, reviewed on 2026-08-23 and **deliberately left as is**: on a booked block
+      the schedule *card* prints the live offer list while that block's detail *popup* prints the
+      snapshot, so after a rename one screen shows two different names for one booking. Making the
+      card switch to `bookedServiceName` once a block is booked is a few lines, but it is a change to
+      the schedule screen's behaviour rather than to the snapshot, and folding it in would make this
+      PR's name false — the same reasoning that carved M-20 out of PR19.
+  - **The `svc-removed` fixtures changed meaning**: `mine-5` and `req-3` no longer stand for "a
+    deleted service" (a snapshot would have survived deletion) — they now stand for **a document
+    written before this PR**, and they are what keeps the `common.service.unknown` branch alive. The
+    `block(...)` helpers in both `*PreviewData` files now pull the name and price out of the local
+    `services` array themselves.
+  - `SchedulePreviewData.bookedServiceName(for:)` was **deleted rather than simplified**: after the
+    snapshot it would have reduced to `block.bookedServiceName ?? ""` — a one-line wrapper with a
+    single caller in the same file. The call was inlined; the neighbouring `offeredServiceNames(for:)`
+    stays, since it genuinely resolves.
 
 ## Screens (in order)
 
