@@ -24,8 +24,10 @@ struct RootView: View {
                 switch profile.role {
                 case .master:
                     MasterRootView(profile: profile, onSignOut: viewModel.signOut)
+                        .id(profile.uid)
                 case .client:
                     ClientRootView(profile: profile, onSignOut: viewModel.signOut)
+                        .id(profile.uid)
                 }
             }
         }

@@ -5,17 +5,19 @@ struct MasterRootView: View {
     let onSignOut: () -> Void
 
     @State private var selectedTab: MasterTab = .schedule
+    @State private var scheduleViewModel = ScheduleViewModel()
+    @State private var requestsViewModel = RequestsViewModel()
 
     var body: some View {
         ZStack(alignment: .bottom) {
             Group {
                 switch selectedTab {
                 case .schedule:
-                    ScheduleView(viewModel: ScheduleViewModel())
+                    ScheduleView(viewModel: scheduleViewModel)
                 case .requests:
-                    placeholder
+                    RequestsView(viewModel: requestsViewModel)
                 case .stats:
-                    StatsView()
+                    StatsView(profile: profile, onSignOut: onSignOut)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -25,27 +27,6 @@ struct MasterRootView: View {
             }
 
             CustomTabBar(kind: .master(selection: $selectedTab, badge: { _ in nil }))
-        }
-    }
-
-    private var placeholder: some View {
-        VStack(spacing: 16) {
-            Text("master.placeholder.title")
-                .font(.elmsSans(.bold, 24))
-                .foregroundStyle(Color.ink)
-
-            Text(selectedTab.titleKey)
-                .font(.elmsSans(.medium, 16))
-                .foregroundStyle(Color.textSecondary)
-
-            Text(profile.name)
-                .font(.elmsSans(.regular, 16))
-                .foregroundStyle(Color.textSecondary)
-
-            Button(action: onSignOut) {
-                Text("common.action.signOut")
-                    .font(.elmsSans(.bold, 14.5))
-            }
         }
     }
 }

@@ -27,6 +27,20 @@ enum BlockAction: String, Identifiable {
         }
     }
 
+    var iconName: String {
+        switch self {
+        case .confirm: "checkmark"
+        case .decline, .cancelBooking: "xmark"
+        }
+    }
+
+    var isPreferred: Bool {
+        switch self {
+        case .confirm: true
+        case .decline, .cancelBooking: false
+        }
+    }
+
     var confirmation: BlockActionConfirmation? {
         switch self {
         case .confirm:

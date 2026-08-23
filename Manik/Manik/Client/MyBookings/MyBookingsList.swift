@@ -15,12 +15,12 @@ enum MyBookingsList {
 
         let upcoming = owned
             .filter { isUpcoming($0, now: now) }
-            .sorted(by: chronologically)
+            .sorted(by: Block.chronologically)
             .map { booking($0, services: services, isPast: false) }
 
         let past = owned
             .filter { isUpcoming($0, now: now) == false }
-            .sorted { chronologically($1, $0) }
+            .sorted { Block.chronologically($1, $0) }
             .prefix(pastLimit)
             .map { booking($0, services: services, isPast: true) }
 
@@ -58,12 +58,5 @@ enum MyBookingsList {
         guard let day = DateFormat.date.date(from: block.date) else { return block.date }
 
         return DateFormat.dayMonth.string(from: day)
-    }
-
-    private static func chronologically(_ lhs: Block, _ rhs: Block) -> Bool {
-        if lhs.date != rhs.date { return lhs.date < rhs.date }
-        if lhs.startMinutes != rhs.startMinutes { return lhs.startMinutes < rhs.startMinutes }
-
-        return (lhs.id ?? "") < (rhs.id ?? "")
     }
 }
