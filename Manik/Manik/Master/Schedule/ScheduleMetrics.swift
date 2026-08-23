@@ -30,5 +30,9 @@ enum ScheduleMetrics {
     enum Detail {
         static let rowSpacing: CGFloat = 4
         static let headerSpacing: CGFloat = 6
+        static let actionsSpacing: CGFloat = 10
+        static let closeIconSize: CGFloat = 13
+        static let closeHitSize: CGFloat = 44
+        static let closeEdgeCompensation: CGFloat = 12
     }
 }

@@ -687,8 +687,41 @@ this file is just "what's done, what's next," not a design doc.
   - **Не в цьому PR**: живий бейдж на табі, виділення `Assets/DomainUI/` — обидва лишаються в
     беклозі. Туди ж, уже після роботи над екраном, відклався **редизайн `BlockDetailPopup`**
     (картковий стиль дій замість зелено-червоних капсул + хрестик замість текстового «Close»):
-    зроблений, але зістешений як `stash@{0}` «BlockDetailPopup redesign», бо це історія про
-    попапи, а не про заявки. Відділився чисто саме завдяки дефолту `style: .popup`.
+    зроблений, зістешений і випущений окремо як M-20 нижче. Відділився чисто саме завдяки
+    дефолту `style: .popup` — тобто розв'язка, закладена самим PR19, окупилась одразу.
+
+- **M-20 — редизайн `BlockDetailPopup` (branch `M-20-Block-detail-popup-restyle`)**: суто вигляд,
+  жодної зміни поведінки. Виник як хвіст PR19 і був **свідомо з нього вирізаний** — зістешений
+  посеред роботи, коли стало видно, що гілка перетворюється на кашу з двох історій. Це перший
+  випадок у проєкті, коли готовий код відкладали заради чистоти PR, а не навпаки.
+  - **Дії перейшли на картковий стиль.** Були зелена й червона капсули `PopupPrimaryButton`, стали
+    залита `Color.ink` («Підтвердити») і обведена («Відхилити») з іконками `checkmark`/`xmark` —
+    ті самі `CardActionButton`, що в картці заявки. Мотив був саме в цьому: та сама пара дій
+    виглядала по-різному в черзі й у попапі.
+  - **Текстовий «Close» замінено хрестиком** у заголовку, по діагоналі від годин. Хрестик живе в
+    одному `HStack` із `timeRangeLabel`, а піл статусу — під ними; завдяки цьому він вирівнюється
+    по центру рядка сам, без магічних відступів. Область натискання 44×44 за HIG, `.contentShape(.rect)`
+    щоб працювали порожні кути, `.padding(.trailing, -closeEdgeCompensation)` — інакше гліф висів би
+    за 35 pt від краю картки проти 20 pt зліва в годин. Обов'язковий `accessibilityLabel`
+    (переюзаний ключ `schedule.detail.close`), бо кнопка лише з іконкою — VoiceOver інакше читає
+    сиру назву SF Symbol. Нових рядків у каталог не додано.
+  - **Рядок дій став `@ViewBuilder` і зникає повністю** для блока зі статусом `available`
+    (`availableActions` порожній). Раніше там була умовна `Spacer()`, яка тримала «Close» ліворуч;
+    після його зникнення потреба відпала, і `VStack` контейнера більше не отримує порожній `HStack`,
+    що з'їдав би 16 pt міжрядкового інтервалу.
+  - **Мертвий код прибрано в тому ж PR**, бо він став мертвим саме тут: `BlockActionButtonStyle`
+    разом із параметром `style` (обидва споживачі тепер малюють картковий вигляд, отже гілка
+    `.popup` втратила виклики), і `BlockAction.color`, який читала лише та гілка. `BlockActionButton.button`
+    перестав бути `@ViewBuilder` зі `switch` і став одним прямим викликом. Заразом зникло питання
+    назви: `.card` брехав би, малюючись у попапі, але енума більше немає.
+  - **`PopupPrimaryButton` живий і не змінений** — його прямо викликають чотири інші попапи.
+    Мертвою була гілка всередині `BlockActionButton`, не сама кнопка.
+  - **Свідомо не робили**: решту чотирьох попапів не чіпали, тож `BlockDetailPopup` тепер єдиний
+    без текстової кнопки скасування внизу. Рішення від 2026-08-22 — лишити винятком, щоб PR
+    відповідав своїй назві; неузгодженість занесена в беклог нижче.
+  - Розмін, ухвалений свідомо: повернути кольорові капсули тепер не однорядковий відкат, а
+    відновлення `BlockAction.color` плюс гілки стилю.
+  - `firestore.rules` не змінювались. Локалізація не змінювалась.
 
 ## Screens (in order)
 
@@ -843,6 +876,21 @@ numbering drifts every time an item is added or closed (it already did once: PR9
     whole, so it decodes into `Int` cleanly. No fractional prices exist to migrate. Note this also
     means the "legacy document without `isActive`" case has no instance in the live database; the
     optional stays anyway, since a hand-made Console document would recreate it for free.
+- **Popups disagree on how you close them** (created by M-20, 2026-08-22, deliberately not fixed
+  there). `BlockDetailPopup` now closes via a small `xmark` in its header; the other four —
+  `AddNewSlotBlock`, `ServiceFormPopup`, `BookingConfirmPopup`, `CancelBookingPopup` — still carry a
+  text button at the bottom (`PopupDismissButton`, labelled "Скасувати" / "Скасувати" / "Скасувати" /
+  "Назад"). All five also dismiss on a backdrop tap, so this is about the visible affordance, not
+  reachability.
+  - Left as an exception on purpose: folding four more screens across both cabinets into M-20 would
+    have made its name ("Block detail popup restyle") false, which is the mistake M-20 itself was
+    carved out of PR19 to avoid.
+  - If it gets unified, the close control belongs in `PopupContainer` rather than copy-pasted five
+    times — the container already owns the backdrop and its `dismissLabel` (currently only an
+    accessibility label for the backdrop button), so it is the natural home. Note the four remaining
+    popups are **forms**, where a bottom "Скасувати" sits next to a primary action and reads as a
+    deliberate pair; `BlockDetailPopup` is the only one that is purely informational. That may be a
+    reason to keep two shapes rather than one — decide before doing the work, not during.
 - **"Забули пароль?"**: decide tappable-stub vs. real `sendPasswordReset` flow, then implement.
   (Was tracked as a task in a now-disconnected MCP tool — re-track here instead.)
 - **Dark mode makes typed text invisible** (found on a real device after PR12): entering a date,

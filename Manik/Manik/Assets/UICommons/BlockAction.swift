@@ -20,13 +20,6 @@ enum BlockAction: String, Identifiable {
         }
     }
 
-    var color: Color {
-        switch self {
-        case .confirm: Color.statusConfirmed
-        case .decline, .cancelBooking: Color.destructive
-        }
-    }
-
     var iconName: String {
         switch self {
         case .confirm: "checkmark"

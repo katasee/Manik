@@ -26,7 +26,7 @@ struct BlockDetailPopup: View {
             dismissLabel: "schedule.detail.close",
             onDismiss: onDismiss
         ) { dismiss in
-            header
+            header(dismiss: dismiss)
 
             Color.surface
                 .frame(height: 1)
@@ -39,32 +39,53 @@ struct BlockDetailPopup: View {
         }
     }
 
+    @ViewBuilder
     private func actions(dismiss: @escaping () -> Void) -> some View {
-        HStack {
-            PopupDismissButton(titleKey: "schedule.detail.close", action: dismiss)
-
-            Spacer()
-
-            ForEach(viewModel.availableActions) { action in
-                BlockActionButton(
-                    action: action,
-                    isLoading: viewModel.runningAction == action,
-                    isEnabled: viewModel.isBusy == false,
-                    perform: viewModel.perform,
-                    onSuccess: dismiss
-                )
+        if viewModel.availableActions.isEmpty == false {
+            HStack(spacing: ScheduleMetrics.Detail.actionsSpacing) {
+                ForEach(viewModel.availableActions) { action in
+                    BlockActionButton(
+                        action: action,
+                        isLoading: viewModel.runningAction == action,
+                        isEnabled: viewModel.isBusy == false,
+                        perform: viewModel.perform,
+                        onSuccess: dismiss
+                    )
+                }
             }
         }
     }
 
-    private var header: some View {
+    private func header(dismiss: @escaping () -> Void) -> some View {
         VStack(alignment: .leading, spacing: ScheduleMetrics.Detail.headerSpacing) {
-            Text(context.block.timeRangeLabel)
-                .font(.elmsSans(.bold, 22))
-                .foregroundStyle(Color.ink)
+            HStack(spacing: ScheduleMetrics.Detail.actionsSpacing) {
+                Text(context.block.timeRangeLabel)
+                    .font(.elmsSans(.bold, 22))
+                    .foregroundStyle(Color.ink)
+
+                Spacer(minLength: 0)
+
+                closeButton(dismiss: dismiss)
+            }
 
             BlockStatusPill(status: context.block.status)
         }
+    }
+
+    private func closeButton(dismiss: @escaping () -> Void) -> some View {
+        Button(action: dismiss) {
+            Image(systemName: "xmark")
+                .font(.elmsSans(.bold, ScheduleMetrics.Detail.closeIconSize))
+                .foregroundStyle(Color.textSecondary)
+                .frame(
+                    width: ScheduleMetrics.Detail.closeHitSize,
+                    height: ScheduleMetrics.Detail.closeHitSize
+                )
+                .contentShape(.rect)
+        }
+        .buttonStyle(.plain)
+        .padding(.trailing, -ScheduleMetrics.Detail.closeEdgeCompensation)
+        .accessibilityLabel(Text("schedule.detail.close"))
     }
 
     @ViewBuilder
