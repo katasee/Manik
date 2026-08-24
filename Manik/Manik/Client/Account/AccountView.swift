@@ -124,9 +124,9 @@ struct AccountView: View {
             Text("common.action.signOut")
                 .font(.elmsSans(.bold, 14.5))
                 .foregroundStyle(Color.ink)
-                .frame(maxWidth: .infinity, minHeight: AccountMetrics.Size.tapTarget)
+                .frame(maxWidth: .infinity)
                 .cardSurface(
-                    padding: AccountMetrics.Spacing.cardPadding,
+                    padding: AccountMetrics.Spacing.signOutPadding,
                     cornerRadius: AccountMetrics.Size.cardCornerRadius
                 )
                 .contentShape(.rect)
