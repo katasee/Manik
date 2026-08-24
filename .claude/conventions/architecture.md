@@ -15,7 +15,14 @@
   master's requests list), not just from the screen that created them. `Models/` is the **domain
   layer** — the M of MVVM — not "files that contain a struct": it also holds derived properties of
   domain types (`Block/Block+Minutes.swift`, `Block/Block+StartDate.swift`) and domain
-  configuration with no fields at all (`WorkHours.swift`). The rule for extensions is **an extension
+  configuration with no fields at all (`WorkHours.swift`). **A domain rule that two features must
+  agree on lives here too, even when it is one line.** `Block/Block+Completed.swift`
+  (`isCompleted(now:)` — `confirmed` and already ended) is read by both the master's
+  `StatsCalculator` and the client's `AccountStats`; it started as a private helper inside the
+  former and was extracted the moment the latter needed the same answer. Two copies that happen to
+  agree today is not the same thing as one predicate that cannot disagree — and the design doc for
+  the second consumer had in fact already drifted to a different definition before the extraction
+  caught it. The rule for extensions is **an extension
   of our type lives beside the type; an extension of a foreign type lives where it's used** — which
   is why `View+Shadow.swift` and `Extension+ElmsSans.swift` sit in `Assets/UICommons/` next to the
   components that consume them, and not in some `Extensions/` folder. A folder grouping files by

@@ -36,6 +36,9 @@ struct AccountView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color.background)
+        .task {
+            await viewModel.observeBlocks()
+        }
         .fullScreenCover(isPresented: $isEditing) {
             ProfileFormPopup(
                 viewModel: viewModel.makeProfileFormViewModel(),
@@ -110,6 +113,7 @@ struct AccountView: View {
                     )
                 }
             }
+            .redacted(reason: viewModel.hasLoadedStats ? [] : .placeholder)
         }
     }
 
@@ -150,8 +154,8 @@ struct AccountView: View {
     AccountView(
         viewModel: AccountViewModel(
             profile: AccountPreviewData.profile,
-            stats: AccountPreviewData.stats,
             userRepository: FakeUserRepository(profiles: AccountPreviewData.profiles),
+            blockRepository: FakeBlockRepository(blocks: AccountPreviewData.blocks),
             onProfileUpdated: { _ in }
         ),
         onSignOut: {}
@@ -163,6 +167,7 @@ struct AccountView: View {
         viewModel: AccountViewModel(
             profile: AccountPreviewData.emptyContactsProfile,
             userRepository: FakeUserRepository(profiles: AccountPreviewData.profiles),
+            blockRepository: FakeBlockRepository(),
             onProfileUpdated: { _ in }
         ),
         onSignOut: {}
