@@ -793,6 +793,144 @@ this file is just "what's done, what's next," not a design doc.
     single caller in the same file. The call was inlined; the neighbouring `offeredServiceNames(for:)`
     stays, since it genuinely resolves.
 
+- **M-22 — Master «Статистика» (branch `feature/pr22-Master-stats`, 8 tasks)**: the `.stats` tab
+  stopped being a placeholder and became the month summary. The data layer and `firestore.rules` were
+  **not touched at all** — `observeBlocks()` already streams the whole `blocks` collection with no
+  filter, so every figure on the screen is local arithmetic over data the client already holds. This
+  closes screen 5 of the queue.
+  - **Six metrics, agreed with the user during brainstorming**: revenue already earned, expected
+    revenue for the month, visits, hours worked, free slots left, and a month-over-month comparison
+    on money and on clients. A block counts as *completed* when it is `confirmed` and its
+    `date + endTime` is in the past.
+  - **"Скасовано" was dropped from the product, not deferred.** The MVP spec listed it as the third
+    metric, but there is no data behind it: `cancel(blockId:)` returns the block to `available` and
+    wipes `clientId`/`bookedServiceId`/`bookedServiceName`/`bookedServicePrice`, and
+    `isClientCanceling()` in `firestore.rules` *requires* that wipe, so a cancelled slot is
+    indistinguishable from one that was never booked. Counting cancellations would mean persisting a
+    new record. On 2026-08-23 the call was to remove the metric outright — the MVP spec was edited to
+    match (the flow line and the metric bullet), including the now-dangling parenthetical on the
+    out-of-scope "No-show" line. Nothing about cancellations is left as a TODO anywhere.
+  - **A pre-M-21 `confirmed` block contributes 0 to money** (`bookedServicePrice ?? 0`) but still
+    counts as a visit and as hours. Resolving the price live from `services` would reinstate exactly
+    the bug M-21 fixed, so the zero is deliberate. `done-legacy` in the fixtures keeps that branch
+    alive.
+  - **Browsing into a finished month changes two of the six.** "Очікувана сума" disappears from the
+    revenue card (it would equal the earned figure exactly), and the slots tile keeps its number but
+    switches its caption from «Вільні слоти» to «Не заброньовано» — the same count means "still
+    free" in a live month and "never booked" in a dead one. Forward navigation stops at the current
+    month, so a future month is unreachable and needs no rule.
+  - **Comparison is whole month against whole month**, decided against a same-day-of-month
+    comparison. Known cost, accepted: for the first weeks of every month the delta reads negative
+    even when nothing is wrong. A previous month with zero revenue renders **no** comparison row at
+    all — a percentage against zero is a division by zero or a meaningless "+∞%".
+  - **A zero month shows zeros, not an empty state.** `ListStatusOverlay` is deliberately not used
+    here: it draws `ContentUnavailableView` when a list is empty, and a month with no bookings is not
+    missing data. Only the pre-first-snapshot spinner applies, so it is spelled out inline.
+  - **Design came from a reference the user supplied**, not from a mockup — there has never been one
+    for this screen. White cards on the light background, large corner radius, soft shadow, a rounded
+    tinted icon badge, a big number with a small unit, a muted caption. That maps onto the existing
+    palette without inventing a visual language — see the follow-up bullet below for which colour it
+    landed on. **Icon badges reuse the palette**
+    (`FreeSlot`/`StatusPending`/`StatusConfirmed`/`StatusAvailable` at 0.15 opacity with the glyph at
+    full strength) — new pastel colorsets were rejected, both because the palette is a decision
+    beyond this screen and because every colorset added today is one more with no dark half.
+  - **No localization key takes a format argument**, and that shaped the copy. The trend renders as
+    three separate `Text`s (arrow, value, `stats.trend.previousMonth`) and the expected row as label
+    plus value. It is also why no tile label is a counted phrase: "12" + «Візити» never inflects,
+    whereas «12 візитів / 1 візит / 2 візити» would have forced plural variations the catalog has
+    never used. Ten new `stats.*` keys, `en`+`uk`; `master.placeholder.title` was deleted with its
+    only reader, as PR17 did with `client.placeholder.title`.
+  - `Master/Stats/`: `MonthlyStats` (+`StatsTrend`) as the presentation model carrying finished
+    display strings, where the optionals encode **visibility** rather than absence; `StatsCalculator`
+    (+`MonthlyTotals`) as pure arithmetic; `StatsViewModel`; `StatsMetrics`; `Components/`
+    (`RevenueCard`, `StatCard`, `StatsTrendLabel`, `StatsLinkRow` +`StatsRoute`); `Preview/`.
+    `Models/Block/Block+EndDate.swift` mirrors `Block+StartDate` — the sixth `Block+X` file.
+  - **`StatsLinkRow` must not own its destination.** `NavigationLink(destination:)` builds its
+    destination **eagerly**, when the link is created — so the old
+    `MyServicesView(viewModel: MyServicesViewModel())` closure was constructing a fresh view model,
+    and a fresh `FirestoreServiceRepository`, on every re-evaluation of the body. With a 60-second
+    tick and a live snapshot stream that is constant. The row now pushes a `StatsRoute` value and
+    `StatsView` registers `.navigationDestination(for:)`, which runs only on an actual push. Found by
+    the `swiftui-pro` review of the plan, before any of it was written.
+  - **`Grid` + `GridRow`, not `LazyVGrid`**, and `StatCard` carries a second
+    `.frame(maxHeight: .infinity, alignment: .top)` after its padding. Without it the card with a
+    trend line is taller than its neighbour and the grid reads as ragged; four static cards also make
+    laziness pointless (the call PR17 made choosing `VStack` over `LazyVStack`).
+  - **`monthTitle` is stored, not computed** — refreshed from `monthStart`'s `didSet`.
+    `DateFormatter.string(from:)` on every body evaluation is not free. `canGoForward` stays
+    computed: it depends on the wall clock as well as on `monthStart`, so caching it would need
+    invalidating at midnight on a month's last day.
+  - **`hasLoaded` is latched** (`guard hasLoaded == false else { continue }`). `@Observable`'s setter
+    fires an invalidation on every assignment, equal value or not. `RequestsViewModel` latches it for
+    a sharper reason — there a plain assignment could regress it to `false`; here it is purely about
+    not re-invalidating on each snapshot.
+  - **`MonthHeader` moved into `Assets/UICommons/`** — its second consumer, the threshold at which
+    PR17 moved `BlockStatusPill` and PR19 moved `BlockAction`. It dropped `BookingMetrics` for a
+    `private enum Layout` and became **symmetric**: booking disables the *back* arrow (no booking
+    into the past), stats disables the *forward* one. The `booking.calendar.*` keys were kept without
+    renaming, the same call PR17 made for `schedule.status.*`.
+    - The `swiftui-pro` review proposed collapsing its `Button(action:) { Label(...) }` into
+      `Button(_:systemImage:action:)` for consistency with `ScreenHeader`. **Declined**: the short
+      form gives nowhere to put the 44×44 frame except on the `Button` itself, which is the exact
+      regression PR14 fixed in this component.
+  - **`profile` is gone from `MasterRootView` and `StatsView`.** PR19 moved sign-out here so the
+    property would not be dead; the new screen shows no name, so carrying it down would make it dead
+    again. `RootView` still uses `profile` for `.id(profile.uid)` and for the client cabinet.
+    `statsViewModel` hoisted into `@State` alongside the other two, per PR19.
+  - **`.bottomClearance(_:)` in `Assets/UICommons/`** — `StatsView` was the third screen owning a
+    `NavigationStack` inside a tab, which is the condition `architecture.md` set for turning the
+    repeated parameter into a shared modifier. The router still passes the value; the modifier
+    deliberately does **not** read `TabBarMetrics`, since a UICommons component must not depend on a
+    feature's metrics. `BookingView` and `BookingDatesView` migrated in the same pass and
+    `architecture.md` was updated.
+  - **Verified by build only.** There is no test target, so the calculator was checked against
+    hand-computed expectations through a temporary text `#Preview` (the PR13/PR14 idiom), deleted in
+    the final task. The simulator walkthrough — signing in as the master and confirming the figures
+    against the Schedule — was **not** performed and is outstanding.
+  - **A refinement pass followed the eight tasks**, same day, driven by the user reviewing the
+    finished screen. Five changes, none of them altering what the screen computes:
+    - **Cards are `Color.fieldBackground`, not `Color.surface`.** The reference was white cards
+      lifted off the page, and `Surface` (`#D6D3DE`) is *darker* than `Background` (`#E4E3E9`) —
+      light falls from above, so a shadow under a card darker than its page reads as a recess, not a
+      lift. Two wrong turns were taken first and reverted: adding a shadow to the darker card, then
+      darkening `Surface` further and deepening `cardShadow()` globally. The fix was the colour the
+      Schedule's block cards already use — `FieldBackground` (`#FBFAF8`, cream). `MonthHeader`'s
+      arrow circles followed. Neither `Surface.colorset` nor `View+Shadow.swift` ended up changed,
+      so no other screen moved.
+      - Worth keeping straight: a dark card with a genuinely darker shadow *does* read as lifted —
+        a dark button on white is the everyday proof. The tell is not "card lighter than page" but
+        "shadow clearly darker than both, soft, offset downward". Ours failed on the second half:
+        `ink` at 10% with a 2pt offset is invisible at that contrast.
+    - **`CardSurface` + `IconBadge` in `Assets/UICommons/`.** The user's question was why three card
+      views exist instead of one configurable card. Answer kept them separate — they differ in
+      *structure* (centred vs leading vs a row with a chevron, one of them a `NavigationLink`), and
+      merging them would trade three honest 40-line files for a chain of `if`s behind six flags. The
+      duplication was real but sat in the **chrome**, so that is what moved: padding, fill, corner
+      radius and `.cardShadow()` behind `.cardSurface(fill:padding:cornerRadius:fillsHeight:)`, plus
+      the ten badge lines that `StatCard` and `StatsLinkRow` had verbatim. `fill` is a parameter
+      precisely so `RequestCard`/`MyBookingCard`/`ServiceOfferCard`, which draw the same chrome on
+      `Color.surface`, can adopt it later. `fillsHeight` exists because that grid-equalizing
+      `.frame(maxHeight: .infinity, alignment: .top)` has to sit **between** the padding and the
+      background — apply it from outside and the padding lands on an already-expanded frame and the
+      card outgrows its row. `StatsMetrics` lost `Size.iconBadge`, `Size.iconBadgeCornerRadius`,
+      `Size.icon` and `Opacity.iconBadge` with the badge.
+    - **`StatsRoute` folded into `StatsLinkRow.swift`**, its own three-line file deleted. The type
+      itself is load-bearing — it is what keeps the link value-based, which is the whole point of
+      the eager-destination fix above — but a type that exists only to serve one neighbour belongs
+      beside it. Precedent: `BlockAction.swift` holds `BlockActionConfirmation` too, with the
+      supporting type first and the file's namesake second.
+    - **`StatsCalculator` stops formatting.** It returns `MonthlyTotals` (nine plain `Int`s plus
+      `isMonthFinished`) and `MonthlyStats.init(totals:)` does every `ServiceFormat.price`,
+      `.formatted()` and percent string; both trend constructors moved onto `StatsTrend` as
+      `percent(current:previous:)` / `count(current:previous:)`. The mixing was the one real
+      single-responsibility complaint, and it had a concrete cost: the Task 3 check had to compare
+      *formatted strings*, which differ by locale. `MonthlyTotals` lives in `StatsCalculator.swift`
+      by the same rule as `StatsRoute`. `monthStart(containing:)` deliberately stayed on the
+      calculator — it is calendar work rather than statistics, but it has one caller.
+    - The last two came from the user pushing back on file count and on responsibilities; both
+      pushbacks were correct and are the reason `architecture.md` now states the companion-type rule
+      and the arithmetic-versus-formatting split explicitly.
+
 ## Screens (in order)
 
 This is the actual work queue, and the only numbered list here. The ordering follows the **data
@@ -866,11 +1004,14 @@ those items are referred to by name, so the list can grow without renumbering an
    - ~~Move `BlockStatusPill` + `BlockStatusStyle` out of `Master/Schedule/Components/` once Requests
      becomes their second consumer~~ — **done in PR17** (screen 3 got there first). The open question
      it carried is now a standalone backlog item below.
-5. **Master — "Статистика" (Stats)**: month summary (revenue/visits/cancellations) inside the
-   `Master/Stats/StatsView.swift` shell PR10 created, plus the permanent entry point to "Мої
-   послуги" from screen 1 replacing PR10's temporary text link. Last of the data-chain screens because the numbers
-   derive from real `confirmed`/cancelled blocks, which only exist once the booking chain above
-   works.
+5. ~~**Master — "Статистика" (Stats)**~~ — **done** (M-22, under "Done" above): month summary inside
+   the `Master/Stats/StatsView.swift` shell PR10 created, plus the permanent entry point to "Мої
+   послуги" replacing PR10's temporary text link. Two departures from what was planned here:
+   - **Cancellations were dropped from the product**, not built and not deferred — nothing in the
+     data model survives a cancellation. The MVP spec was edited to match.
+   - **Four metrics were added** that this line never asked for: expected revenue, hours worked, free
+     slots left, and a month-over-month comparison on money and clients. All four were already
+     computable from `observeBlocks()` without a single new query.
 6. **Client — "Акаунт" (Account)**: behind the 3rd client tab (`ClientTab.account`) — PR13 moved
    sign-out here (name + email + sign-out button, same minimal content the booking-tab placeholder
    used to show) so the account still has an exit once "Запис" became a real screen, but it's not a
@@ -987,6 +1128,17 @@ numbering drifts every time an item is added or closed (it already did once: PR9
     popups are **forms**, where a bottom "Скасувати" sits next to a primary action and reads as a
     deliberate pair; `BlockDetailPopup` is the only one that is purely informational. That may be a
     reason to keep two shapes rather than one — decide before doing the work, not during.
+- **Deleting a block rewrites past revenue** (created by M-22). The master can swipe away a completed
+  `confirmed` block in the Schedule, and last month's reported income changes retroactively with no
+  trace. Same shape as the existing "deleting a `confirmed` block has no confirmation step" item, and
+  they should probably be fixed together — but note a confirmation dialog only slows the mistake
+  down; keeping history intact would mean not hard-deleting a block that has already happened.
+- **Stats reads the entire `blocks` collection** (created by M-22). `observeBlocks()` has no date
+  filter, which is exactly what makes every figure on the Stats screen free — no new query, no new
+  index, no rules change. The flip side is that the screen's cost grows with the salon's whole
+  history, and `StatsCalculator` makes six passes over it on every snapshot and every 60-second tick.
+  Fine for one salon today; revisit with a date-bounded query if a season's worth of blocks ever
+  makes it noticeable. Deliberately not pre-optimized.
 - **"Забули пароль?"**: decide tappable-stub vs. real `sendPasswordReset` flow, then implement.
   (Was tracked as a task in a now-disconnected MCP tool — re-track here instead.)
 - **Dark mode makes typed text invisible** (found on a real device after PR12): entering a date,
@@ -1036,6 +1188,11 @@ numbering drifts every time an item is added or closed (it already did once: PR9
     buttons with no way to tell which is which. The fix is an `accessibilityLabel` naming the
     service and the slot — declined in PR18 by the same precedent as PR9/PR12/PR17, which is why
     it lands here rather than in that PR.
+  - M-22 added three, all declined by the same precedent: the icon badges in `StatCard`/`StatsLinkRow`
+    are decorative but not `.accessibilityHidden(true)`, so VoiceOver reads the raw SF Symbol name
+    before the metric's label; `StatsTrendLabel`'s arrow reads as its own element ("arrow up, 18%,
+    до минулого місяця"); and the metric cards are multi-`Text` stacks with no
+    `.accessibilityElement(children: .combine)`, matching the PR11/PR17 decisions.
   - PR19 added one more, and it is the same shape: every card in «Заявки» carries a "Підтвердити"
     and a "Відхилити" button, so a queue of requests reads to VoiceOver as several identically
     labelled pairs with no way to tell which request each belongs to. Fix is an `accessibilityLabel`
@@ -1064,6 +1221,13 @@ numbering drifts every time an item is added or closed (it already did once: PR9
     plain protocol with no `Sendable` conformance. Legal under `minimal` checking, a warning under
     `-strict-concurrency=complete`. Don't paper over it with `@unchecked Sendable` on the protocol —
     fix it as part of the migration.
+  - M-22 added three instances, none new in kind — all three already existed elsewhere, which is why
+    nothing was changed for them: `MasterRootView` now builds a **third** `@MainActor` view model
+    from a nonisolated property initializer (`@State private var statsViewModel = StatsViewModel()`);
+    `[Block]` crosses the `AsyncStream` boundary from the Firestore listener into a `@MainActor` view
+    model for the fourth time, and `Block` is not `Sendable` because `@DocumentID` is not; and
+    `MonthHeader` takes `@MainActor` methods as plain `() -> Void`, losing the global actor on
+    conversion, exactly as `BookingDatesView` has passed `viewModel.goToPreviousMonth` since PR14.
   - PR12 patched a symptom of the same root cause: helper methods on `View` structs are
     nonisolated, so a `Task {}` created inside one does **not** inherit `MainActor` and any
     synchronous UI call after an `await` runs off the main thread. Three popups were fixed with
@@ -1160,10 +1324,18 @@ numbering drifts every time an item is added or closed (it already did once: PR9
     `plans/2026-08-17-client-booking-cancellation.md`,
     `plans/2026-08-21-master-requests.md`, `specs/2026-08-21-master-requests-design.md`.
     Everything from them that outlives a branch is folded into the PR17/PR18/PR19 entries above.
-  - **Still on disk, pending the merge of its branch**:
+  - **Still on disk, pending the merge of their branches**:
     `plans/2026-08-22-booking-service-snapshot.md` and
     `specs/2026-08-22-booking-service-snapshot-design.md` (M-21) — delete both once
-    `feature/pr21-Booking-service-snapshot` lands on `main`.
+    `feature/pr21-Booking-service-snapshot` lands on `main`;
+    `plans/2026-08-23-master-stats.md` and `specs/2026-08-23-master-stats-design.md` (M-22) — same,
+    once `feature/pr22-Master-stats` lands. M-22's own plan told the final task to delete them
+    immediately; that was wrong and was not followed — `CLAUDE.md` says "implemented **and merged**",
+    which is also why M-21's pair is still here. M-22's plan file now opens with a **superseded**
+    banner: the same-day refinement pass changed the card fill, extracted `CardSurface`/`IconBadge`,
+    moved `StatsRoute` and split the calculator, so its code blocks no longer describe the tree. The
+    banner points here rather than rewriting the plan — a plan records what was planned, and
+    back-dating it would erase the fact that those four decisions were made *after* review.
 - **Currency is settled: `PLN`, whole units only.** The design mockup showed грн, but the salon
   works in the Polish time zone; `ServiceFormat.currencyCode` stays `"PLN"`. Decided 2026-08-07,
   before PR11 put a price field in front of the user — don't reopen without a product reason. PR12
