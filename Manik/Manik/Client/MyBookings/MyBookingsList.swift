@@ -13,12 +13,12 @@ enum MyBookingsList {
             .filter { $0.status != .available }
 
         let upcoming = owned
-            .filter { isUpcoming($0, now: now) }
+            .filter { $0.isUpcoming(now: now) }
             .sorted(by: Block.chronologically)
             .map { booking($0, isPast: false) }
 
         let past = owned
-            .filter { isUpcoming($0, now: now) == false }
+            .filter { $0.isUpcoming(now: now) == false }
             .sorted { Block.chronologically($1, $0) }
             .prefix(pastLimit)
             .map { booking($0, isPast: true) }
@@ -28,10 +28,6 @@ enum MyBookingsList {
             MyBookingSection(kind: .past, bookings: Array(past))
         ]
         .filter { $0.bookings.isEmpty == false }
-    }
-
-    private static func isUpcoming(_ block: Block, now: Date) -> Bool {
-        (block.startsAt.map { $0 > now }) ?? false
     }
 
     private static func booking(_ block: Block, isPast: Bool) -> MyBooking {

@@ -4,6 +4,8 @@ import Foundation
 enum AccountPreviewData {
     static let uid = "client-preview"
 
+    static let password = "123456"
+
     static let reference = Date.now
 
     static let profile = UserProfile(
@@ -38,6 +40,7 @@ enum AccountPreviewData {
         block(id: "visit-6", dayOffset: -73, start: "09:00", end: "10:00", service: "svc-pedicure", status: .confirmed),
         block(id: "visit-legacy", dayOffset: -87, start: "13:00", end: "14:00", service: nil, status: .confirmed),
         block(id: "upcoming", dayOffset: 4, start: "14:00", end: "15:30", service: "svc-classic", status: .confirmed),
+        block(id: "upcoming-2", dayOffset: 9, start: "10:00", end: "11:00", service: "svc-gel", status: .pending),
         block(id: "declined-past", dayOffset: -6, start: "11:00", end: "12:00", service: "svc-pedicure", status: .pending),
         block(id: "other-client", dayOffset: -9, start: "10:00", end: "11:00", service: "svc-gel", status: .confirmed, clientId: "someone-else"),
         block(id: "free", dayOffset: 5, start: "09:00", end: "10:00", service: nil, status: .available, clientId: nil)

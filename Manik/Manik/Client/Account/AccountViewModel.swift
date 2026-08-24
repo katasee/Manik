@@ -10,6 +10,7 @@ final class AccountViewModel {
 
     private let userRepository: UserRepository
     private let blockRepository: BlockRepository
+    private let authRepository: AuthRepository
     private let onProfileUpdated: (UserProfile) -> Void
 
     private var blocks: [Block] = [] {
@@ -20,11 +21,13 @@ final class AccountViewModel {
         profile: UserProfile,
         userRepository: UserRepository = FirestoreUserRepository(),
         blockRepository: BlockRepository = FirestoreBlockRepository(),
+        authRepository: AuthRepository = FirebaseAuthRepository(),
         onProfileUpdated: @escaping (UserProfile) -> Void
     ) {
         self.profile = profile
         self.userRepository = userRepository
         self.blockRepository = blockRepository
+        self.authRepository = authRepository
         self.onProfileUpdated = onProfileUpdated
     }
 
@@ -32,6 +35,20 @@ final class AccountViewModel {
         ProfileFormViewModel(
             profile: profile,
             userRepository: userRepository
+        )
+    }
+
+    func makeChangePasswordViewModel() -> ChangePasswordViewModel {
+        ChangePasswordViewModel(authRepository: authRepository)
+    }
+
+    func makeDeleteAccountViewModel() -> DeleteAccountViewModel {
+        DeleteAccountViewModel(
+            uid: profile.uid,
+            upcomingBookingIds: upcomingBookingIds(now: .now),
+            authRepository: authRepository,
+            userRepository: userRepository,
+            blockRepository: blockRepository
         )
     }
 
@@ -45,6 +62,14 @@ final class AccountViewModel {
     func apply(_ profile: UserProfile) {
         self.profile = profile
         onProfileUpdated(profile)
+    }
+
+    private func upcomingBookingIds(now: Date) -> [String] {
+        blocks
+            .filter { $0.clientId == profile.uid }
+            .filter { $0.status == .pending || $0.status == .confirmed }
+            .filter { $0.isUpcoming(now: now) }
+            .compactMap(\.id)
     }
 
     private func rebuildStats() {
