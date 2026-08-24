@@ -86,20 +86,24 @@ struct AccountView: View {
         VStack(alignment: .leading, spacing: AccountMetrics.Spacing.rowSpacing) {
             sectionLabel("account.section.stats")
 
-            HStack(alignment: .top, spacing: AccountMetrics.Spacing.inlineSpacing) {
-                StatCard(
-                    value: viewModel.stats.visitCount.formatted(),
-                    labelKey: "account.stats.visits"
-                )
-                .frame(maxHeight: .infinity)
+            Grid(horizontalSpacing: AccountMetrics.Spacing.cardSpacing) {
+                GridRow {
+                    StatCard(
+                        iconName: "checkmark.circle",
+                        tint: Color.statusConfirmed,
+                        value: viewModel.stats.visitCount.formatted(),
+                        titleKey: "account.stats.visits"
+                    )
 
-                StatCard(
-                    value: favoriteServiceName,
-                    labelKey: "account.stats.favorite"
-                )
-                .frame(maxHeight: .infinity)
+                    StatCard(
+                        iconName: "heart",
+                        tint: Color.freeSlot,
+                        value: favoriteServiceName,
+                        titleKey: "account.stats.favorite",
+                        valueLineLimit: 2
+                    )
+                }
             }
-            .fixedSize(horizontal: false, vertical: true)
         }
     }
 
@@ -121,13 +125,13 @@ struct AccountView: View {
                 .font(.elmsSans(.bold, 14.5))
                 .foregroundStyle(Color.ink)
                 .frame(maxWidth: .infinity, minHeight: AccountMetrics.Size.tapTarget)
+                .cardSurface(
+                    padding: AccountMetrics.Spacing.cardPadding,
+                    cornerRadius: AccountMetrics.Size.cardCornerRadius
+                )
                 .contentShape(.rect)
         }
         .buttonStyle(.plain)
-        .background(
-            Color.surface,
-            in: .rect(cornerRadius: AccountMetrics.Size.cardCornerRadius)
-        )
     }
 
     private func handle(_ value: String?) -> String? {

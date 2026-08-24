@@ -23,10 +23,9 @@ struct ProfileCard: View {
 
             editButton
         }
-        .padding(AccountMetrics.Spacing.cardPadding)
-        .background(
-            Color.surface,
-            in: .rect(cornerRadius: AccountMetrics.Size.cardCornerRadius)
+        .cardSurface(
+            padding: AccountMetrics.Spacing.cardPadding,
+            cornerRadius: AccountMetrics.Size.cardCornerRadius
         )
     }
 

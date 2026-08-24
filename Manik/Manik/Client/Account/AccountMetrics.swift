@@ -7,7 +7,6 @@ enum AccountMetrics {
         static let rowIcon: CGFloat = 20
         static let rowHeight: CGFloat = 44
         static let tapTarget: CGFloat = 44
-        static let statValueScale: CGFloat = 0.7
     }
 
     enum Spacing {
@@ -17,6 +16,7 @@ enum AccountMetrics {
         static let cardPadding: CGFloat = 16
         static let cardContentSpacing: CGFloat = 4
         static let rowSpacing: CGFloat = 12
+        static let cardSpacing: CGFloat = 14
         static let inlineSpacing: CGFloat = 12
         static let prefixSpacing: CGFloat = 4
     }

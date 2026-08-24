@@ -8,4 +8,8 @@ extension View {
     func cardShadow() -> some View {
         shadow(color: Color.ink.opacity(0.1), radius: 10, x: 0, y: 2)
     }
+
+    func glyphShadow() -> some View {
+        shadow(color: Color.ink.opacity(0.25), radius: 3, x: 0, y: 2)
+    }
 }
