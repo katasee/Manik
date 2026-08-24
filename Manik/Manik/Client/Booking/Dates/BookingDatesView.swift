@@ -43,6 +43,7 @@ struct BookingDatesView: View {
                 MonthHeader(
                     title: viewModel.month.title,
                     canGoBack: viewModel.month.canGoBack,
+                    canGoForward: true,
                     onPrevious: viewModel.goToPreviousMonth,
                     onNext: viewModel.goToNextMonth
                 )
@@ -113,7 +114,7 @@ struct BookingDatesView: View {
                 .padding(.bottom, BookingMetrics.Spacing.cardPadding)
             }
         }
-        .padding(.bottom, bottomClearance)
+        .bottomClearance(bottomClearance)
     }
 
     private func goBack() {

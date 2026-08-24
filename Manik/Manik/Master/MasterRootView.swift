@@ -1,12 +1,12 @@
 import SwiftUI
 
 struct MasterRootView: View {
-    let profile: UserProfile
     let onSignOut: () -> Void
 
     @State private var selectedTab: MasterTab = .schedule
     @State private var scheduleViewModel = ScheduleViewModel()
     @State private var requestsViewModel = RequestsViewModel()
+    @State private var statsViewModel = StatsViewModel()
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -17,7 +17,11 @@ struct MasterRootView: View {
                 case .requests:
                     RequestsView(viewModel: requestsViewModel)
                 case .stats:
-                    StatsView(profile: profile, onSignOut: onSignOut)
+                    StatsView(
+                        viewModel: statsViewModel,
+                        onSignOut: onSignOut,
+                        bottomClearance: TabBarMetrics.Size.reservedClearance
+                    )
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -32,8 +36,5 @@ struct MasterRootView: View {
 }
 
 #Preview {
-    MasterRootView(
-        profile: UserProfile(uid: "preview", role: .master, name: "Марина", email: "master@example.com"),
-        onSignOut: {}
-    )
+    MasterRootView(onSignOut: {})
 }

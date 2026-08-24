@@ -584,22 +584,6 @@
         }
       }
     },
-    "master.placeholder.title" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Master Cabinet"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Кабінет майстра"
-          }
-        }
-      }
-    },
     "myBookings.action.cancel" : {
       "localizations" : {
         "en" : {
@@ -1508,6 +1492,166 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Мої послуги"
+          }
+        }
+      }
+    },
+    "stats.card.clients" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clients"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Клієнтки"
+          }
+        }
+      }
+    },
+    "stats.card.freeSlots" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Free slots"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вільні слоти"
+          }
+        }
+      }
+    },
+    "stats.card.hours" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hours worked"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Відпрацьовано"
+          }
+        }
+      }
+    },
+    "stats.card.unbookedSlots" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not booked"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не заброньовано"
+          }
+        }
+      }
+    },
+    "stats.card.visits" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Visits"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Візити"
+          }
+        }
+      }
+    },
+    "stats.hours.unit" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "h"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "год"
+          }
+        }
+      }
+    },
+    "stats.revenue.expected" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Expected:"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Очікувана сума:"
+          }
+        }
+      }
+    },
+    "stats.revenue.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Revenue"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Дохід"
+          }
+        }
+      }
+    },
+    "stats.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stats"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Статистика"
+          }
+        }
+      }
+    },
+    "stats.trend.previousMonth" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "vs last month"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "до минулого місяця"
           }
         }
       }

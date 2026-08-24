@@ -18,5 +18,8 @@ docs/superpowers/plans/
 docs/superpowers/specs/*
 !docs/superpowers/specs/2026-07-15-manik-mvp-design.md
 
+# Parallel git worktrees — checkouts of this same repo, never content to commit.
+.worktrees/
+
 # macOS
 .DS_Store

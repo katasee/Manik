@@ -32,6 +32,14 @@ themselves `#if DEBUG` — without the wrapper the file wouldn't compile for rel
 `Assets/UICommons/` builds its preview from literals and fakes nothing, so it needs no wrapper, and
 none of the components there has one. Match the folder you're writing in.
 
+**A raised card is `Color.fieldBackground`, not `Color.surface`.** The names are misleading:
+`Surface` (`#D6D3DE`) is *darker* than `Background` (`#E4E3E9`), so a drop shadow on it reads as a
+recess. `FieldBackground` (`#FBFAF8`, cream) is the light card — the Schedule's block cards, the
+Stats cards and `MonthHeader`'s arrow circles all use it with `.cardShadow()`. `Surface` is still
+right for flat fills that aren't meant to lift (popup bodies, chips, strokes). Don't fix a weak
+shadow by darkening the card; check the offset first — `cardShadow()` is `ink` at 10% with a 2pt
+drop, and it only shows on something lighter than the page.
+
 User-facing strings never sit as bare literals in a View — they go in
 `Manik/Manik/Localizable.xcstrings` (String Catalog) under a `feature.kind.name` key
 (e.g. `auth.field.email`, `auth.action.signUp`) and get pulled in via `String(localized: "key")`.
