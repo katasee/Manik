@@ -27,6 +27,8 @@ enum SchedulePreviewData {
             endTime: "11:00",
             offeredServiceIds: ["svc-gel-correction"],
             bookedServiceId: "svc-gel-correction",
+            bookedServiceName: "Корекція гелем",
+            bookedServicePrice: 900,
             status: .pending,
             clientId: "client-olena"
         ),
@@ -37,6 +39,8 @@ enum SchedulePreviewData {
             endTime: "16:00",
             offeredServiceIds: ["svc-classic"],
             bookedServiceId: "svc-classic",
+            bookedServiceName: "Класичний манікюр",
+            bookedServicePrice: 500,
             status: .confirmed,
             clientId: "client-olena"
         )
@@ -53,18 +57,12 @@ enum SchedulePreviewData {
             block: block,
             depth: depth,
             serviceNames: offeredServiceNames(for: block),
-            bookedServiceName: bookedServiceName(for: block)
+            bookedServiceName: block.bookedServiceName ?? ""
         )
     }
 
     static func detailContext(for block: Block) -> BlockDetailContext {
         BlockDetailContext(scheduled(block))
-    }
-
-    static func bookedServiceName(for block: Block) -> String {
-        guard let bookedServiceId = block.bookedServiceId else { return "" }
-
-        return services.first { $0.id == bookedServiceId }?.name ?? ""
     }
 
     static let freeHours = Set(WorkHours.working).subtracting([9, 10, 11, 15])

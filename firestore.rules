@@ -24,12 +24,18 @@ service cloud.firestore {
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "master";
     }
 
+    function bookedService() {
+      return get(/databases/$(database)/documents/services/$(request.resource.data.bookedServiceId)).data;
+    }
+
     function isClientBooking() {
       return isSignedIn() &&
         resource.data.status == "available" &&
         request.resource.data.status == "pending" &&
         request.resource.data.clientId == request.auth.uid &&
         request.resource.data.bookedServiceId in resource.data.offeredServiceIds &&
+        request.resource.data.bookedServiceName == bookedService().name &&
+        request.resource.data.bookedServicePrice == bookedService().price &&
         request.resource.data.date == resource.data.date &&
         request.resource.data.startTime == resource.data.startTime &&
         request.resource.data.endTime == resource.data.endTime &&
@@ -42,6 +48,8 @@ service cloud.firestore {
         request.resource.data.status == "available" &&
         !('clientId' in request.resource.data) &&
         !('bookedServiceId' in request.resource.data) &&
+        !('bookedServiceName' in request.resource.data) &&
+        !('bookedServicePrice' in request.resource.data) &&
         request.resource.data.date == resource.data.date &&
         request.resource.data.startTime == resource.data.startTime &&
         request.resource.data.endTime == resource.data.endTime &&

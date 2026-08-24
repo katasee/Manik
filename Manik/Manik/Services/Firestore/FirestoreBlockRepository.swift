@@ -25,13 +25,15 @@ final class FirestoreBlockRepository: BlockRepository {
     func book(
         blockId: String,
         clientId: String,
-        bookedServiceId: String
+        service: BookedService
     ) async throws {
         do {
             try await db.collection("blocks").document(blockId).updateData([
                 "status": BlockStatus.pending.rawValue,
                 "clientId": clientId,
-                "bookedServiceId": bookedServiceId
+                "bookedServiceId": service.id,
+                "bookedServiceName": service.name,
+                "bookedServicePrice": service.price
             ])
         } catch let error as NSError where error.isSlotUnavailable {
             throw BookingError.slotUnavailable
@@ -48,7 +50,9 @@ final class FirestoreBlockRepository: BlockRepository {
         try await db.collection("blocks").document(blockId).updateData([
             "status": BlockStatus.available.rawValue,
             "clientId": FieldValue.delete(),
-            "bookedServiceId": FieldValue.delete()
+            "bookedServiceId": FieldValue.delete(),
+            "bookedServiceName": FieldValue.delete(),
+            "bookedServicePrice": FieldValue.delete()
         ])
     }
 
@@ -56,7 +60,9 @@ final class FirestoreBlockRepository: BlockRepository {
         try await db.collection("blocks").document(blockId).updateData([
             "status": BlockStatus.available.rawValue,
             "clientId": FieldValue.delete(),
-            "bookedServiceId": FieldValue.delete()
+            "bookedServiceId": FieldValue.delete(),
+            "bookedServiceName": FieldValue.delete(),
+            "bookedServicePrice": FieldValue.delete()
         ])
     }
 }

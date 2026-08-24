@@ -38,13 +38,17 @@ enum MyBookingsPreviewData {
         status: BlockStatus,
         clientId: String? = MyBookingsPreviewData.clientId
     ) -> Block {
-        Block(
+        let booked = services.first { $0.id == service }
+
+        return Block(
             id: id,
             date: date(dayOffset),
             startTime: start,
             endTime: end,
             offeredServiceIds: [service].compactMap { $0 },
             bookedServiceId: service,
+            bookedServiceName: booked?.name,
+            bookedServicePrice: booked?.price,
             status: status,
             clientId: clientId
         )

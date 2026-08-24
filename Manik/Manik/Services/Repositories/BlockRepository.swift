@@ -1,3 +1,9 @@
+struct BookedService {
+    let id: String
+    let name: String
+    let price: Int
+}
+
 protocol BlockRepository {
     func observeBlocks() -> AsyncStream<[Block]>
     func addBlock(_ block: Block) async throws
@@ -8,6 +14,6 @@ protocol BlockRepository {
     func book(
         blockId: String,
         clientId: String,
-        bookedServiceId: String
+        service: BookedService
     ) async throws
 }

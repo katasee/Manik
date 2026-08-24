@@ -11,27 +11,17 @@ final class MyBookingsViewModel {
 
     private let clientId: String
     private let blockRepository: BlockRepository
-    private let serviceRepository: ServiceRepository
-
-    private var hasBlocks = false
-    private var hasServices = false
 
     private var blocks: [Block] = [] {
         didSet { rebuild() }
     }
 
-    private var services: [Service] = [] {
-        didSet { rebuild() }
-    }
-
     init(
         clientId: String,
-        blockRepository: BlockRepository = FirestoreBlockRepository(),
-        serviceRepository: ServiceRepository = FirestoreServiceRepository()
+        blockRepository: BlockRepository = FirestoreBlockRepository()
     ) {
         self.clientId = clientId
         self.blockRepository = blockRepository
-        self.serviceRepository = serviceRepository
     }
 
     func makeCancelViewModel(context: CancelBookingContext) -> CancelBookingViewModel {
@@ -44,16 +34,7 @@ final class MyBookingsViewModel {
     func observeBlocks() async {
         for await updatedBlocks in blockRepository.observeBlocks() {
             blocks = updatedBlocks
-            hasBlocks = true
-            updateLoaded()
-        }
-    }
-
-    func observeServices() async {
-        for await updatedServices in serviceRepository.observeServices() {
-            services = updatedServices
-            hasServices = true
-            updateLoaded()
+            hasLoaded = true
         }
     }
 
@@ -68,13 +49,8 @@ final class MyBookingsViewModel {
     private func rebuild() {
         sections = MyBookingsList.sections(
             blocks: blocks,
-            services: services,
             clientId: clientId,
             now: .now
         )
-    }
-
-    private func updateLoaded() {
-        hasLoaded = hasBlocks && hasServices
     }
 }

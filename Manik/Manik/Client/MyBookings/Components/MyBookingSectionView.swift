@@ -30,7 +30,6 @@ struct MyBookingSectionView: View {
 #Preview {
     let sections = MyBookingsList.sections(
         blocks: MyBookingsPreviewData.blocks,
-        services: MyBookingsPreviewData.services,
         clientId: MyBookingsPreviewData.clientId,
         now: MyBookingsPreviewData.reference
     )

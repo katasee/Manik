@@ -44,9 +44,6 @@ struct MyBookingsView: View {
             await viewModel.observeBlocks()
         }
         .task {
-            await viewModel.observeServices()
-        }
-        .task {
             await viewModel.refreshSections()
         }
     }
@@ -69,8 +66,7 @@ struct MyBookingsView: View {
     MyBookingsView(
         viewModel: MyBookingsViewModel(
             clientId: MyBookingsPreviewData.clientId,
-            blockRepository: FakeBlockRepository(blocks: MyBookingsPreviewData.blocks),
-            serviceRepository: FakeServiceRepository(services: MyBookingsPreviewData.services)
+            blockRepository: FakeBlockRepository(blocks: MyBookingsPreviewData.blocks)
         )
     )
 }
@@ -79,8 +75,7 @@ struct MyBookingsView: View {
     MyBookingsView(
         viewModel: MyBookingsViewModel(
             clientId: MyBookingsPreviewData.clientId,
-            blockRepository: FakeBlockRepository(blocks: []),
-            serviceRepository: FakeServiceRepository(services: MyBookingsPreviewData.services)
+            blockRepository: FakeBlockRepository(blocks: [])
         )
     )
 }
@@ -89,8 +84,7 @@ struct MyBookingsView: View {
     MyBookingsView(
         viewModel: MyBookingsViewModel(
             clientId: MyBookingsPreviewData.clientId,
-            blockRepository: FakeBlockRepository(blocks: MyBookingsPreviewData.upcomingOnly),
-            serviceRepository: FakeServiceRepository(services: MyBookingsPreviewData.services)
+            blockRepository: FakeBlockRepository(blocks: MyBookingsPreviewData.upcomingOnly)
         )
     )
 }

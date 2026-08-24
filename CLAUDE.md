@@ -32,6 +32,17 @@ sync-ups to once, at the end, when the feature itself is actually settled — ed
 turn multiplies unrelated diff churn and burns time out of proportion to keeping the doc
 turn-by-turn current.
 
+**All project documentation is written in English** — `docs/plan.md`, spec and plan files, commit
+messages, code comments if any are ever added. This holds regardless of the language the working
+session is being held in, which is what caused the drift it replaces: `docs/plan.md`'s "Done"
+entries are English through PR10 and Ukrainian from PR11 on, because each was written in whatever
+language that day's conversation used, while the structural sections stayed English throughout.
+Ukrainian survives only where it is *data* rather than prose — quoted UI strings ("Мої послуги",
+"+ Додати вільний час"), which must stay verbatim so they can be grepped against the String
+Catalog. Pre-PR11 entries were **not** retro-translated: that would be a thousand-line diff over
+history that is read rarely and changed never, and it would blur the record of decisions the file
+exists to preserve. So expect to read Ukrainian in older entries; just don't write any new.
+
 **A feature's `docs/superpowers/plans/` and `docs/superpowers/specs/` files are throwaway working
 artifacts — delete them once that feature is finished (implemented and merged).** They exist to
 plan and design a feature before the code does; after the code lands, the code is the source of
