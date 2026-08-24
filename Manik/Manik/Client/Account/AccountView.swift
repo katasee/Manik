@@ -62,22 +62,28 @@ struct AccountView: View {
         VStack(alignment: .leading, spacing: AccountMetrics.Spacing.rowSpacing) {
             sectionLabel("account.section.contacts")
 
-            AccountRow(
-                iconName: "phone.fill",
-                labelKey: "account.field.phone",
-                value: PhoneFormat.display(viewModel.profile.phone)
-            )
+            VStack(spacing: 0) {
+                AccountRow(
+                    iconName: "phone.fill",
+                    labelKey: "account.field.phone",
+                    value: PhoneFormat.display(viewModel.profile.phone)
+                )
 
-            AccountRow(
-                iconName: "camera.fill",
-                labelKey: "account.field.instagram",
-                value: handle(viewModel.profile.instagram)
-            )
+                AccountRow(
+                    iconName: "camera.fill",
+                    labelKey: "account.field.instagram",
+                    value: handle(viewModel.profile.instagram)
+                )
 
-            AccountRow(
-                iconName: "paperplane.fill",
-                labelKey: "account.field.telegram",
-                value: handle(viewModel.profile.telegram)
+                AccountRow(
+                    iconName: "paperplane.fill",
+                    labelKey: "account.field.telegram",
+                    value: handle(viewModel.profile.telegram)
+                )
+            }
+            .cardSurface(
+                padding: AccountMetrics.Spacing.cardPadding,
+                cornerRadius: AccountMetrics.Size.cardCornerRadius
             )
         }
     }

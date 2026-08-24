@@ -10,7 +10,6 @@ struct AccountRow: View {
             Image(systemName: iconName)
                 .font(.elmsSans(.regular, AccountMetrics.Size.rowIcon))
                 .foregroundStyle(.black)
-                .glyphShadow()
                 .frame(width: AccountMetrics.Size.rowIcon)
 
             Text(labelKey)
@@ -39,7 +38,7 @@ struct AccountRow: View {
 
 #if DEBUG
 #Preview {
-    VStack(spacing: 12) {
+    VStack(spacing: 0) {
         AccountRow(
             iconName: "phone.fill",
             labelKey: "account.field.phone",
