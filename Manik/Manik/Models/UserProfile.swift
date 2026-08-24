@@ -11,4 +11,7 @@ struct UserProfile: Identifiable, Codable {
     var role: Role
     var name: String
     var email: String
+    var phone: String?
+    var instagram: String?
+    var telegram: String?
 }
