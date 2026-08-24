@@ -20,6 +20,15 @@
   exception is `monthYear`, which keeps the fixed `"LLLL y"`: `LLLL` is the *standalone* month form
   ("Серпень 2026"), while a template would produce the genitive "серпня 2026" — wrong for a bare
   month header. Don't "fix" that one.
+- **A phone number goes through `Manik/Manik/Utilities/PhoneFormat.swift`, never a raw string.**
+  Same storage/display split as `DateFormat`: Firestore holds one canonical form
+  (`+48` + exactly 9 digits, e.g. `+48600123456`), the screen shows `+48 600 123 456`, and the edit
+  field holds the spaced text while `phoneDigits` derives the digits from it. `display(_:)` returns
+  anything it cannot parse **verbatim** rather than mangling it, which is what keeps values written
+  before the format existed (or by hand in the Console) readable. The app is Poland-only by
+  deliberate choice; widening it means turning the static `+48` prefix into a picker, not changing
+  the stored form. `firestore.rules` does **not** regex-validate this, unlike `hasValidBlockFormat()` —
+  a malformed phone breaks nothing server-side.
 - Firestore's Codable convenience methods — `setData(from:)`, `addDocument(from:)` — have **no
   `async` overload** in this SDK version, only `throws` with an optional completion closure.
   Writing `try await someRef.setData(from: model)` compiles but silently resolves to the sync

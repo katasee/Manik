@@ -930,6 +930,123 @@ this file is just "what's done, what's next," not a design doc.
     - The last two came from the user pushing back on file count and on responsibilities; both
       pushbacks were correct and are the reason `architecture.md` now states the companion-type rule
       and the arithmetic-versus-formatting split explicitly.
+- **M-23 — Client "Акаунт": profile (branch `feature/pr23-Client-account`, 4 tasks)**: the third
+  client tab stopped being the inline `VStack` PR13 parked in `ClientRootView` and became a real
+  screen — profile card, contacts, statistics, sign-out — with one popup that edits everything
+  except email. First write to `users/{uid}` since sign-up. Numbered M-23 to match the branch name.
+  It was built in parallel with M-22 — both branch off `feature/pr21-Booking-service-snapshot` — and
+  pulling the merged `main` in mid-flight is what produced the `StatCard` collision described below.
+  - **The screen is the first of three.** The full design lives in
+    `docs/superpowers/specs/2026-08-23-client-account-design.md`; stats (visits + favourite service)
+    and security (change password, delete account) are the two remaining PRs, so that spec is **not**
+    deleted yet despite the CLAUDE.md throwaway rule.
+  - `UserProfile` gained `phone`/`instagram`/`telegram`, all **optional** — the synthesized
+    `init(from:)` ignores property defaults, so a non-optional field would have thrown `keyNotFound`
+    on every account created before this PR and locked those clients out (the `Service.isActive`
+    lesson from PR12).
+  - `UserRepository` stopped being read-only: `updateProfile(uid:edit:)` writes **exactly four keys
+    via `updateData`**, never `setData`. A whole-document write would drop `role`, which is the
+    difference between a working account and one that can't reach its cabinet. A cleared field is
+    written as `FieldValue.delete()`, not `""`, so "no Instagram" is one state rather than two.
+    The dictionary is built through a small `put(_:at:into:)` helper instead of
+    `"phone": edit.phone ?? FieldValue.delete()` — the literal form only compiles by inferring
+    `T == Any` across two unrelated types, and this is the one write the whole PR exists for.
+  - Handles are stored **bare** (`olena_nails`): the leading `@` is stripped on save and re-added by
+    the view, so storage and display can't drift. A field holding only "@" clears the value instead
+    of storing an empty string.
+  - **The phone is Polish-only**, `+48` + exactly 9 digits, stored canonically as `+48600123456`
+    through the new `Utilities/PhoneFormat.swift`. That file mirrors `DateFormat`'s storage/display
+    split: one form in Firestore, a spaced form (`+48 600 123 456`) on screen. In the form `+48` is
+    a static prefix, only digits are accepted, they are masked `600 123 456` as they are typed, and
+    a tenth digit simply doesn't fit. A pasted `+48…` has its country code absorbed rather than
+    duplicated, but **only** when that leaves exactly 9 digits: an earlier `count > 9` test ate the
+    real leading "48" of a number like `481234567` the moment a tenth digit was typed.
+    The accepted cost: **a non-Polish number cannot be entered at all.** One salon, one country —
+    and if that changes, the prefix becomes a picker without touching the storage format. Nothing
+    else in the app ever writes `phone`: `signUp` creates the document with `name`/`email` only and
+    the synthesized encoder omits absent optionals, so a value outside this format can only get in
+    by hand through the Firebase Console. Such a value is **not migrated** — `PhoneFormat.display`
+    returns anything it can't parse verbatim, so it still reads correctly, and it is normalized the
+    first time its owner opens the popup. `firestore.rules` deliberately does not validate the
+    format — unlike a block's date, a malformed phone breaks nothing server-side.
+  - **The mask is applied through `.onChange`, not a `Binding(get:set:)`.** The obvious version —
+    a computed binding whose `set` filters and truncates — *silently fails to cap the length*: when
+    the filtered result equals what the property already held, there is no observable change, so
+    `TextField` keeps the text the user typed and the tenth digit stays on screen. Binding the field
+    straight to `$viewModel.phone` and normalizing in `.onChange` works because the truncated value
+    genuinely differs from the typed one. Consequence: `phone` holds the **display** text
+    (`600 123 456`), and the view model derives digits from it (`phoneDigits`) rather than the other
+    way round.
+  - **Length is checked on submit, not while typing.** "Зберегти" stays enabled and the red hint
+    appears only after it is pressed — live validation meant the field was red for the whole time
+    it took to type nine digits, i.e. during the normal path. `showsPhoneError` is derived
+    (`hasSubmitted && isPhoneValid == false`), so it clears itself as soon as the number is
+    complete. Deliberately not a `didSet` on `phone`: property observers under `@Observable` are a
+    macro-expansion question nobody needs to answer for a flag that can just be computed.
+  - **`firestore.rules` unchanged and not redeployed** — the owner's `update` with an unchanged
+    `role` was already allowed, and a merge update satisfies that rule.
+  - **The screen never calls `fetchProfile`.** `RootViewModel` already fetched the profile at
+    sign-in and passes it down. A saved profile travels back **up** through
+    `AccountViewModel.apply(_:)` → `ClientRootView.onProfileUpdated` → `RootViewModel.update(profile:)`,
+    so the "Запис" greeting picks up a rename without a relaunch. `.id(profile.uid)` in `RootView`
+    stays: the uid doesn't change, so the tab view models are not rebuilt and the debt PR19 closed
+    stays closed. A callback rather than a listener because `users` has no realtime stream anywhere
+    in the app, and adding one just to observe our own write would be heavier.
+  - `Client/Account/` — `AccountView`, `AccountViewModel` (tab composition root, the only place here
+    allowed a defaulted repository), `AccountStats`, `AccountMetrics`, `Components/ProfileCard`,
+    `Components/AccountRow`, `ProfileForm/`, `Preview/AccountPreviewData`. Outside the feature
+    folder: `Models/ProfileEdit.swift` and `Utilities/PhoneFormat.swift`.
+  - **A contact row is a label, not a `Button`** — the pencil on the profile card is the screen's
+    single entry point into editing. Rows were briefly made tappable so the empty state could be
+    reached directly; that was reverted, because two ways into one popup means the row has to look
+    tappable, and a row that looks tappable in a list of three otherwise-static values reads as
+    navigation. The empty state therefore says "Не вказано" ("Not set"), not "Додати" — a passive
+    value, not an affordance that goes nowhere.
+  - **No `bottomClearance` parameter** — the screen owns no `NavigationStack`, so the router's
+    `safeAreaInset` reaches its `ScrollView` on its own, exactly as for `MyBookingsView`.
+  - The keyboard toolbar is mandatory: `.phonePad` has no return key, so without it the keyboard
+    couldn't be dismissed and a backdrop tap would close the whole form (the `.decimalPad` lesson
+    from PR11). This is also the **first** such toolbar in a popup presented from a screen with no
+    `NavigationStack` ancestor — worth a look on device rather than only in the canvas.
+  - `FakeUserRepository` became a mutable `final class`, following `FakeServiceRepository` (PR11) and
+    `FakeBlockRepository` (PR15), so previews run the whole edit loop without Firestore. Its
+    `init(profiles:)` label was kept so `RequestsView`'s four previews needed no edits.
+  - Localization: 19 new `account.*` keys, `en`+`uk`, `translated`, alphabetical. `account.field.email`
+    was deliberately **not** added — the word is identical in both languages and the card labels the
+    address by context. Reused `common.action.cancel`, `common.action.done`, `common.action.signOut`.
+  - **The stats section ships here as UI, with no logic behind it**: `AccountStats` plus two tiles
+    ("Візити", "Улюблена послуга"), always visible, reading `AccountStats.empty` — `0` and `—`. The
+    section is built in one pass so it can be judged as part of the screen; PR-B swaps `.empty` for
+    the real derivation and deletes the temporary `stats:` init parameter that currently lets both
+    preview states exist.
+  - **The tiles are M-22's `StatCard`, promoted to `Assets/UICommons/`.** Both branches had written
+    a `StatCard` of their own, so pulling the merged `main` produced two types with one name in one
+    module — `invalid redeclaration`, a red build. Renaming one would have shipped two stat tiles
+    that must be restyled in lockstep forever; the client's statistics and the master's statistics
+    are the same idea and now render through the same view. The move cost three things:
+    `StatsMetrics` references became a private `Layout` enum (a UICommons component must not depend
+    on a feature's metrics), `StatsTrend` + `StatsTrendLabel` came along as its dependencies
+    (`StatsTrend` moved out of `MonthlyStats.swift` into the label's file, as the supporting type of
+    the view that renders it), and the card gained `valueLineLimit` — the master's values are
+    numbers on one line, the favourite service is a name that needs two.
+  - **The whole screen moved onto `.cardSurface`** once the tiles did. `ProfileCard` and the
+    sign-out button dropped their hand-rolled `Color.surface` background for the modifier M-22
+    introduced, so the account screen now matches the master's stats: `FieldBackground` (near-white)
+    plus `cardShadow`. That leaves the rest of the client cabinet — `MyBookingCard`,
+    `ServiceOfferCard`, `ConfirmBar`, the popups — still on the older grey `Color.surface`.
+    Converging them is a separate pass across ~6 files; backlog item below.
+  - The sign-out button is deliberately **thinner than a card**: no `minHeight`, and 14 of padding
+    rather than 16, which lands it at ~46pt. That is the floor, not a round number — the label is
+    ~18pt, so 12 of padding would put it under the 44pt tap target.
+  - Contact icons are filled glyphs with `glyphShadow()`, a third member of `View+Shadow.swift`
+    beside `brandShadow` and `cardShadow`. `cardShadow`'s radius 10 at 10% opacity dissolves under a
+    20pt glyph; a symbol needs a short, slightly denser shadow to keep its outline.
+  - **The visits tile splits number and noun onto two lines**, which is what keeps
+    `account.stats.visits` an invariant "Візити" instead of an inflected "12 візитів". Ukrainian
+    has three plural forms, so the one-line phrasing would have forced the catalog's first plural
+    variations for a label nobody asked to be a sentence. `account.delete.warning` in PR-C still
+    needs them — there the count really is inside the phrase.
+  - **Not in this PR**: the stats derivation and change-password/delete-account.
 
 ## Screens (in order)
 
@@ -1012,10 +1129,26 @@ those items are referred to by name, so the list can grow without renumbering an
    - **Four metrics were added** that this line never asked for: expected revenue, hours worked, free
      slots left, and a month-over-month comparison on money and clients. All four were already
      computable from `observeBlocks()` without a single new query.
-6. **Client — "Акаунт" (Account)**: behind the 3rd client tab (`ClientTab.account`) — PR13 moved
-   sign-out here (name + email + sign-out button, same minimal content the booking-tab placeholder
-   used to show) so the account still has an exit once "Запис" became a real screen, but it's not a
-   real screen yet — still needs actual profile-management content.
+6. **Client — "Акаунт" (Account)** — **profile done** (M-23, under "Done" above). What remains is
+   the logic behind the stats tiles and the two security operations — the latter also add the last
+   missing piece of the layout, an actions block where "Вийти" becomes the middle of three.
+   Designed as one screen shipping in three PRs; the design doc is
+   `docs/superpowers/specs/2026-08-23-client-account-design.md` and stays until all three land.
+   - ~~**PR-A — profile**~~ — **done (M-23)**: name, email (read-only), phone, Instagram, Telegram,
+     edited through one popup that writes `users/{uid}`, plus the whole "Статистика" section as UI
+     sitting at `AccountStats.empty`.
+   - **PR-B — stats**: fills that section in — `AccountStats.make(blocks:clientId:now:)` fed by the
+     existing `observeBlocks()` stream, replacing the temporary `stats:` init parameter. A visit is
+     a `confirmed` block whose start time has passed — the same definition the master's "Статистика"
+     uses, so the two cabinets can't report different numbers. No new views, no writes, no new
+     fields, no rules change.
+   - **PR-C — security**: change password and delete account. Both need the current password because
+     Firebase rejects them with `requiresRecentLogin`, and the reauthentication belongs inside
+     `FirebaseAuthRepository` so the protocol layer stays Firebase-free. Deleting cancels the
+     client's future bookings **first** (`isClientCanceling()` needs a live `request.auth.uid`), then
+     the `users/{uid}` document, then the Auth user. This is the only PR of the three that changes
+     `firestore.rules` — `users/{uid}` has no `delete` clause today — so it carries a manual Console
+     deploy.
 
 ## Backlog and tech debt (unordered)
 
@@ -1024,6 +1157,25 @@ something nearby is already being touched. **No numbers on purpose** — cite th
 numbering drifts every time an item is added or closed (it already did once: PR9's entry pointed at
 "step 9" for what was item 10).
 
+- **Two card surfaces in one app** (created by M-22, made visible by M-23). `.cardSurface` fills
+  with `FieldBackground` (near-white) and adds `cardShadow`; the older idiom is a hand-written
+  `.background(Color.surface, in: .rect(cornerRadius:))` (mid-grey, no shadow). The master's stats
+  and the whole client account screen use the former; `MyBookingCard`, `ServiceOfferCard`,
+  `ConfirmBar`, `RequestCard`, `SlotChip` and the popups still use the latter. Converging them is
+  one deliberate pass across those files — migrating screens one at a time is what makes the app
+  look inconsistent in the meantime, so it should be done in a single change or not at all.
+- **Two accessibility items left open by M-23's review.** Neither blocks the PR, both are one line
+  each: the contact rows' SF Symbols are announced by VoiceOver ("phone. Телефон. +48 600 123 456")
+  and want `.accessibilityHidden(true)`, since the label beside them already carries the meaning;
+  and a failed phone validation moves neither focus nor VoiceOver's cursor to the offending field,
+  so the popup just appears not to close — `focusedField = .phone` when `submit()` returns `nil` on
+  `showsPhoneError` fixes both at once. Worth doing in whichever account PR is opened next rather
+  than as a standalone change.
+- **Changing the email address is not offered.** The account screen (M-23) shows `email` read-only.
+  Firebase requires verifying the new address before it takes effect, so `users/{uid}.email` and the
+  Auth record can disagree for an unbounded window, and the UI has nowhere to show that pending
+  state. Decided 2026-08-23 while specifying the account screen; revisit only if a client actually
+  needs it.
 - ~~**Extract the screen header and the list status overlay into `Assets/UICommons/`**~~ — **done
   (PR16, see the entry under "Done" above)**. Two departures from what was planned here: the
   constants live in a nested `private enum Layout` rather than at file scope (that matches four of

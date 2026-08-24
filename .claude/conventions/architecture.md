@@ -86,6 +86,16 @@
   (`ServiceOfferCard` does this — each hour chip pushes that slot, the round chevron pushes the
   whole offer). Accept that the card body then stops being tappable, and give any icon-only control
   an `accessibilityLabel`, since it is otherwise silent to VoiceOver.
+- **Input masking uses `.onChange`, never `Binding(get:set:)`.** The obvious way to cap or reformat
+  what a `TextField` accepts — a computed binding whose `set` filters the incoming string — **does
+  not work**: when the filtered result equals the value the property already held, nothing
+  observable changed, so the field keeps the text the user typed and the rejected character stays on
+  screen. Bind straight to the view model property and normalize in `.onChange`, where the corrected
+  value genuinely differs from the typed one and the field updates (`ProfileFormPopup` masks the
+  phone this way). The consequence is that the view model stores the **display** text and derives
+  the clean value from it, not the reverse. Don't reach for a `didSet` on the property either:
+  property observers under `@Observable` are a macro-expansion question not worth answering when
+  the state can be computed instead (`showsPhoneError` is `hasSubmitted && isPhoneValid == false`).
 - **A `Task {}` created inside a `View`'s helper method does not inherit `MainActor`.** `Task`
   captures isolation *statically*, from the enclosing declaration — and helper methods on a `View`
   struct are nonisolated (only `body` carries the protocol's `@MainActor`). So anything
