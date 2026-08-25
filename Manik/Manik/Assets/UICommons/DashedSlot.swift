@@ -21,7 +21,7 @@ struct DashedSlot: View {
                 .overlay {
                     RoundedRectangle(cornerRadius: Layout.cornerRadius)
                         .strokeBorder(
-                            Color.surface,
+                            Color.border,
                             style: StrokeStyle(lineWidth: Layout.borderWidth, dash: Layout.dash)
                         )
                 }

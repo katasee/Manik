@@ -24,10 +24,6 @@ enum TabBarMetrics {
         static let badgeY: Double = -7
     }
 
-    enum Opacity {
-        static let inactiveIcon: Double = 0.55
-    }
-
     enum AnimationStyle {
         static let selection = Animation.spring(response: 0.35, dampingFraction: 0.75)
     }

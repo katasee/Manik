@@ -79,12 +79,12 @@ struct WeekDayStrip: View {
             .background {
                 if isSelected {
                     Capsule()
-                        .fill(Color.ink)
+                        .fill(Color.accent)
                         .brandShadow()
                         .matchedGeometryEffect(id: "selectedDay", in: namespace)
                 } else if isToday {
                     Capsule()
-                        .strokeBorder(Color.surface, lineWidth: 1)
+                        .strokeBorder(Color.border, lineWidth: 1)
                 }
             }
         }

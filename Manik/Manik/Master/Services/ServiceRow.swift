@@ -33,7 +33,7 @@ struct ServiceRow: View {
                 )
                 .overlay {
                     Circle()
-                        .strokeBorder(Color.surface, lineWidth: ServicesMetrics.Size.rowIconBorder)
+                        .strokeBorder(Color.border, lineWidth: ServicesMetrics.Size.rowIconBorder)
                 }
                 .contentShape(.circle)
         }

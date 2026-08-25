@@ -61,12 +61,12 @@ struct MyServicesView: View {
         Button("services.action.add", systemImage: "plus", action: addService)
             .labelStyle(.iconOnly)
             .font(.elmsSans(.bold, ServicesMetrics.Size.addIcon))
-            .foregroundStyle(Color.background)
+            .foregroundStyle(.white)
             .frame(
                 width: ServicesMetrics.Size.addButton,
                 height: ServicesMetrics.Size.addButton
             )
-            .background(Color.ink, in: .circle)
+            .background(Color.accent, in: .circle)
             .contentShape(.circle)
     }
 

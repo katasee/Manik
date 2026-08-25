@@ -140,7 +140,7 @@ struct ProfileFormPopup: View {
 
             PopupPrimaryButton(
                 titleKey: "account.form.submit",
-                color: .ink,
+                color: .accent,
                 isLoading: viewModel.isSaving,
                 isEnabled: viewModel.canSubmit,
                 action: { save(then: dismiss) }

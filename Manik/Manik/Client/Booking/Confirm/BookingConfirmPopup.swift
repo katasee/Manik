@@ -52,7 +52,7 @@ struct BookingConfirmPopup: View {
 
             PopupPrimaryButton(
                 titleKey: "booking.action.book",
-                color: .ink,
+                color: .accent,
                 isLoading: viewModel.isSaving,
                 action: book
             )
@@ -79,7 +79,7 @@ struct BookingConfirmPopup: View {
 
             PopupPrimaryButton(
                 titleKey: "common.action.done",
-                color: .ink,
+                color: .accent,
                 isLoading: false,
                 action: dismiss
             )

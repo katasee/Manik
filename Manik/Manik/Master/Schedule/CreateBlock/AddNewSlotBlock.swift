@@ -79,7 +79,7 @@ struct AddNewSlotBlock: View {
 
             PopupPrimaryButton(
                 titleKey: "schedule.createSlot.create",
-                color: .ink,
+                color: .accent,
                 isLoading: viewModel.isSaving,
                 isEnabled: viewModel.canSubmit,
                 action: { create(then: dismiss) }

@@ -15,5 +15,5 @@ struct TabBarBadge: View {
 #Preview {
     TabBarBadge(count: 2)
         .padding()
-        .background(Color.ink)
+        .background(Color.fieldBackground)
 }

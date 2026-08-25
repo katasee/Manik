@@ -46,10 +46,8 @@ enum BookingMetrics {
     }
 
     enum Opacity {
-        static let headerBubble: Double = 0.06
-        static let headerPill: Double = 0.12
-        static let headerGreeting: Double = 0.7
+        static let headerBubble: Double = 0.1
+        static let headerGreeting: Double = 0.9
         static let outsideMonth: Double = 0.3
-        static let chipBorder: Double = 0.18
     }
 }

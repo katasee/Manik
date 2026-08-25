@@ -78,7 +78,7 @@ struct ServiceFormPopup: View {
 
             PopupPrimaryButton(
                 titleKey: viewModel.mode.submitKey,
-                color: .ink,
+                color: .accent,
                 isLoading: viewModel.isSaving,
                 isEnabled: viewModel.canSubmit,
                 action: { save(then: dismiss) }

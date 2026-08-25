@@ -27,7 +27,7 @@ struct CalendarDayCell: View {
                 width: BookingMetrics.Size.daySelection,
                 height: BookingMetrics.Size.daySelection
             )
-            .background(isSelected ? Color.ink : Color.clear, in: .circle)
+            .background(isSelected ? Color.accent : Color.clear, in: .circle)
     }
 
     private var underline: some View {
@@ -44,7 +44,7 @@ struct CalendarDayCell: View {
     }
 
     private var numberColor: Color {
-        if isSelected { return Color.background }
+        if isSelected { return Color.white }
 
         return day.isSelectable ? Color.ink : Color.textSecondary
     }

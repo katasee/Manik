@@ -10,7 +10,6 @@ enum ScheduleMetrics {
     enum Spacing {
         static let rowSpacing: CGFloat = 16
         static let timelineHorizontalPadding: CGFloat = 16
-        static let timelineBottomSlack: CGFloat = 64
         static let contentLeadingPadding: CGFloat = timelineHorizontalPadding + Size.hourLabelWidth
     }
 

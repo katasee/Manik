@@ -41,14 +41,14 @@ struct PopupPrimaryButton: View {
     VStack(spacing: 12) {
         PopupPrimaryButton(
             titleKey: "schedule.createSlot.create",
-            color: .ink,
+            color: .accent,
             isLoading: false,
             action: {}
         )
 
         PopupPrimaryButton(
             titleKey: "schedule.createSlot.create",
-            color: .ink,
+            color: .accent,
             isLoading: false,
             isEnabled: false,
             action: {}
@@ -56,7 +56,7 @@ struct PopupPrimaryButton: View {
 
         PopupPrimaryButton(
             titleKey: "schedule.createSlot.create",
-            color: .ink,
+            color: .accent,
             isLoading: true,
             action: {}
         )

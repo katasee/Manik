@@ -7,7 +7,7 @@ struct TabBarActiveIndicator: View {
     var body: some View {
         if isActive {
             Circle()
-                .fill(Color.background)
+                .fill(Color.accent)
                 .matchedGeometryEffect(id: "activeTabCircle", in: namespace)
         }
     }
@@ -19,5 +19,5 @@ struct TabBarActiveIndicator: View {
     TabBarActiveIndicator(isActive: true, namespace: namespace)
         .frame(width: TabBarMetrics.Size.activeCircleDiameter, height: TabBarMetrics.Size.activeCircleDiameter)
         .padding()
-        .background(Color.ink)
+        .background(Color.fieldBackground)
 }

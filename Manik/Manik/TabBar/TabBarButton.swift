@@ -47,11 +47,11 @@ struct TabBarButton: View {
     }
     
     private var iconColor: Color {
-        isActive ? Color.ink : Color.background.opacity(TabBarMetrics.Opacity.inactiveIcon)
+        isActive ? Color.white : Color.textSecondary
     }
-    
+
     private var captionColor: Color {
-        isActive ? Color.background : Color.background.opacity(TabBarMetrics.Opacity.inactiveIcon)
+        isActive ? Color.ink : Color.textSecondary
     }
     
     private var liftOffset: Double {
@@ -90,7 +90,7 @@ struct TabBarButton: View {
     }
     .padding(.horizontal, TabBarMetrics.Spacing.innerHorizontalPadding)
     .frame(height: TabBarMetrics.Size.capsuleHeight)
-    .background(Color.ink, in: .capsule)
+    .background(Color.fieldBackground, in: .capsule)
     .padding()
 }
 

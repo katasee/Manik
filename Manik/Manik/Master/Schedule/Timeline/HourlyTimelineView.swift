@@ -34,7 +34,6 @@ struct HourlyTimelineView: View {
                 )
             }
             .padding(.vertical, ScheduleMetrics.Spacing.rowSpacing)
-            .padding(.bottom, ScheduleMetrics.Spacing.timelineBottomSlack)
             .contentShape(.rect)
             .onTapGesture(perform: closeOpenCard)
         }

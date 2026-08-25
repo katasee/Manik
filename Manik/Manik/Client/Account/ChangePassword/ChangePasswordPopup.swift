@@ -67,7 +67,7 @@ struct ChangePasswordPopup: View {
 
             PopupPrimaryButton(
                 titleKey: "account.form.submit",
-                color: .ink,
+                color: .accent,
                 isLoading: viewModel.isSaving,
                 isEnabled: viewModel.canSubmit,
                 action: submit
@@ -95,7 +95,7 @@ struct ChangePasswordPopup: View {
 
             PopupPrimaryButton(
                 titleKey: "common.action.done",
-                color: .ink,
+                color: .accent,
                 isLoading: false,
                 action: dismiss
             )

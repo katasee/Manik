@@ -14,8 +14,7 @@ struct CardActionButton: View {
         static let iconSize: CGFloat = 13
         static let titleSize: CGFloat = 15
         static let strokeWidth: CGFloat = 1
-        static let strokeOpacity: Double = 0.12
-        static let quietLabelOpacity: Double = 0.65
+        static let quietLabelOpacity: Double = 0.85
         static let disabledOpacity: Double = 0.4
     }
 
@@ -56,12 +55,9 @@ struct CardActionButton: View {
     @ViewBuilder
     private var background: some View {
         if isProminent {
-            Capsule().fill(Color.ink)
+            Capsule().fill(Color.accent)
         } else {
-            Capsule().strokeBorder(
-                Color.ink.opacity(Layout.strokeOpacity),
-                lineWidth: Layout.strokeWidth
-            )
+            Capsule().strokeBorder(Color.border, lineWidth: Layout.strokeWidth)
         }
     }
 

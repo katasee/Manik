@@ -108,7 +108,7 @@ struct AuthView: View {
         }
         .buttonStyle(.plain)
         .foregroundStyle(.white)
-        .background(Color.ink, in: .capsule)
+        .background(Color.accent, in: .capsule)
         .brandShadow()
         .disabled(viewModel.isLoading || !viewModel.canSubmit)
         .opacity(viewModel.isLoading || !viewModel.canSubmit ? AuthMetrics.disabledOpacity : 1)

@@ -37,7 +37,7 @@ struct ModeSwitcher: View {
                 .background {
                     if isOn {
                         Capsule()
-                            .fill(Color.ink)
+                            .fill(Color.accent)
                             .matchedGeometryEffect(id: "modeIndicator", in: namespace)
                             .brandShadow()
                     }

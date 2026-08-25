@@ -88,12 +88,12 @@ struct ServiceOfferCard: View {
     private var chevron: some View {
         Image(systemName: "chevron.right")
             .font(.elmsSans(.bold, BookingMetrics.Size.chevron))
-            .foregroundStyle(Color.background)
+            .foregroundStyle(.white)
             .frame(
                 width: BookingMetrics.Size.chevronButton,
                 height: BookingMetrics.Size.chevronButton
             )
-            .background(Color.ink, in: .circle)
+            .background(Color.accent, in: .circle)
             .allowsHitTesting(false)
     }
 }

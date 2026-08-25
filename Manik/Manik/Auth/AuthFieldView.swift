@@ -59,7 +59,7 @@ struct AuthFieldView: View {
             .background(Color.fieldBackground, in: .rect(cornerRadius: AuthMetrics.CornerRadius.field))
             .overlay(
                 RoundedRectangle(cornerRadius: AuthMetrics.CornerRadius.field)
-                    .stroke(Color.surface, lineWidth: 1)
+                    .stroke(Color.border, lineWidth: 1)
             )
         }
     }

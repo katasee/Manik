@@ -31,7 +31,7 @@ struct ProfileCard: View {
 
     private var avatar: some View {
         Circle()
-            .fill(Color.background)
+            .fill(Color.surface)
             .frame(
                 width: AccountMetrics.Size.avatar,
                 height: AccountMetrics.Size.avatar
