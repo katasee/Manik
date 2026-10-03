@@ -32,8 +32,8 @@ enum StatsCalculator {
         let monthBlocks = blocks.filter { isInside($0, start: monthStart, end: monthEnd) }
         let previousBlocks = blocks.filter { isInside($0, start: previousStart, end: monthStart) }
 
-        let completed = monthBlocks.filter { isCompleted($0, now: now) }
-        let previousCompleted = previousBlocks.filter { isCompleted($0, now: now) }
+        let completed = monthBlocks.filter { $0.isCompleted(now: now) }
+        let previousCompleted = previousBlocks.filter { $0.isCompleted(now: now) }
 
         let isMonthFinished = monthEnd <= now
 
@@ -62,12 +62,6 @@ enum StatsCalculator {
         guard let startsAt = block.startsAt else { return false }
 
         return startsAt >= start && startsAt < end
-    }
-
-    private static func isCompleted(_ block: Block, now: Date) -> Bool {
-        guard block.status == .confirmed, let endsAt = block.endsAt else { return false }
-
-        return endsAt <= now
     }
 
     private static func total(of blocks: [Block]) -> Int {

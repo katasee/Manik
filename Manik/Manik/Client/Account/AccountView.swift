@@ -1,14 +1,28 @@
 import SwiftUI
 
 struct AccountView: View {
+    private enum AccountPopup: String, Identifiable {
+        case profileForm
+        case changePassword
+        case deleteAccount
+
+        var id: String { rawValue }
+    }
+
     @State private var viewModel: AccountViewModel
-    @State private var isEditing = false
+    @State private var popup: AccountPopup?
 
     let onSignOut: () -> Void
+    let onAccountDeleted: () -> Void
 
-    init(viewModel: AccountViewModel, onSignOut: @escaping () -> Void) {
+    init(
+        viewModel: AccountViewModel,
+        onSignOut: @escaping () -> Void,
+        onAccountDeleted: @escaping () -> Void
+    ) {
         _viewModel = State(initialValue: viewModel)
         self.onSignOut = onSignOut
+        self.onAccountDeleted = onAccountDeleted
     }
 
     var body: some View {
@@ -20,14 +34,14 @@ struct AccountView: View {
                     ProfileCard(
                         name: viewModel.profile.name,
                         email: viewModel.profile.email,
-                        onEdit: showForm
+                        onEdit: showProfileForm
                     )
 
                     contacts
 
                     stats
 
-                    signOut
+                    actions
                 }
                 .padding(.horizontal, AccountMetrics.Spacing.horizontalPadding)
                 .padding(.top, AccountMetrics.Spacing.contentTopPadding)
@@ -36,26 +50,60 @@ struct AccountView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color.background)
-        .fullScreenCover(isPresented: $isEditing) {
+        .task {
+            await viewModel.observeBlocks()
+        }
+        .fullScreenCover(item: $popup) { popup in
+            popupView(popup)
+                .presentationBackground(.clear)
+        }
+    }
+
+    @ViewBuilder
+    private func popupView(_ popup: AccountPopup) -> some View {
+        switch popup {
+        case .profileForm:
             ProfileFormPopup(
                 viewModel: viewModel.makeProfileFormViewModel(),
                 onSaved: viewModel.apply,
-                onDismiss: dismissForm
+                onDismiss: dismissPopup
             )
-            .presentationBackground(.clear)
+        case .changePassword:
+            ChangePasswordPopup(
+                viewModel: viewModel.makeChangePasswordViewModel(),
+                onDismiss: dismissPopup
+            )
+        case .deleteAccount:
+            DeleteAccountPopup(
+                viewModel: viewModel.makeDeleteAccountViewModel(),
+                onDeleted: onAccountDeleted,
+                onDismiss: dismissPopup
+            )
         }
     }
 
-    private func showForm() {
+    private func show(_ popup: AccountPopup) {
         withoutPresentationAnimation {
-            isEditing = true
+            self.popup = popup
         }
     }
 
-    private func dismissForm() {
+    private func dismissPopup() {
         withoutPresentationAnimation {
-            isEditing = false
+            popup = nil
         }
+    }
+
+    private func showProfileForm() {
+        show(.profileForm)
+    }
+
+    private func showChangePassword() {
+        show(.changePassword)
+    }
+
+    private func showDeleteAccount() {
+        show(.deleteAccount)
     }
 
     private var contacts: some View {
@@ -110,6 +158,7 @@ struct AccountView: View {
                     )
                 }
             }
+            .redacted(reason: viewModel.hasLoadedStats ? [] : .placeholder)
         }
     }
 
@@ -125,14 +174,41 @@ struct AccountView: View {
             .foregroundStyle(Color.textSecondary)
     }
 
-    private var signOut: some View {
-        Button(action: onSignOut) {
-            Text("common.action.signOut")
+    private var actions: some View {
+        VStack(spacing: AccountMetrics.Spacing.rowSpacing) {
+            actionButton(
+                titleKey: "account.action.changePassword",
+                tint: Color.ink,
+                action: showChangePassword
+            )
+
+            actionButton(
+                titleKey: "common.action.signOut",
+                tint: Color.ink,
+                action: onSignOut
+            )
+
+            actionButton(
+                titleKey: "account.action.delete",
+                tint: Color.destructive,
+                action: showDeleteAccount
+            )
+            .disabled(viewModel.hasLoadedStats == false)
+        }
+    }
+
+    private func actionButton(
+        titleKey: LocalizedStringKey,
+        tint: Color,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            Text(titleKey)
                 .font(.elmsSans(.bold, 14.5))
-                .foregroundStyle(Color.ink)
+                .foregroundStyle(tint)
                 .frame(maxWidth: .infinity)
                 .cardSurface(
-                    padding: AccountMetrics.Spacing.signOutPadding,
+                    padding: AccountMetrics.Spacing.actionPadding,
                     cornerRadius: AccountMetrics.Size.cardCornerRadius
                 )
                 .contentShape(.rect)
@@ -150,11 +226,12 @@ struct AccountView: View {
     AccountView(
         viewModel: AccountViewModel(
             profile: AccountPreviewData.profile,
-            stats: AccountPreviewData.stats,
             userRepository: FakeUserRepository(profiles: AccountPreviewData.profiles),
+            blockRepository: FakeBlockRepository(blocks: AccountPreviewData.blocks),
             onProfileUpdated: { _ in }
         ),
-        onSignOut: {}
+        onSignOut: {},
+        onAccountDeleted: {}
     )
 }
 
@@ -163,9 +240,11 @@ struct AccountView: View {
         viewModel: AccountViewModel(
             profile: AccountPreviewData.emptyContactsProfile,
             userRepository: FakeUserRepository(profiles: AccountPreviewData.profiles),
+            blockRepository: FakeBlockRepository(),
             onProfileUpdated: { _ in }
         ),
-        onSignOut: {}
+        onSignOut: {},
+        onAccountDeleted: {}
     )
 }
 #endif

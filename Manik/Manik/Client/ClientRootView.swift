@@ -4,6 +4,7 @@ struct ClientRootView: View {
     let profile: UserProfile
     let onSignOut: () -> Void
     let onProfileUpdated: (UserProfile) -> Void
+    let onAccountDeleted: () -> Void
 
     @State private var selectedTab: ClientTab = .booking
     @State private var bookingViewModel: BookingViewModel
@@ -13,11 +14,13 @@ struct ClientRootView: View {
     init(
         profile: UserProfile,
         onSignOut: @escaping () -> Void,
-        onProfileUpdated: @escaping (UserProfile) -> Void
+        onProfileUpdated: @escaping (UserProfile) -> Void,
+        onAccountDeleted: @escaping () -> Void
     ) {
         self.profile = profile
         self.onSignOut = onSignOut
         self.onProfileUpdated = onProfileUpdated
+        self.onAccountDeleted = onAccountDeleted
         _bookingViewModel = State(initialValue: BookingViewModel(clientId: profile.uid))
         _myBookingsViewModel = State(initialValue: MyBookingsViewModel(clientId: profile.uid))
         _accountViewModel = State(
@@ -42,7 +45,11 @@ struct ClientRootView: View {
                 case .myBookings:
                     MyBookingsView(viewModel: myBookingsViewModel)
                 case .account:
-                    AccountView(viewModel: accountViewModel, onSignOut: onSignOut)
+                    AccountView(
+                        viewModel: accountViewModel,
+                        onSignOut: onSignOut,
+                        onAccountDeleted: onAccountDeleted
+                    )
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -71,7 +78,8 @@ struct ClientRootView: View {
             email: "client@example.com"
         ),
         onSignOut: {},
-        onProfileUpdated: { _ in }
+        onProfileUpdated: { _ in },
+        onAccountDeleted: {}
     )
 }
 #endif

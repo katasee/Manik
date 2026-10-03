@@ -29,7 +29,8 @@ struct RootView: View {
                     ClientRootView(
                         profile: profile,
                         onSignOut: viewModel.signOut,
-                        onProfileUpdated: viewModel.update(profile:)
+                        onProfileUpdated: viewModel.update(profile:),
+                        onAccountDeleted: viewModel.reset
                     )
                     .id(profile.uid)
                 }
