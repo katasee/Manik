@@ -3,16 +3,29 @@ import SwiftUI
 struct ClientRootView: View {
     let profile: UserProfile
     let onSignOut: () -> Void
+    let onProfileUpdated: (UserProfile) -> Void
 
     @State private var selectedTab: ClientTab = .booking
     @State private var bookingViewModel: BookingViewModel
     @State private var myBookingsViewModel: MyBookingsViewModel
+    @State private var accountViewModel: AccountViewModel
 
-    init(profile: UserProfile, onSignOut: @escaping () -> Void) {
+    init(
+        profile: UserProfile,
+        onSignOut: @escaping () -> Void,
+        onProfileUpdated: @escaping (UserProfile) -> Void
+    ) {
         self.profile = profile
         self.onSignOut = onSignOut
+        self.onProfileUpdated = onProfileUpdated
         _bookingViewModel = State(initialValue: BookingViewModel(clientId: profile.uid))
         _myBookingsViewModel = State(initialValue: MyBookingsViewModel(clientId: profile.uid))
+        _accountViewModel = State(
+            initialValue: AccountViewModel(
+                profile: profile,
+                onProfileUpdated: onProfileUpdated
+            )
+        )
     }
 
     var body: some View {
@@ -29,7 +42,7 @@ struct ClientRootView: View {
                 case .myBookings:
                     MyBookingsView(viewModel: myBookingsViewModel)
                 case .account:
-                    account
+                    AccountView(viewModel: accountViewModel, onSignOut: onSignOut)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -46,23 +59,6 @@ struct ClientRootView: View {
         selectedTab = .myBookings
     }
 
-    private var account: some View {
-        VStack(spacing: 16) {
-            Text(profile.name)
-                .font(.elmsSans(.bold, 24))
-                .foregroundStyle(Color.ink)
-
-            Text(profile.email)
-                .font(.elmsSans(.regular, 16))
-                .foregroundStyle(Color.textSecondary)
-
-            Button(action: onSignOut) {
-                Text("common.action.signOut")
-                    .font(.elmsSans(.bold, 14.5))
-                    .foregroundStyle(Color.ink)
-            }
-        }
-    }
 }
 
 #if DEBUG
@@ -74,7 +70,8 @@ struct ClientRootView: View {
             name: "Олена",
             email: "client@example.com"
         ),
-        onSignOut: {}
+        onSignOut: {},
+        onProfileUpdated: { _ in }
     )
 }
 #endif

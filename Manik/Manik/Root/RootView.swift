@@ -26,8 +26,12 @@ struct RootView: View {
                     MasterRootView(onSignOut: viewModel.signOut)
                         .id(profile.uid)
                 case .client:
-                    ClientRootView(profile: profile, onSignOut: viewModel.signOut)
-                        .id(profile.uid)
+                    ClientRootView(
+                        profile: profile,
+                        onSignOut: viewModel.signOut,
+                        onProfileUpdated: viewModel.update(profile:)
+                    )
+                    .id(profile.uid)
                 }
             }
         }
