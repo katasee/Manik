@@ -27,11 +27,20 @@ final class RootViewModel {
 
         do {
             let profile = try await repository.fetchProfile()
+            errorMessage = nil
             state = .signedIn(profile)
+        } catch AccountError.profileNotFound {
+            reset()
         } catch {
             errorMessage = error.localizedDescription
             state = .signedOut
         }
+    }
+
+    func reset() {
+        try? repository.signOut()
+        errorMessage = nil
+        state = .signedOut
     }
 
     func update(profile: UserProfile) {

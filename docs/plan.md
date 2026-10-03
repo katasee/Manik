@@ -936,10 +936,11 @@ this file is just "what's done, what's next," not a design doc.
   except email. First write to `users/{uid}` since sign-up. Numbered M-23 to match the branch name.
   It was built in parallel with M-22 — both branch off `feature/pr21-Booking-service-snapshot` — and
   pulling the merged `main` in mid-flight is what produced the `StatCard` collision described below.
-  - **The screen is the first of three.** The full design lives in
+  - **The screen is the first of three.** The full design lived in
     `docs/superpowers/specs/2026-08-23-client-account-design.md`; stats (visits + favourite service)
-    and security (change password, delete account) are the two remaining PRs, so that spec is **not**
-    deleted yet despite the CLAUDE.md throwaway rule.
+    and security (change password, delete account) followed as M-24 and M-25, and that spec was
+    deleted once the third landed, per the CLAUDE.md throwaway rule. Everything worth keeping from
+    it is in the three "Done" entries.
   - `UserProfile` gained `phone`/`instagram`/`telegram`, all **optional** — the synthesized
     `init(from:)` ignores property defaults, so a non-optional field would have thrown `keyNotFound`
     on every account created before this PR and locked those clients out (the `Service.isActive`
@@ -1104,6 +1105,72 @@ this file is just "what's done, what's next," not a design doc.
     error the day the project leaves `SWIFT_VERSION = 5.0`; and redaction is a visual treatment only,
     so VoiceOver still reads the placeholder values aloud.
   - **Not in this PR**: change password and delete account (PR-C).
+- **M-25 — Client "Акаунт": security (branch `feature/pr25-Client-account-security`)**: the last of
+  the three account PRs. The actions block is complete — "Змінити пароль", "Вийти", "Видалити
+  акаунт" — and the client can do both things the app never offered. Deleting an account is an
+  App Store requirement (guideline 5.1.1(v)), not a product wish; that is why it shipped.
+  - **`AuthRepository` gained three methods, not the spec's two.** The spec's
+    `deleteAccount(currentPassword:)` reauthenticated inside itself, which put the password check
+    *after* the bookings were cancelled and the profile deleted — a mistyped password would have
+    destroyed both and still left the account. `reauthenticate(password:)` is now its own call and
+    runs first.
+  - Firebase `NSError`s are mapped to `Services/Repositories/AccountError.swift` inside
+    `FirebaseAuthRepository`, so the protocol layer stays Firebase-free.
+    **`.invalidCredential` maps to `.wrongPassword` alongside `.wrongPassword` itself** — with
+    email enumeration protection on, that is the code a bad password actually returns. The mapping
+    guards on `AuthErrors.domain` first, because `AuthErrorCode` is an `Int` enum and would happily
+    match a Firestore error with a colliding code.
+  - **Delete order is load-bearing**: reauthenticate → cancel every future booking → delete
+    `users/{uid}` → delete the Auth user. Cancelling must precede the Auth delete because
+    `isClientCanceling()` needs a live `request.auth.uid`; `deleteProfile` must precede it for the
+    same reason. The orchestration is in `DeleteAccountViewModel` rather than a repository — it
+    spans three of them.
+  - **Stops at the first failure, rolls nothing back.** A cancelled booking is a normal state and
+    the client is still signed in to retry. The one unrecoverable window — profile deleted, Auth
+    user alive — is closed by `RootViewModel`.
+  - **Two guards make that retry real rather than theoretical**, both found by reviewing the plan
+    before writing the code:
+    - `DeleteAccountViewModel` tracks `cancelledBlockIds`. Cancelling clears `clientId`, and
+      `isClientCanceling()` requires `resource.data.clientId == request.auth.uid`, so re-cancelling
+      an already-cancelled block is **denied**. Without the set, any retry after a partial failure
+      restarts the loop, is refused at the first block it had already succeeded at, and can never
+      get past it — the account would be permanently undeletable from inside the app.
+    - The "Видалити акаунт" button is `.disabled(hasLoadedStats == false)`. The popup's booking
+      list comes from `observeBlocks()`, which is empty until the first snapshot; deleting inside
+      that window would cancel nothing and leave live `confirmed` blocks in the master's calendar
+      that nobody can ever cancel, because the rule needs a `clientId` matching a uid that no
+      longer exists. The stats tiles were already covered against the same window by `.redacted`;
+      the button was not.
+  - **Past bookings of a deleted client are left untouched**, `clientId` and all. The master's
+    stats keep counting that visit and its revenue rather than rewriting history retroactively, and
+    `RequestsList` already renders an unreadable client as "Клієнт недоступний".
+  - **`fetchProfile` now checks `snapshot.exists` before decoding.** `getDocument(as:)` on a
+    missing document feeds `NSNull()` to the decoder and throws an opaque `DecodingError`, so there
+    was no way to recognize the condition. It throws `AccountError.profileNotFound`, and
+    `RootViewModel.refresh()` treats that as `reset()` — which also **signs the orphaned session
+    out**. Without that, `currentUserId` stays non-nil and every launch re-enters the same branch
+    forever.
+  - `firestore.rules`: `users/{uid}` gained `allow delete: if isSignedIn() && request.auth.uid ==
+    uid`. **Deployed to the Console for `manik-5a2b8` before the app shipped** — the reverse of
+    M-21's order, because this rule only permits something previously denied.
+  - `Block.isUpcoming(now:)` was extracted to `Models/Block/Block+Upcoming.swift` from
+    `MyBookingsList`'s private copy — the same move `Block+Completed.swift` made in M-24, and for
+    the same reason: the delete popup's promised count and the "Мої записи" list must not be able
+    to disagree about which bookings are still ahead.
+  - The account screen's single `.fullScreenCover(isPresented:)` became one
+    `.fullScreenCover(item:)` over a private `AccountPopup` enum. Two `isPresented` covers on one
+    view are not reliably honoured by SwiftUI — one silently never presents.
+  - Change-password is the only flow here with a success state (checkmark + "Готово"): a changed
+    password is invisible everywhere else in the app. Deleting needs none — the screen it was
+    launched from ceases to exist.
+  - **First plural key in the String Catalog**: `account.delete.warning %lld`, with Ukrainian's
+    four categories and English's two. The key carries the format specifier because that is how
+    Xcode extracts `Text("… \(count)")`.
+  - `FakeAuthRepository` and `FailingAuthRepository(error:)` are new — the second takes its error
+    as a parameter, unlike `FailingBlockRepository`, because four different popup states need it.
+  - Localization: 17 new `account.*` keys, `en`+`uk`, `translated`, alphabetical.
+  - **Not done here, still in the backlog**: the three account-screen accessibility items. This PR
+    was deliberately kept to security.
 
 ## Screens (in order)
 
@@ -1186,11 +1253,12 @@ those items are referred to by name, so the list can grow without renumbering an
    - **Four metrics were added** that this line never asked for: expected revenue, hours worked, free
      slots left, and a month-over-month comparison on money and clients. All four were already
      computable from `observeBlocks()` without a single new query.
-6. **Client — "Акаунт" (Account)** — **profile and stats done** (M-23 + M-24, both under "Done"
-   above). What remains is the two security operations, which also add the last missing piece of the
-   layout: an actions block where "Вийти" becomes the middle of three.
-   Designed as one screen shipping in three PRs; the design doc is
-   `docs/superpowers/specs/2026-08-23-client-account-design.md` and stays until all three land.
+6. ~~**Client — "Акаунт" (Account)**~~ — **done** (M-23 + M-24 + M-25, all three under "Done"
+   above): profile, stats, and the actions block of three — "Змінити пароль", "Вийти", "Видалити
+   акаунт". Designed as one screen shipping in three PRs; the design doc
+   (`docs/superpowers/specs/2026-08-23-client-account-design.md`) was deleted once the third landed,
+   per the throwaway-artifact rule in CLAUDE.md. Two departures worth keeping, since a reader would
+   otherwise have to rediscover them from the code:
    - ~~**PR-A — profile**~~ — **done (M-23)**: name, email (read-only), phone, Instagram, Telegram,
      edited through one popup that writes `users/{uid}`, plus the whole "Статистика" section as UI
      sitting at `AccountStats.empty`.
@@ -1200,13 +1268,12 @@ those items are referred to by name, so the list can grow without renumbering an
      that has started — the wording above (and in the design doc) predated M-22, which had already
      settled the same question as `endsAt <= now`. The rule was extracted to
      `Models/Block/Block+Completed.swift` so both cabinets read one predicate instead of two copies.
-   - **PR-C — security**: change password and delete account. Both need the current password because
-     Firebase rejects them with `requiresRecentLogin`, and the reauthentication belongs inside
-     `FirebaseAuthRepository` so the protocol layer stays Firebase-free. Deleting cancels the
-     client's future bookings **first** (`isClientCanceling()` needs a live `request.auth.uid`), then
-     the `users/{uid}` document, then the Auth user. This is the only PR of the three that changes
-     `firestore.rules` — `users/{uid}` has no `delete` clause today — so it carries a manual Console
-     deploy.
+   - ~~**PR-C — security**~~ — **done (M-25)**: change password and delete account, plus the
+     `users/{uid}` `allow delete` rule (deployed manually to the Console). One departure from what
+     was planned here: `AuthRepository` gained **three** methods, not two — `reauthenticate(password:)`
+     is its own call rather than living inside `deleteAccount`, because the spec's shape put the
+     password check *after* the bookings were cancelled and the profile deleted, so a mistyped
+     password would have destroyed both and still left the account alive.
 
 ## Backlog and tech debt (unordered)
 
@@ -1308,6 +1375,11 @@ numbering drifts every time an item is added or closed (it already did once: PR9
     for project `manik-5a2b8`. The Console text was diffed against the local file and matches line
     for line. Order was deliberate and matters: the app shipped the two new fields **before** the
     rules began requiring them — publishing first would have broken booking between deploys.
+  - ~~**Re-deploy for M-25**~~ — **done (2026-08-24)**: `users/{uid}` gained
+    `allow delete: if isSignedIn() && request.auth.uid == uid`, published to the Console for project
+    `manik-5a2b8` and diffed against the local file line for line. Published **before** the app
+    shipped, unlike M-21: the rule only permits something previously denied, so early is safe and
+    late would ship a broken delete button.
   - **Both halves were verified in the Rules Playground** (2026-08-23), and it is worth recording
     that only the pair proves anything: a correct snapshot → *allowed*; the same request with
     `bookedServicePrice: 1` → *denied*. Three earlier "denied" results were false positives, each

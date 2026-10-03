@@ -24,6 +24,10 @@ final class FakeUserRepository: UserRepository {
         profiles[uid] = profile
     }
 
+    func deleteProfile(uid: String) async throws {
+        guard profiles.removeValue(forKey: uid) != nil else { throw missingProfile(uid: uid) }
+    }
+
     private func missingProfile(uid: String) -> NSError {
         NSError(
             domain: "FakeUserRepository",

@@ -16,6 +16,10 @@ final class FirestoreUserRepository: UserRepository {
         try await db.collection("users").document(uid).updateData(fields)
     }
 
+    func deleteProfile(uid: String) async throws {
+        try await db.collection("users").document(uid).delete()
+    }
+
     private func put(_ value: String?, at key: String, into fields: inout [String: Any]) {
         if let value {
             fields[key] = value
