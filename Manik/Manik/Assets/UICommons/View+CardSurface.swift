@@ -6,10 +6,26 @@ struct CardSurface: ViewModifier {
     let cornerRadius: CGFloat
     let fillsHeight: Bool
 
+    private enum Layout {
+        static let contourOpacity: Double = 0.045
+        static let contourWidth: CGFloat = 1
+    }
+
     func body(content: Content) -> some View {
         padded(content)
-            .background(fill, in: .rect(cornerRadius: cornerRadius))
-            .cardShadow()
+            .background {
+                RoundedRectangle(cornerRadius: cornerRadius)
+                    .fill(fill)
+                    .cardShadow()
+            }
+            .overlay {
+                RoundedRectangle(cornerRadius: cornerRadius)
+                    .strokeBorder(
+                        Color.ink.opacity(Layout.contourOpacity),
+                        lineWidth: Layout.contourWidth
+                    )
+                    .allowsHitTesting(false)
+            }
     }
 
     @ViewBuilder
@@ -27,7 +43,7 @@ struct CardSurface: ViewModifier {
 
 extension View {
     func cardSurface(
-        fill: Color = .fieldBackground,
+        fill: Color = .card,
         padding: CGFloat,
         cornerRadius: CGFloat,
         fillsHeight: Bool = false
