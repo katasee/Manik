@@ -64,21 +64,13 @@ struct DeleteAccountPopup: View {
 
     private var passwordField: some View {
         VStack(alignment: .leading, spacing: AccountMetrics.Spacing.cardContentSpacing) {
-            Text("account.password.current")
-                .font(.elmsSans(.semiBold, 13))
-                .foregroundStyle(Color.textSecondary)
+            SectionLabel(titleKey: "account.password.current")
 
             SecureField("account.password.placeholder", text: $viewModel.password)
-                .font(.elmsSans(.regular, 15))
-                .foregroundStyle(Color.ink)
                 .textContentType(.password)
                 .focused($isPasswordFocused)
                 .submitLabel(.done)
-                .padding(AccountMetrics.Spacing.fieldPadding)
-                .background(
-                    Color.surface,
-                    in: .rect(cornerRadius: AccountMetrics.Size.fieldCornerRadius)
-                )
+                .inputFieldStyle()
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }

@@ -104,22 +104,14 @@ struct ChangePasswordPopup: View {
         next: Field?
     ) -> some View {
         VStack(alignment: .leading, spacing: AccountMetrics.Spacing.cardContentSpacing) {
-            Text(labelKey)
-                .font(.elmsSans(.semiBold, 13))
-                .foregroundStyle(Color.textSecondary)
+            SectionLabel(titleKey: labelKey)
 
             SecureField("account.password.placeholder", text: text)
-                .font(.elmsSans(.regular, 15))
-                .foregroundStyle(Color.ink)
                 .textContentType(field == .current ? .password : .newPassword)
                 .focused($focusedField, equals: field)
                 .submitLabel(next == nil ? .done : .next)
                 .onSubmit { focusedField = next }
-                .padding(AccountMetrics.Spacing.fieldPadding)
-                .background(
-                    Color.surface,
-                    in: .rect(cornerRadius: AccountMetrics.Size.fieldCornerRadius)
-                )
+                .inputFieldStyle()
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }

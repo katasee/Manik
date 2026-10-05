@@ -53,14 +53,7 @@ struct AuthFieldView: View {
             .keyboardType(keyboardType)
             .textInputAutocapitalization(autocapitalization)
             .autocorrectionDisabled(autocorrectionDisabled)
-            .font(.elmsSans(.regular, AuthMetrics.FontSize.fieldValue))
-            .foregroundStyle(Color.ink)
-            .padding(AuthMetrics.Spacing.fieldPadding)
-            .background(Color.fieldBackground, in: .rect(cornerRadius: AuthMetrics.CornerRadius.field))
-            .overlay(
-                RoundedRectangle(cornerRadius: AuthMetrics.CornerRadius.field)
-                    .stroke(Color.surface, lineWidth: 1)
-            )
+            .inputFieldStyle()
         }
     }
 }
