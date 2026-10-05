@@ -59,7 +59,7 @@ struct AddNewSlotBlock: View {
     }
 
     private var divider: some View {
-        Color.surface
+        Color.hairline
             .frame(height: 1)
     }
 

@@ -86,7 +86,6 @@ struct StatsView: View {
     private var visitsCard: some View {
         StatCard(
             iconName: "checkmark.circle",
-            tint: Color.statusConfirmed,
             value: viewModel.stats.visitsLabel,
             titleKey: "stats.card.visits"
         )
@@ -95,7 +94,6 @@ struct StatsView: View {
     private var hoursCard: some View {
         StatCard(
             iconName: "clock",
-            tint: Color.statusPending,
             value: viewModel.stats.hoursLabel,
             unitKey: "stats.hours.unit",
             titleKey: "stats.card.hours"
@@ -105,7 +103,6 @@ struct StatsView: View {
     private var clientsCard: some View {
         StatCard(
             iconName: "person.2",
-            tint: Color.freeSlot,
             value: viewModel.stats.clientsLabel,
             titleKey: "stats.card.clients",
             trend: viewModel.stats.clientsTrend
@@ -115,7 +112,6 @@ struct StatsView: View {
     private var slotsCard: some View {
         StatCard(
             iconName: "square.dashed",
-            tint: Color.statusAvailable,
             value: viewModel.stats.freeSlotsLabel,
             titleKey: viewModel.stats.isMonthFinished
                 ? "stats.card.unbookedSlots"
@@ -127,7 +123,6 @@ struct StatsView: View {
         StatsLinkRow(
             titleKey: "services.action.open",
             iconName: "list.bullet.rectangle",
-            tint: Color.statusPending,
             route: .services
         )
     }

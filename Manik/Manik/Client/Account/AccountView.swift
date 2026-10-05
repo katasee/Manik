@@ -145,14 +145,12 @@ struct AccountView: View {
                 GridRow {
                     StatCard(
                         iconName: "checkmark.circle",
-                        tint: Color.statusConfirmed,
                         value: viewModel.stats.visitCount.formatted(),
                         titleKey: "account.stats.visits"
                     )
 
                     StatCard(
                         iconName: "heart",
-                        tint: Color.freeSlot,
                         value: favoriteServiceName,
                         titleKey: "account.stats.favorite",
                         valueLineLimit: 2

@@ -14,7 +14,7 @@ struct ModeSwitcher: View {
             }
         }
         .padding(AuthMetrics.Spacing.segmentTrackPadding)
-        .background(Color.surface, in: .capsule)
+        .insetSurface(.capsule)
     }
 
     private func select(_ newMode: AuthViewModel.Mode) {

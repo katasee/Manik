@@ -7,16 +7,15 @@ enum StatsRoute: Hashable {
 struct StatsLinkRow: View {
     let titleKey: LocalizedStringKey
     let iconName: String
-    let tint: Color
     let route: StatsRoute
 
     var body: some View {
         NavigationLink(value: route) {
             HStack(spacing: StatsMetrics.Spacing.linkSpacing) {
-                IconBadge(systemName: iconName, tint: tint)
+                IconBadge(systemName: iconName)
 
                 Text(titleKey)
-                    .font(.elmsSans(.bold, 16))
+                    .font(.elmsSans(.semiBold, 16))
                     .foregroundStyle(Color.ink)
 
                 Spacer(minLength: 0)
@@ -40,7 +39,6 @@ struct StatsLinkRow: View {
         StatsLinkRow(
             titleKey: "services.action.open",
             iconName: "list.bullet.rectangle",
-            tint: Color.statusPending,
             route: .services
         )
         .padding()

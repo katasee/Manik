@@ -40,6 +40,6 @@ struct SlotChip: View {
         }
     }
     .padding()
-    .background(Color.surface)
+    .background(Color.background)
 }
 #endif

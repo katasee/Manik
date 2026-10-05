@@ -20,7 +20,7 @@ struct ScheduleView: View {
             WeekDayStrip(selectedDate: $viewModel.selectedDate)
                 .padding(.vertical, 12)
 
-            Color.surface
+            Color.hairline
                 .frame(height: 1)
 
             HourlyTimelineView(

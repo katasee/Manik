@@ -26,7 +26,7 @@ struct ScheduleBlockCard: View {
             alignment: .topLeading
         )
         .background(
-            Color.fieldBackground,
+            Color.card,
             in: .rect(cornerRadius: ScheduleMetrics.Card.cornerRadius)
         )
         .overlay(alignment: .leading) {

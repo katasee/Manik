@@ -28,7 +28,7 @@ struct BlockDetailPopup: View {
         ) { dismiss in
             header(dismiss: dismiss)
 
-            Color.surface
+            Color.hairline
                 .frame(height: 1)
 
             rows

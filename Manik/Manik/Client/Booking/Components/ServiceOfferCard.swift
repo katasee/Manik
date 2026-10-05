@@ -27,10 +27,7 @@ struct ServiceOfferCard: View {
             .padding(BookingMetrics.Spacing.cardPadding)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(
-            Color.surface,
-            in: .rect(cornerRadius: BookingMetrics.Size.cardCornerRadius)
-        )
+        .cardSurface(padding: 0, cornerRadius: BookingMetrics.Size.cardCornerRadius)
     }
 
     private var titleRow: some View {

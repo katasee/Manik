@@ -18,10 +18,7 @@ struct RequestCard: View {
         .padding([.vertical, .trailing], RequestsMetrics.Spacing.cardPadding)
         .padding(.leading, RequestsMetrics.Spacing.cardLeadingPadding)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(
-            Color.surface,
-            in: .rect(cornerRadius: RequestsMetrics.Size.cardCornerRadius)
-        )
+        .cardSurface(padding: 0, cornerRadius: RequestsMetrics.Size.cardCornerRadius)
         .overlay(alignment: .leading) { accent }
     }
 
