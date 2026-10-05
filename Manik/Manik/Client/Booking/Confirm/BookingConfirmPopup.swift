@@ -50,9 +50,9 @@ struct BookingConfirmPopup: View {
 
             Spacer()
 
-            PopupPrimaryButton(
+            CapsuleButton(
                 titleKey: "booking.action.book",
-                color: .ink,
+                role: .primary,
                 isLoading: viewModel.isSaving,
                 action: book
             )
@@ -77,12 +77,7 @@ struct BookingConfirmPopup: View {
         HStack {
             Spacer()
 
-            PopupPrimaryButton(
-                titleKey: "common.action.done",
-                color: .ink,
-                isLoading: false,
-                action: dismiss
-            )
+            CapsuleButton(titleKey: "common.action.done", role: .primary, action: dismiss)
         }
     }
 

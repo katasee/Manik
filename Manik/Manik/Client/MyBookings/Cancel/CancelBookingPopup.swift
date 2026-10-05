@@ -36,9 +36,9 @@ struct CancelBookingPopup: View {
 
                 Spacer()
 
-                PopupPrimaryButton(
+                CapsuleButton(
                     titleKey: "myBookings.cancel.confirm",
-                    color: .destructive,
+                    role: .destructive,
                     isLoading: viewModel.isCancelling,
                     action: { cancel(dismiss: dismiss) }
                 )

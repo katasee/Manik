@@ -40,9 +40,9 @@ struct DeleteAccountPopup: View {
 
                 Spacer()
 
-                PopupPrimaryButton(
+                CapsuleButton(
                     titleKey: "account.delete.confirm",
-                    color: .destructive,
+                    role: .destructive,
                     isLoading: viewModel.isDeleting,
                     isEnabled: viewModel.canSubmit,
                     action: delete

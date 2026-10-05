@@ -65,9 +65,9 @@ struct ChangePasswordPopup: View {
 
             Spacer()
 
-            PopupPrimaryButton(
+            CapsuleButton(
                 titleKey: "account.form.submit",
-                color: .ink,
+                role: .primary,
                 isLoading: viewModel.isSaving,
                 isEnabled: viewModel.canSubmit,
                 action: submit
@@ -93,12 +93,7 @@ struct ChangePasswordPopup: View {
         HStack {
             Spacer()
 
-            PopupPrimaryButton(
-                titleKey: "common.action.done",
-                color: .ink,
-                isLoading: false,
-                action: dismiss
-            )
+            CapsuleButton(titleKey: "common.action.done", role: .primary, action: dismiss)
         }
     }
 

@@ -25,12 +25,13 @@ struct BlockActionButton: View {
     }
 
     private var button: some View {
-        CardActionButton(
+        CapsuleButton(
             titleKey: action.titleKey,
+            role: action.isPreferred ? .primary : .secondary,
             systemImage: action.iconName,
-            isProminent: action.isPreferred,
             isLoading: isLoading,
             isEnabled: isEnabled,
+            fillsWidth: true,
             action: request
         )
     }
