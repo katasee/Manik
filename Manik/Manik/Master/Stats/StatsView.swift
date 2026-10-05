@@ -13,7 +13,7 @@ struct StatsView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                ScreenHeader(titleKey: "stats.title")
+                LargeTitleHeader(titleKey: "stats.title")
 
                 monthRow
 

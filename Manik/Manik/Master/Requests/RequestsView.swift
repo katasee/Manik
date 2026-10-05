@@ -9,7 +9,7 @@ struct RequestsView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            ScreenHeader(titleKey: "requests.title")
+            LargeTitleHeader(titleKey: "requests.title")
 
             ScrollView {
                 VStack(spacing: RequestsMetrics.Spacing.listSpacing) {

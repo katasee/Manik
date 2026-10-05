@@ -25,8 +25,4 @@ enum AccountMetrics {
         static let inlineSpacing: CGFloat = 12
         static let prefixSpacing: CGFloat = 4
     }
-
-    enum Tracking {
-        static let sectionLabel: CGFloat = 1.2
-    }
 }
