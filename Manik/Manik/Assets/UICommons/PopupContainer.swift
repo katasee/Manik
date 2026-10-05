@@ -1,11 +1,14 @@
 import SwiftUI
 
 enum PopupContainerLayout {
-    static let cornerRadius: CGFloat = 20
-    static let cardPadding: CGFloat = 20
+    static let cornerRadius: CGFloat = 28
+    static let cardPadding: CGFloat = 22
     static let rowSpacing: CGFloat = 16
     static let horizontalInset: CGFloat = 16
-    static let backdropOpacity: Double = 0.5
+    static let backdropOpacity: Double = 0.22
+    static let shadowOpacity: Double = 0.25
+    static let shadowRadius: CGFloat = 30
+    static let shadowY: CGFloat = 24
     static let fade = Animation.easeOut(duration: 0.2)
 }
 
@@ -32,7 +35,7 @@ struct PopupContainer<Content: View>: View {
     private var backdrop: some View {
         Button(action: fadeOutAndDismiss) {
             Rectangle()
-                .opacity(PopupContainerLayout.backdropOpacity)
+                .fill(Color.ink.opacity(PopupContainerLayout.backdropOpacity))
         }
         .buttonStyle(.plain)
         .ignoresSafeArea()
@@ -44,12 +47,16 @@ struct PopupContainer<Content: View>: View {
             content(fadeOutAndDismiss)
         }
         .padding(PopupContainerLayout.cardPadding)
-        .background(
-            Color.background,
-            in: .rect(cornerRadius: PopupContainerLayout.cornerRadius)
-        )
-        .compositingGroup()
-        .brandShadow()
+        .background {
+            RoundedRectangle(cornerRadius: PopupContainerLayout.cornerRadius)
+                .fill(Color.card)
+                .shadow(
+                    color: Color.ink.opacity(PopupContainerLayout.shadowOpacity),
+                    radius: PopupContainerLayout.shadowRadius,
+                    x: 0,
+                    y: PopupContainerLayout.shadowY
+                )
+        }
         .padding(.horizontal, PopupContainerLayout.horizontalInset)
     }
 
