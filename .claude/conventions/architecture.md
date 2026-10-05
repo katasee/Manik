@@ -55,7 +55,7 @@
   separate views; folding them into one configurable card trades short honest files for a chain of
   `if`s behind a growing set of flags. What is genuinely shared is the surface: padding, fill,
   corner radius, shadow. That lives in `.cardSurface(fill:padding:cornerRadius:fillsHeight:)`, and
-  the repeated tinted glyph in `IconBadge`. Note `fillsHeight`: the frame that equalizes heights in
+  the repeated monochrome glyph tile in `IconBadge`. Note `fillsHeight`: the frame that equalizes heights in
   a `GridRow` must sit *between* the padding and the background, which a caller cannot reproduce
   from outside, so the modifier branches internally instead of exposing the order.
   A feature folder holds only that feature's View, view model, feature-private model, subviews, and

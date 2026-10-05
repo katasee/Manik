@@ -32,13 +32,14 @@ themselves `#if DEBUG` — without the wrapper the file wouldn't compile for rel
 `Assets/UICommons/` builds its preview from literals and fakes nothing, so it needs no wrapper, and
 none of the components there has one. Match the folder you're writing in.
 
-**A raised card is `Color.fieldBackground`, not `Color.surface`.** The names are misleading:
-`Surface` (`#D6D3DE`) is *darker* than `Background` (`#E4E3E9`), so a drop shadow on it reads as a
-recess. `FieldBackground` (`#FBFAF8`, cream) is the light card — the Schedule's block cards, the
-Stats cards and `MonthHeader`'s arrow circles all use it with `.cardShadow()`. `Surface` is still
-right for flat fills that aren't meant to lift (popup bodies, chips, strokes). Don't fix a weak
-shadow by darkening the card; check the offset first — `cardShadow()` is `ink` at 10% with a 2pt
-drop, and it only shows on something lighter than the page.
+**Surfaces are modifiers, not fills.** The page (`Background`) and a card (`Card`) are both white
+in the light theme, so a bare `.background(Color.card, …)` is invisible. Use one of three
+modifiers from `Assets/UICommons/`: `.cardSurface(padding:cornerRadius:)` for cards (contour + two
+soft shadows; pass `padding: 0` when the card pads itself asymmetrically), `.raisedSurface(shape)`
+for small raised controls (chips, round buttons, fields, tiles), `.insetSurface(shape)` for flat
+outlined boxes (popup summaries, the segment track). `Hairline` is for dividers and outlines,
+`Stroke` for the dashed free slot and unchecked checks. Shadows sit on the surface's background
+shape, never on the whole content — `.shadow` on a view with children shadows each child.
 
 User-facing strings never sit as bare literals in a View — they go in
 `Manik/Manik/Localizable.xcstrings` (String Catalog) under a `feature.kind.name` key
@@ -50,7 +51,8 @@ later pass.
 Text never uses the system font — always go through `Font.elmsSans(_:_:)`
 (`Manik/Assets/Font/Extension+ElmsSans.swift`), e.g. `.font(.elmsSans(.bold, 32))`, never
 `.font(.system(...))`, `.font(.title)`, `.bold()`, or similar. Pick the closest weight from
-`ElmsSans` (`regular`/`medium`/`semiBold`/`bold`, in `Manik/Assets/Font/ElmsSansWeight.swift`)
+`ElmsSans` (`regular`/`medium`/`semiBold`/`bold`, in `Manik/Assets/Font/ElmsSansWeight.swift`;
+the mockup's weight 600 is `.semiBold`, 700 is `.bold`)
 instead of layering SwiftUI's own `.fontWeight()` on top. The four `.ttf` files sit next to these
 two Swift files in `Manik/Assets/Font/` and are registered by hand in `Info.plist` under
 `UIAppFonts` — adding a new weight means dropping the `.ttf` in that folder *and* adding its
