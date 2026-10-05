@@ -5,7 +5,7 @@
 - ViewModels use the **`@Observable` macro** (Swift Observation, iOS 17+), not the older
   `ObservableObject`/`@Published` pair — plain `var` properties, no `@Published`. Views hold them
   with `@State private var viewModel = SomeViewModel()`, not `@StateObject`. Deployment target is
-  iOS 17.2 so this is available everywhere; don't reach for `ObservableObject` out of habit.
+  iOS 18.1 so this is available everywhere; don't reach for `ObservableObject` out of habit.
 - Views/ViewModels are organized **by feature, not by layer** — e.g. `Manik/Manik/Auth/` holds
   `AuthView.swift` and `AuthViewModel.swift` together, rather than spreading them across generic
   top-level `Views/`/`ViewModels` folders. A model only lives inside a feature folder if it's
@@ -59,7 +59,7 @@
   a `GridRow` must sit *between* the padding and the background, which a caller cannot reproduce
   from outside, so the modifier branches internally instead of exposing the order.
   A feature folder holds only that feature's View, view model, feature-private model, subviews, and
-  a feature-local metrics file (e.g. `Schedule/ScheduleMetrics.swift`, `TabBar/TabBarMetrics.swift`).
+  a feature-local metrics file (e.g. `Schedule/ScheduleMetrics.swift`, `Stats/StatsMetrics.swift`).
   A metrics file holds **layout** numbers only — anything the view model needs to reason about
   (salon working hours, tolerances, durations) is domain config and lives in `Models/`
   (e.g. `Models/WorkHours.swift`), otherwise the view model ends up importing the view layer.
@@ -68,25 +68,26 @@
   nested within generic types, and moving them "tidily" inside breaks the build.
 - Screen-covering popups are presented by the feature that owns them, via `.fullScreenCover` +
   `.presentationBackground(.clear)` — **not** by hoisting state into `MasterRootView`/
-  `ClientRootView` so a shared `ZStack` can draw them above `CustomTabBar`. Presentation modifiers
+  `ClientRootView` so a shared `ZStack` can draw them above the tab bar. Presentation modifiers
   render outside the view hierarchy, so the tab bar stops being a reason to leak feature types into
   the router. To keep a custom fade instead of the system slide-up, wrap the *state mutation* in a
   `Transaction` with `disablesAnimations = true` and animate inside the popup; never put
   `.transaction { }` on the modifier, which disables animations for the whole subtree.
-- **A screen that owns a `NavigationStack` inside a tab does not inherit the router's bottom
-  inset.** `MasterRootView`/`ClientRootView` reserve room for `CustomTabBar` with
-  `.safeAreaInset(edge: .bottom)` on the tab `Group`, and that is enough for a plain screen like
-  `MyServicesView`. A `NavigationStack` expands into the safe area, so the inset never reaches a
-  `ScrollView` inside it and the last row stays clipped even when scrolled fully down. Such a screen
-  takes an explicit `bottomClearance: CGFloat` parameter and applies it as the scroll content's
-  bottom padding; the router passes `TabBarMetrics.Size.reservedClearance`, so the feature still
-  doesn't import the tab bar's metrics (`BookingView` does this). Standalone `#Preview`s pass `0` —
-  there is no tab bar there. That happened at the third screen: the router still passes the value,
-  but the screen applies it with `.bottomClearance(_:)` from
-  `Assets/UICommons/View+BottomClearance.swift` rather than a bare `.padding(.bottom,)`. Three
-  consumers: `BookingView`, `BookingDatesView`, `StatsView`. The modifier deliberately does **not**
-  read `TabBarMetrics` itself — a UICommons component must not depend on a feature's metrics, and
-  keeping the value a parameter is what stops a screen importing the tab bar's numbers.
+- **The routers are a system `TabView`** (`Tab(_:systemImage:value:)` over `MasterTab`/`ClientTab`),
+  which renders Liquid Glass on iOS 26 and the standard bar on 18 from the same code, with no
+  `#available`. It owns the bottom safe area, including inside a screen's own `NavigationStack`, so
+  screens take no clearance parameter. The inset stops scroll content *at* the bar's top edge, not
+  above it, so every scrolling tab screen ends its content with its own bottom padding from its
+  metrics file (`contentBottomPadding`/`listBottomPadding`, 24pt) — without it the last row sits
+  flush against the glass (found on a device: Account's "Видалити акаунт"). Two consequences of
+  the system bar: **tabs keep their state across switches**, so a flow that hands off to another tab
+  must reset its own navigation path first (`BookingView` owns `path: [ServiceOffer]` and clears it
+  in `finishBooking()` before `onBooked()` switches to "Мої записи"); and **a tab's `.task`s run
+  only while it is on screen** — they don't start for a tab never opened and are cancelled when the
+  user switches away — so a subscription that feeds a tab badge starts in the router, not in the
+  tab's screen — `MasterRootView` runs `RequestsViewModel.observeBlocks()`/`refreshRequests()` and
+  `RequestsView` only renders the shared view model (its previews start `observeBlocks()`
+  themselves). The selected-tab colour is the asset-catalog `AccentColor`, never `.tint` in code.
 - **Nested `NavigationLink`s don't work.** Wrapping a whole card in a link and then putting a link
   inside it is unpredictable in SwiftUI — the inner one may never receive taps, or both fire. If a
   card needs more than one destination, don't wrap the card: give each control its own link

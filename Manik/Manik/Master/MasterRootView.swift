@@ -9,28 +9,30 @@ struct MasterRootView: View {
     @State private var statsViewModel = StatsViewModel()
 
     var body: some View {
-        ZStack(alignment: .bottom) {
-            Group {
-                switch selectedTab {
-                case .schedule:
-                    ScheduleView(viewModel: scheduleViewModel)
-                case .requests:
-                    RequestsView(viewModel: requestsViewModel)
-                case .stats:
-                    StatsView(
-                        viewModel: statsViewModel,
-                        onSignOut: onSignOut,
-                        bottomClearance: TabBarMetrics.Size.reservedClearance
-                    )
+        TabView(selection: $selectedTab) {
+            ForEach(MasterTab.allCases) { tab in
+                Tab(
+                    tab.titleKey,
+                    systemImage: tab.systemImage,
+                    value: tab
+                ) {
+                    switch tab {
+                    case .schedule:
+                        ScheduleView(viewModel: scheduleViewModel)
+                    case .requests:
+                        RequestsView(viewModel: requestsViewModel)
+                    case .stats:
+                        StatsView(viewModel: statsViewModel, onSignOut: onSignOut)
+                    }
                 }
+                .badge(tab == .requests ? requestsViewModel.requests.count : 0)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(Color.background)
-            .safeAreaInset(edge: .bottom, spacing: 0) {
-                Color.clear.frame(height: TabBarMetrics.Size.reservedClearance)
-            }
-
-            CustomTabBar(kind: .master(selection: $selectedTab, badge: { _ in nil }))
+        }
+        .task {
+            await requestsViewModel.observeBlocks()
+        }
+        .task {
+            await requestsViewModel.refreshRequests()
         }
     }
 }

@@ -4,9 +4,6 @@
     "" : {
 
     },
-    "%lld" : {
-
-    },
     "account.action.changePassword" : {
       "localizations" : {
         "en" : {

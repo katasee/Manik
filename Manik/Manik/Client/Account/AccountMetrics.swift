@@ -14,6 +14,7 @@ enum AccountMetrics {
     enum Spacing {
         static let horizontalPadding: CGFloat = 16
         static let contentTopPadding: CGFloat = 12
+        static let contentBottomPadding: CGFloat = 24
         static let sectionSpacing: CGFloat = 24
         static let cardPadding: CGFloat = 16
         static let actionPadding: CGFloat = 14

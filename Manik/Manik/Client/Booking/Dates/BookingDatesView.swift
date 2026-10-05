@@ -5,16 +5,10 @@ struct BookingDatesView: View {
     @State private var viewModel: BookingDatesViewModel
     @State private var confirmContext: BookingConfirmContext?
 
-    let bottomClearance: CGFloat
     let onBooked: () -> Void
 
-    init(
-        viewModel: BookingDatesViewModel,
-        bottomClearance: CGFloat,
-        onBooked: @escaping () -> Void
-    ) {
+    init(viewModel: BookingDatesViewModel, onBooked: @escaping () -> Void) {
         _viewModel = State(initialValue: viewModel)
-        self.bottomClearance = bottomClearance
         self.onBooked = onBooked
     }
 
@@ -114,7 +108,6 @@ struct BookingDatesView: View {
                 .padding(.bottom, BookingMetrics.Spacing.cardPadding)
             }
         }
-        .bottomClearance(bottomClearance)
     }
 
     private func goBack() {
@@ -156,7 +149,6 @@ struct BookingDatesView: View {
                 clientId: BookingPreviewData.clientId,
                 blockRepository: FakeBlockRepository(blocks: BookingPreviewData.blocks)
             ),
-            bottomClearance: 0,
             onBooked: {}
         )
     }

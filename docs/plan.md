@@ -1172,6 +1172,39 @@ this file is just "what's done, what's next," not a design doc.
   - **Not done here, still in the backlog**: the three account-screen accessibility items. This PR
     was deliberately kept to security.
 
+- **M-26 — Liquid Glass tab bar (branch `feature/pr26-Liquid-glass-tab-bar`, 3 tasks)**: the
+  hand-built floating capsule is replaced by the system `TabView`, the first step of the redesign
+  on the Manik Screens canvas (light theme = "Новий дизайн", dark theme = "Темне вино").
+  - Both routers are `TabView(selection:)` over `ForEach(MasterTab/ClientTab.allCases)` with
+    `Tab(titleKey, systemImage:, value:)`; the `switch` lives in the `Tab` closure (no
+    `screen(for:)` helper). Liquid Glass on iOS 26, the standard bar on 18, same code, no
+    `#available`. `TabBar/` (5 files) and `View+BottomClearance.swift` are deleted, and the
+    `bottomClearance` parameter is gone from `StatsView`, `BookingView`, `BookingDatesView` — the
+    system bar owns the bottom safe area, even inside a screen's `NavigationStack`.
+  - **The target's deployment target was 17.2, not 18.1.** The project-level setting said 18.1
+    but the `Manik` target overrode it; `Tab` is iOS 18+, so the target now says 18.1 too.
+  - **Live "Заявки" badge** (closes the backlog item): `.badge(requests.count)`. Hidden tabs don't
+    run their `.task`s, so `RequestsViewModel`'s `observeBlocks()`/`refreshRequests()` moved from
+    `RequestsView` to `MasterRootView`; the four `RequestsView` previews start `observeBlocks()`
+    themselves. The badge equals the list, so it can lag a client-name fetch by a moment.
+  - **Tabs keep state now**, which exposed one bug the old `switch` hid: after booking from the
+    pushed dates screen, "Запис" reopened on that screen. `BookingView` owns
+    `path: [ServiceOffer]` and `finishBooking()` clears it before `onBooked()`.
+  - **App locked to light** (`INFOPLIST_KEY_UIUserInterfaceStyle = Light`): the system bar follows
+    the system scheme, the palette has no dark half. This is the "pin to light" option from the old
+    "Dark mode makes typed text invisible" backlog item (done via the Info.plist key rather than
+    `.preferredColorScheme`), which also fixes that bug; the item is now "Dark theme" in the backlog. `AccentColor` (was empty) = `#0A0A0B`, the light redesign's `tab--on`; it is app-wide, so
+    alert buttons and text carets are black instead of system blue. No `.tint` in code.
+  - **Bottom padding on every scrolling tab screen** (found on a device after the first pass): the
+    system inset ends scroll content flush against the bar's top edge — the old 112pt reserve had
+    been hiding the missing padding. Account, My bookings, Requests, Stats, Booking and My services
+    now end with 24pt from their own metrics (`contentBottomPadding`/`listBottomPadding`).
+  - Accepted: tab labels are in the system font (documented exception in `code-style.md`); the
+    raised active circle is gone; no minimise-on-scroll.
+  - Reviewed twice with the SwiftUI Pro skill before implementation (the 17.2 target, the dark
+    accent appearing on Dark Mode devices, the booking stack and the previews all came from those
+    reviews).
+
 ## Screens (in order)
 
 This is the actual work queue, and the only numbered list here. The ordering follows the **data
@@ -1427,32 +1460,15 @@ numbering drifts every time an item is added or closed (it already did once: PR9
   makes it noticeable. Deliberately not pre-optimized.
 - **"Забули пароль?"**: decide tappable-stub vs. real `sendPasswordReset` flow, then implement.
   (Was tracked as a task in a now-disconnected MCP tool — re-track here instead.)
-- **Dark mode makes typed text invisible** (found on a real device after PR12): entering a date,
-  a time, a service name or a price shows white glyphs on a light field. Reproduces only in dark
-  mode — the simulator and the previews default to light, which is why it survived this long.
-  Deliberately parked until the screens are done, per an explicit call on 2026-08-08.
-  - Cause, and it is app-wide rather than specific to those fields: **every colorset in
-    `Assets.xcassets` has a single appearance** (`Background`, `Ink`, `FieldBackground`,
-    `Surface`, `TextSecondary`, `Badge`, `Destructive`, all three `Status*`). The palette never
-    flips. But `TextField` and `DatePicker` set no foreground colour of their own, so they fall
-    back to `Color.primary`, which *does* flip — white text lands on a permanently light field.
-    Labels around them are fine precisely because they say `.foregroundStyle(Color.ink)`
-    explicitly. Nothing in the app calls `preferredColorScheme`.
-  - Three ways out, and they are not equivalent. (a) Pin the app to light —
-    `.preferredColorScheme(.light)` on the root — one line, honest about a palette that has no
-    dark half, and instantly consistent. (b) Give every `TextField`/`DatePicker` an explicit
-    `.foregroundStyle(Color.ink)` — fixes the symptom, leaves the next system-coloured control to
-    rediscover the bug. (c) Add real dark variants to all eleven colorsets — the only true fix,
-    and a design task, not a code one.
-  - Recommendation is (a) now and (c) whenever dark mode becomes a product decision; (b) is the
-    one to avoid, since it spreads the workaround instead of naming the cause.
-  - Related, and now confirmed rather than hypothetical: a PR9 review finding about
-    `PopupContainer`'s bare `Rectangle()` backdrop in dark mode was reviewed and declined at the
-    time (see Housekeeping). Same root cause — fold it into whichever option is taken.
-- **Live badge counter on "Заявки"**: `CustomTabBar`'s badge parameter currently always returns
-  `nil` (`Master/MasterRootView.swift`, `CabinetKind.master`'s `badge` closure). Once the
-  "Заявки" screen (screen 4) exists, wire this to a live count of `pending`-status blocks
-  from `BlockRepository`, likely via an `AsyncStream` observation similar to `observeBlocks()`.
+- **Dark theme ("Темне вино")**: the app is pinned to light since M-26
+  (`INFOPLIST_KEY_UIUserInterfaceStyle = Light`), which fixed the "typed text invisible in dark
+  mode" bug found after PR12 — every colorset has a single appearance, while `TextField`/
+  `DatePicker` fall back to `Color.primary`, which flips. The real fix is a design task: dark
+  variants for all colorsets, following the canvas's "Темне вино" page. That same change must
+  remove the light lock and add `#D7ADB5` as `AccentColor`'s dark appearance (universal stays
+  `#0A0A0B`) — never before, since `#D7ADB5` is ~1.5:1 on the light background. The wine fill
+  `#6B3442` is a button/chip colour there, not the accent. `PopupContainer`'s bare `Rectangle()`
+  backdrop (PR9 review, see Housekeeping) belongs to the same pass.
 - **Accessibility debt (found in PR8 review, deliberately not fixed there)**:
   - `Font.elmsSans(_:_:)` calls `Font.custom(_:size:)` **without `relativeTo:`**, so Dynamic Type
     is effectively off app-wide. Adding it is one line, but the schedule also needs `@ScaledMetric`

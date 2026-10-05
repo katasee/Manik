@@ -32,33 +32,31 @@ struct ClientRootView: View {
     }
 
     var body: some View {
-        ZStack(alignment: .bottom) {
-            Group {
-                switch selectedTab {
-                case .booking:
-                    BookingView(
-                        viewModel: bookingViewModel,
-                        clientName: profile.name,
-                        bottomClearance: TabBarMetrics.Size.reservedClearance,
-                        onBooked: showMyBookings
-                    )
-                case .myBookings:
-                    MyBookingsView(viewModel: myBookingsViewModel)
-                case .account:
-                    AccountView(
-                        viewModel: accountViewModel,
-                        onSignOut: onSignOut,
-                        onAccountDeleted: onAccountDeleted
-                    )
+        TabView(selection: $selectedTab) {
+            ForEach(ClientTab.allCases) { tab in
+                Tab(
+                    tab.titleKey,
+                    systemImage: tab.systemImage,
+                    value: tab
+                ) {
+                    switch tab {
+                    case .booking:
+                        BookingView(
+                            viewModel: bookingViewModel,
+                            clientName: profile.name,
+                            onBooked: showMyBookings
+                        )
+                    case .myBookings:
+                        MyBookingsView(viewModel: myBookingsViewModel)
+                    case .account:
+                        AccountView(
+                            viewModel: accountViewModel,
+                            onSignOut: onSignOut,
+                            onAccountDeleted: onAccountDeleted
+                        )
+                    }
                 }
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(Color.background)
-            .safeAreaInset(edge: .bottom, spacing: 0) {
-                Color.clear.frame(height: TabBarMetrics.Size.reservedClearance)
-            }
-
-            CustomTabBar(kind: .client(selection: $selectedTab))
         }
     }
 

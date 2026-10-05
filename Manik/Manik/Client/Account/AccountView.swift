@@ -45,6 +45,7 @@ struct AccountView: View {
                 }
                 .padding(.horizontal, AccountMetrics.Spacing.horizontalPadding)
                 .padding(.top, AccountMetrics.Spacing.contentTopPadding)
+                .padding(.bottom, AccountMetrics.Spacing.contentBottomPadding)
             }
             .scrollIndicators(.hidden)
         }

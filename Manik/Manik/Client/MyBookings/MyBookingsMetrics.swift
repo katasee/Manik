@@ -11,6 +11,7 @@ enum MyBookingsMetrics {
     enum Spacing {
         static let horizontalPadding: CGFloat = 16
         static let listTopPadding: CGFloat = 12
+        static let listBottomPadding: CGFloat = 24
         static let listSpacing: CGFloat = 14
         static let sectionSpacing: CGFloat = 24
         static let cardPadding: CGFloat = 16

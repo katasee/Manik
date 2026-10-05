@@ -12,6 +12,7 @@ enum StatsMetrics {
     enum Spacing {
         static let horizontalPadding: CGFloat = 16
         static let contentTopPadding: CGFloat = 16
+        static let contentBottomPadding: CGFloat = 24
         static let monthTopPadding: CGFloat = 12
         static let cardSpacing: CGFloat = 14
         static let cardPadding: CGFloat = 16

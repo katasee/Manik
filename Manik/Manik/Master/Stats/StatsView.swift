@@ -4,16 +4,10 @@ struct StatsView: View {
     @State private var viewModel: StatsViewModel
 
     private let onSignOut: () -> Void
-    private let bottomClearance: CGFloat
 
-    init(
-        viewModel: StatsViewModel,
-        onSignOut: @escaping () -> Void,
-        bottomClearance: CGFloat
-    ) {
+    init(viewModel: StatsViewModel, onSignOut: @escaping () -> Void) {
         _viewModel = State(initialValue: viewModel)
         self.onSignOut = onSignOut
-        self.bottomClearance = bottomClearance
     }
 
     var body: some View {
@@ -78,7 +72,7 @@ struct StatsView: View {
             }
             .padding(.horizontal, StatsMetrics.Spacing.horizontalPadding)
             .padding(.top, StatsMetrics.Spacing.contentTopPadding)
-            .bottomClearance(bottomClearance)
+            .padding(.bottom, StatsMetrics.Spacing.contentBottomPadding)
         }
         .scrollIndicators(.hidden)
         .overlay {
@@ -152,8 +146,7 @@ struct StatsView: View {
         viewModel: StatsViewModel(
             blockRepository: FakeBlockRepository(blocks: StatsPreviewData.blocks)
         ),
-        onSignOut: {},
-        bottomClearance: 0
+        onSignOut: {}
     )
 }
 
@@ -162,8 +155,7 @@ struct StatsView: View {
         viewModel: StatsViewModel(
             blockRepository: FakeBlockRepository(blocks: StatsPreviewData.emptyMonth)
         ),
-        onSignOut: {},
-        bottomClearance: 0
+        onSignOut: {}
     )
 }
 #endif
