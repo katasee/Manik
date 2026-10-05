@@ -9,6 +9,14 @@ extension BlockStatus {
         }
     }
 
+    var fillColor: Color {
+        switch self {
+        case .available: Color.card
+        case .pending: Color.statusPendingFill
+        case .confirmed: Color.statusConfirmedFill
+        }
+    }
+
     var textKey: LocalizedStringKey {
         switch self {
         case .available: "schedule.status.available"
