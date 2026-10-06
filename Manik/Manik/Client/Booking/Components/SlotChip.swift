@@ -15,14 +15,13 @@ struct SlotChip: View {
                 minHeight: BookingMetrics.Size.chipHeight
             )
             .background {
-                Capsule()
-                    .fill(isSelected ? Color.ink : Color.background)
-                    .stroke(borderColor, lineWidth: BookingMetrics.Size.chipBorderWidth)
+                if isSelected {
+                    Capsule()
+                        .fill(Color.ink)
+                        .brandShadow()
+                }
             }
-    }
-
-    private var borderColor: Color {
-        isSelected ? Color.ink : Color.ink.opacity(BookingMetrics.Opacity.chipBorder)
+            .raisedSurface(.capsule)
     }
 }
 

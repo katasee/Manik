@@ -82,7 +82,7 @@ struct WeekDayStrip: View {
 
                 Text(DateFormat.dayNumber.string(from: day))
                     .font(.elmsSans(.semiBold, 16))
-                    .foregroundStyle(isSelected ? Color.white : Color.ink)
+                    .foregroundStyle(dayNumberColor(isSelected: isSelected, isToday: isToday))
             }
             .frame(maxWidth: .infinity)
             .frame(height: Layout.cellHeight)
@@ -100,6 +100,13 @@ struct WeekDayStrip: View {
             .contentShape(.rect(cornerRadius: Layout.cellCornerRadius))
         }
         .buttonStyle(.plain)
+    }
+
+    private func dayNumberColor(isSelected: Bool, isToday: Bool) -> Color {
+        if isSelected {
+            return Color.white
+        }
+        return isToday ? Color.wine : Color.ink
     }
 
     private static func weekDates(containing date: Date) -> [Date] {

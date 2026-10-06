@@ -23,4 +23,8 @@ enum AccountMetrics {
         static let inlineSpacing: CGFloat = 12
         static let prefixSpacing: CGFloat = 4
     }
+
+    enum Opacity {
+        static let avatarContour: Double = 0.06
+    }
 }

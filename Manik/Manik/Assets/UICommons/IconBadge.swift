@@ -12,9 +12,9 @@ struct IconBadge: View {
     var body: some View {
         Image(systemName: systemName)
             .font(.elmsSans(.medium, Layout.icon))
-            .foregroundStyle(Color.ink)
+            .foregroundStyle(Color.wine)
             .frame(width: Layout.size, height: Layout.size)
-            .raisedSurface(.rect(cornerRadius: Layout.cornerRadius))
+            .background(Color.wineSoft, in: .rect(cornerRadius: Layout.cornerRadius))
             .accessibilityHidden(true)
     }
 }

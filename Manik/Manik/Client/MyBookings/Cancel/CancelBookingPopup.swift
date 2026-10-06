@@ -59,8 +59,10 @@ struct CancelBookingPopup: View {
                 .foregroundStyle(Color.textSecondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(MyBookingsMetrics.Spacing.cardPadding)
-        .insetSurface(.rect(cornerRadius: MyBookingsMetrics.Size.cardCornerRadius))
+        .cardSurface(
+            padding: MyBookingsMetrics.Spacing.cardPadding,
+            cornerRadius: MyBookingsMetrics.Size.cardCornerRadius
+        )
     }
 
     @ViewBuilder

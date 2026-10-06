@@ -98,8 +98,10 @@ struct BookingConfirmPopup: View {
                 .frame(maxWidth: .infinity, alignment: .trailing)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(BookingMetrics.Spacing.cardPadding)
-        .insetSurface(.rect(cornerRadius: BookingMetrics.Size.cardCornerRadius))
+        .cardSurface(
+            padding: BookingMetrics.Spacing.cardPadding,
+            cornerRadius: BookingMetrics.Size.cardCornerRadius
+        )
     }
 
     @ViewBuilder

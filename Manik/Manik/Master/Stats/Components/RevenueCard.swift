@@ -48,7 +48,7 @@ struct RevenueCard: View {
 
                     Text(verbatim: expectedLabel)
                         .font(.elmsSans(.bold, 14))
-                        .foregroundStyle(Color.ink)
+                        .foregroundStyle(Color.wine)
                 }
             }
             .padding(.top, StatsMetrics.Spacing.expectedTopPadding)

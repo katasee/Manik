@@ -92,6 +92,7 @@ struct BookingDatesView: View {
                 }
             }
             .scrollIndicators(.hidden)
+            .scrollClipDisabled()
         }
     }
 

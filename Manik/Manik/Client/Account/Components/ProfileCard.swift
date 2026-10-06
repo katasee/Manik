@@ -31,7 +31,18 @@ struct ProfileCard: View {
 
     private var avatar: some View {
         Circle()
-            .fill(Color.background)
+            .fill(
+                LinearGradient(
+                    colors: [Color.card, Color.hairline],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+            )
+            .cardShadow()
+            .overlay {
+                Circle()
+                    .strokeBorder(Color.ink.opacity(AccountMetrics.Opacity.avatarContour), lineWidth: 1)
+            }
             .frame(
                 width: AccountMetrics.Size.avatar,
                 height: AccountMetrics.Size.avatar

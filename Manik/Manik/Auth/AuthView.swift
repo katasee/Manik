@@ -10,9 +10,6 @@ struct AuthView: View {
             VStack(alignment: .leading, spacing: 0) {
                 title
 
-                ModeSwitcher(mode: $viewModel.mode)
-                    .padding(.bottom, AuthMetrics.Spacing.modeSwitcherBottom)
-
                 VStack(spacing: AuthMetrics.Spacing.fieldStack) {
                     if viewModel.mode == .signUp {
                         AuthFieldView(
@@ -51,6 +48,9 @@ struct AuthView: View {
 
                 submitButton
                     .padding(.top, AuthMetrics.Spacing.submitTop)
+
+                ModeSwapPrompt(mode: $viewModel.mode)
+                    .padding(.top, AuthMetrics.Spacing.swapTop)
             }
             .padding(.horizontal, AuthMetrics.Spacing.screenHorizontal)
             .padding(.vertical, AuthMetrics.Spacing.screenVertical)

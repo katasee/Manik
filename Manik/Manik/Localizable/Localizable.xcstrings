@@ -713,18 +713,34 @@
         }
       }
     },
-    "auth.mode.signUp" : {
+    "auth.swap.haveAccount" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sign Up"
+            "value" : "Already have an account?"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Реєстрація"
+            "value" : "Вже є акаунт?"
+          }
+        }
+      }
+    },
+    "auth.swap.noAccount" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Don't have an account?"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Немає акаунта?"
           }
         }
       }
