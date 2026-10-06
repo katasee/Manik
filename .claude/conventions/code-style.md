@@ -33,13 +33,22 @@ themselves `#if DEBUG` — without the wrapper the file wouldn't compile for rel
 none of the components there has one. Match the folder you're writing in.
 
 **Surfaces are modifiers, not fills.** The page (`Background`) and a card (`Card`) are both white
-in the light theme, so a bare `.background(Color.card, …)` is invisible. Use one of three
-modifiers from `Assets/UICommons/`: `.cardSurface(padding:cornerRadius:)` for cards (contour + two
-soft shadows; pass `padding: 0` when the card pads itself asymmetrically), `.raisedSurface(shape)`
-for small raised controls (chips, round buttons, fields, tiles), `.insetSurface(shape)` for flat
-outlined boxes (popup summaries, the segment track). `Hairline` is for dividers and outlines,
-`Stroke` for the dashed free slot and unchecked checks. Shadows sit on the surface's background
-shape, never on the whole content — `.shadow` on a view with children shadows each child.
+in the light theme, so a bare `.background(Color.card, …)` is invisible. Use one of two
+modifiers from `Assets/UICommons/`: `.cardSurface(padding:cornerRadius:)` for cards and boxes —
+popup summaries included (contour + two soft shadows; pass `padding: 0` when the card pads itself
+asymmetrically) — and `.raisedSurface(shape)` for small raised controls (unselected chips, round
+buttons, fields). **Nothing a user reads as an object is flat**: a flat outlined box
+(`.insetSurface`) existed in M-27 and was removed after a device pass, because a summary plate that
+does not lift reads as a hole in the popup. The deliberately flat exceptions are markers, not
+objects: the dashed free slot, the "today" outline in `WeekDayStrip`, the "Вільно" pill outline.
+A raised control that can be *selected* swaps its surface for an ink fill with `.brandShadow()`
+(`SlotChip`, the selected day); write that as an explicit `if`/`else` in `.background`, not as an
+ink layer stacked over a raised one. `Hairline` is for dividers and outlines only — never a fill
+(the avatar's shading is `Ink` at low opacity instead) — and `Stroke` is for the dashed free slot
+and unchecked checks. Shadows sit on the surface's background shape, never on the whole content —
+`.shadow` on a view with children shadows each child. A horizontal `ScrollView` of raised chips
+clips their shadows; the chip row uses `.scrollClipDisabled()` (scrolled chips may then paint into
+the screen gutters — accepted).
 
 User-facing strings never sit as bare literals in a View — they go in
 `Manik/Manik/Localizable.xcstrings` (String Catalog) under a `feature.kind.name` key
@@ -66,6 +75,15 @@ the system font; don't try to force ElmsSans onto them through `UITabBarAppearan
 Light`) because no colorset has a dark variant yet. The accent — selected tab, alert buttons,
 text-field carets — comes only from the `AccentColor` asset (`#0A0A0B`, the light redesign's ink);
 don't set the accent or the tab selection colour with `.tint` in code (a local `.tint` on a
-spinner or a button, as `ListStatusOverlay` and `PopupPrimaryButton` do, is fine). The dark theme ("Темне вино") will remove the lock and give
+spinner or a button, as `ListStatusOverlay` and `CapsuleButton` do, is fine). The dark theme ("Темне вино") will remove the lock and give
 `AccentColor` a dark appearance (`#D7ADB5`) in the same change — never ship that dark value while
 the app is light-only, it is ~1.5:1 on the light background.
+
+**The wine accent is a separate token, not the accent colour.** `Wine` (`#7D2E3E`, 9:1 on white)
+and `WineSoft` (`#F6E9EC`, the tile under it; wine on it is 7.7:1) are the light half of "Темне
+вино", applied *by name* in small doses: the auth swap link, `IconBadge` (wine glyph on a flat
+`WineSoft` tile), the expected-revenue amount, today's number in `WeekDayStrip`. `AccentColor`
+stays ink on purpose — it drives the selected tab, and the tab bar and its badge are explicitly
+kept out of the wine (user decision), so routing wine through `AccentColor` would recolour the tab
+bar. Primary buttons, the selected day, status colours and destructive red don't change either.
+Wine marks; it never replaces ink.

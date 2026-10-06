@@ -1240,6 +1240,33 @@ this file is just "what's done, what's next," not a design doc.
     (pill fill + stroke chain instead of an `if` overlay, the field-tap note, the week-strip note)
     and two were deliberately not (an `accessibilityLabel` on `CapsuleButton` while loading, `Label`
     instead of `Image` in `RoundIconButton`).
+  - **Device-pass follow-ups** (commit `M-27 small fixes` + review fixes, 2026-10-06), decided
+    screen by screen from device screenshots:
+    - **Auth mode switch → footer link.** Five variants were compared on an HTML artifact; the black
+      segment lost because it stacked a second black capsule over the submit button. `ModeSwitcher`
+      is deleted; `ModeSwapPrompt` sits under the button ("Немає акаунта? **Зареєструватися**" /
+      "Вже є акаунт? **Увійти**"). New keys `auth.swap.noAccount`/`auth.swap.haveAccount`;
+      `auth.mode.signUp` removed as unused. A system `Picker(.segmented)` (Liquid Glass on iOS 26)
+      was tried first and reverted — glass on a white page has nothing to refract.
+    - **Wine accent**: `Wine` `#7D2E3E` and `WineSoft` `#F6E9EC`, explored on a Claude Design
+      canvas. Applied by name, in small doses: the auth link, `IconBadge` (wine glyph on a flat
+      `WineSoft` tile — Stats and Account), the expected-revenue amount, today's number in
+      `WeekDayStrip`. **The tab bar stays ink** (user decision), so `AccentColor` stays `#0A0A0B`.
+      Canvas-only ideas not built: client initials on request cards, a "Сьогодні" button, a
+      current-time line, a dot after the wordmark, a focus ring on fields.
+    - **Nothing readable as an object is flat**: both popup summaries moved from `.insetSurface` to
+      `.cardSurface`, and `.insetSurface` was deleted. `SlotChip` is a white `.raisedSurface`
+      (selected = ink + `brandShadow`, as an explicit `if`/`else`); the chip row uses
+      `.scrollClipDisabled()` so shadows aren't clipped (an inner/outer padding variant was tried
+      after review and reverted by the user). The offer chevron is a white raised circle instead of ink. The
+      Account avatar is a top-lit raised circle (`Card` → ink 7% gradient, card shadow, contour).
+    - `Background` became Display P3 (0.990, 1, 1).
+    - Tried and reverted: a backdrop blur behind popups, and a wine `MeshGradient` page background.
+    - Reviewed with SwiftUI Pro: `SlotChip`'s stacked layers, `ProfileCard`'s literal `1` and
+      `Hairline`-as-fill were fixed; the clip stays. **Open**: `ModeSwapPrompt`'s `HStack` cannot
+      wrap, so a long translation or large text truncates — `ViewThatFits` (HStack → VStack).
+    - Still ink on purpose, for a later call: the "+" circle in Мої послуги is the last ink round
+      button.
 
 ## Screens (in order)
 
@@ -1348,7 +1375,8 @@ those items are referred to by name, so the list can grow without renumbering an
    `docs/superpowers/specs/2026-10-05-light-redesign-design.md`). Layout follows the artboards, data
    stays as it is; the dark theme is a separate backlog item.
    - ~~**M-27 — foundation**~~ — **done**, see "Done" above.
-   - **M-28 — Auth**.
+   - **M-28 — Auth**. The mode switch is already done (footer link, see the M-27 follow-ups);
+     what's left is the rest of the artboard (wordmark 44, subtitle 17).
    - **M-29 — Schedule**: Розклад, new slot popup, block detail popup (also decides the week strip
      trade-off recorded in M-27).
    - **M-30 — Master rest**: Заявки, Статистика, Мої послуги, service form popup.
@@ -1503,7 +1531,8 @@ numbering drifts every time an item is added or closed (it already did once: PR9
   remove the light lock and add `#D7ADB5` as `AccentColor`'s dark appearance (universal stays
   `#0A0A0B`) — never before, since `#D7ADB5` is ~1.5:1 on the light background. The wine fill
   `#6B3442` is a button/chip colour there, not the accent. `PopupContainer`'s bare `Rectangle()`
-  backdrop (PR9 review, see Housekeeping) belongs to the same pass.
+  backdrop (PR9 review, see Housekeeping) belongs to the same pass. So do dark appearances for
+  `Wine`/`WineSoft` (added after M-27), which today exist only for the light theme.
 - **Accessibility debt (found in PR8 review, deliberately not fixed there)**:
   - `Font.elmsSans(_:_:)` calls `Font.custom(_:size:)` **without `relativeTo:`**, so Dynamic Type
     is effectively off app-wide. Adding it is one line, but the schedule also needs `@ScaledMetric`

@@ -33,7 +33,7 @@ struct ProfileCard: View {
         Circle()
             .fill(
                 LinearGradient(
-                    colors: [Color.card, Color.hairline],
+                    colors: [Color.card, Color.ink.opacity(AccountMetrics.Opacity.avatarShade)],
                     startPoint: .top,
                     endPoint: .bottom
                 )
@@ -41,7 +41,7 @@ struct ProfileCard: View {
             .cardShadow()
             .overlay {
                 Circle()
-                    .strokeBorder(Color.ink.opacity(AccountMetrics.Opacity.avatarContour), lineWidth: 1)
+                    .strokeBorder(Color.ink.opacity(AccountMetrics.Opacity.avatarContour), lineWidth: AccountMetrics.Size.avatarContourWidth)
             }
             .frame(
                 width: AccountMetrics.Size.avatar,

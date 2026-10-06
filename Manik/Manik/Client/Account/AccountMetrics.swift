@@ -4,6 +4,7 @@ enum AccountMetrics {
     enum Size {
         static let cardCornerRadius: CGFloat = 24
         static let avatar: CGFloat = 64
+        static let avatarContourWidth: CGFloat = 1
         static let rowIcon: CGFloat = 20
         static let rowHeight: CGFloat = 44
         static let tapTarget: CGFloat = 44
@@ -26,5 +27,6 @@ enum AccountMetrics {
 
     enum Opacity {
         static let avatarContour: Double = 0.06
+        static let avatarShade: Double = 0.07
     }
 }

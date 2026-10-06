@@ -19,9 +19,11 @@ struct SlotChip: View {
                     Capsule()
                         .fill(Color.ink)
                         .brandShadow()
+                } else {
+                    Color.clear
+                        .raisedSurface(.capsule)
                 }
             }
-            .raisedSurface(.capsule)
     }
 }
 
