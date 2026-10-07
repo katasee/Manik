@@ -1207,7 +1207,7 @@ this file is just "what's done, what's next," not a design doc.
 
 - **M-27 — Light redesign foundation (branch `feature/pr27-Redesign`, 9 tasks)**: the design
   system of the canvas's "Новий дизайн" page, applied app-wide; screen layouts are still the old
-  ones until M-28…M-32. Spec: `docs/superpowers/specs/2026-10-05-light-redesign-design.md`.
+  ones until M-28…M-32 (later dropped, see "Screens"). Spec: `docs/superpowers/specs/2026-10-05-light-redesign-design.md`.
   - **Tokens**: `Background` is white, `Ink` `#0A0A0B`, `TextSecondary` `#6E6E73`, `Destructive`
     `#C42F2F`; the three `Status*` colours are now the pill's *text* colour. New: `Card`,
     `Hairline`, `Stroke`, `TextTertiary`, `StatusPendingFill`, `StatusConfirmedFill`. Deleted:
@@ -1268,8 +1268,8 @@ this file is just "what's done, what's next," not a design doc.
     - Still ink on purpose, for a later call: the "+" circle in Мої послуги is the last ink round
       button.
 
-- **PR28 — Dark theme ("Темне вино") + appearance switcher** (commits prefixed `M-28`, which
-  collides with the M-28 Auth screen below — the screen milestone keeps its number).
+- **PR28 — Dark theme ("Темне вино") + appearance switcher** (commits prefixed `M-28`; the M-28
+  Auth screen milestone it would have collided with was dropped).
   - **Palette**: every colorset has a dark appearance from the canvas page "Темний + темне вино"
     (`manik3-dark.css` + `manik3-merlot.css`): page `#0B080B`, card `#1F1A1F`, raised `#2C252C`,
     secondary text `#9C939B`, wine fill `#6B3442`, accent `#D7ADB5`, statuses from the base dark
@@ -1291,7 +1291,8 @@ this file is just "what's done, what's next," not a design doc.
     canvas's `#D7ADB5` were both tried on a device and rejected. Tab content is re-tinted with the
     accent so the tint doesn't reach carets and pickers.
   - Deliberate canvas deviations: fields on `Raised` (a card-tone field vanishes in a card-tone
-    popup), the "Вільно" pill keeps its outline, the booking header exists (M-31 replaces it), the
+    popup), the "Вільно" pill keeps its outline, the booking header stays (the per-screen
+    layout milestones were dropped), the
     free-day dot stays green, the unchecked checklist circle is `Ink`.
   - Fixed on the way: `AccountRow`'s hard-coded `.black` icon (black on black in dark) and the PR9
     bare-`Rectangle()` popup backdrop.
@@ -1406,13 +1407,11 @@ those items are referred to by name, so the list can grow without renumbering an
    `docs/superpowers/specs/2026-10-05-light-redesign-design.md`). Layout follows the artboards, data
    stays as it is; the dark theme shipped separately in PR28 (see "Done").
    - ~~**M-27 — foundation**~~ — **done**, see "Done" above.
-   - **M-28 — Auth**. The mode switch is already done (footer link, see the M-27 follow-ups);
-     what's left is the rest of the artboard (wordmark 44, subtitle 17).
-   - **M-29 — Schedule**: Розклад, new slot popup, block detail popup (also decides the week strip
-     trade-off recorded in M-27).
-   - **M-30 — Master rest**: Заявки, Статистика, Мої послуги, service form popup.
-   - **M-31 — Booking**: Запис, Оберіть дату, booking confirmation popup.
-   - **M-32 — Client rest**: Мої записи, cancel popup, Акаунт.
+   - ~~**M-28…M-32 — per-screen layouts**~~ — **dropped** (user decision, 2026-10-07): after M-27
+     and the dark theme the screens are close enough to the artboards; no further layout work is
+     planned. The remaining canvas differences (e.g. the booking screen still has `BookingHeader`
+     where the artboard has a large title) are accepted. Reopen screen by screen only on a product
+     reason.
 
 ## Backlog and tech debt (unordered)
 
