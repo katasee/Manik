@@ -1440,6 +1440,21 @@ numbering drifts every time an item is added or closed (it already did once: PR9
   deploy. Build a URL only from a valid handle (letters, digits, `.`, `_`; the stored value already
   has `@` stripped) and fall back to plain text otherwise. `RequestsViewModel` already fetches
   client names per `clientId` (`fetchNames`) — extend that rather than adding a second lookup.
+- **Booking reminders for the client** (requested 2026-10-07; approach undecided). The MVP spec
+  lists push notifications and reminders as out of scope, so picking this up changes scope — update
+  the spec's out-of-scope list in the same PR. Two approaches were weighed:
+  - **Local notifications** (`UNUserNotificationCenter`, no server). The client's app schedules
+    "tomorrow at 10:00 — <service>" when it sees her booking and removes it when the booking goes
+    away. No APNs key, no paid plan, app-only code. Weakness: the app learns of changes only while
+    it runs, so a booking the master confirms or cancels while the app stays closed leaves a missing
+    or stale reminder. Mitigations: schedule already at `pending`, and reconcile all reminders on
+    every launch / foreground. Recommended as the first step for a single salon.
+  - **Real push** (FCM + scheduled Cloud Functions). Always reflects the current booking state, and
+    the same pipe would carry "your booking was confirmed" and the master's "new request". Costs:
+    an APNs key, the Firebase Blaze plan, server code (TypeScript), stored FCM tokens per user, and
+    adopting the Firebase CLI the project deliberately avoids (rules are deployed by hand today).
+  - Still to decide either way: when to remind (day before / a few hours before / both), and
+    whether the client can turn it off.
 - **Changing the email address is not offered.** The account screen (M-23) shows `email` read-only.
   Firebase requires verifying the new address before it takes effect, so `users/{uid}.email` and the
   Auth record can disagree for an unbounded window, and the UI has nowhere to show that pending
