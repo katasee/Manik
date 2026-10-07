@@ -65,7 +65,7 @@ struct BookingHeader: View {
         return GeometryReader { proxy in
             let stretch = max(0, proxy.frame(in: .scrollView).minY)
 
-            Color.primaryFill
+            Color.headerFill
                 .overlay(alignment: .topTrailing) { bubble(stretch: stretch) }
                 .clipShape(.rect(bottomLeadingRadius: radius, bottomTrailingRadius: radius))
                 .frame(height: proxy.size.height + stretch)
