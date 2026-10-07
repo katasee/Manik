@@ -1431,6 +1431,15 @@ numbering drifts every time an item is added or closed (it already did once: PR9
   untruth the redaction removes from the screen. `.accessibilityHidden(viewModel.hasLoadedStats ==
   false)` beside the existing modifier covers it without a new catalog key. Worth doing in whichever
   account PR is opened next rather than as a standalone change.
+- **Show the client's contacts to the master** (requested 2026-10-07, queued after the
+  slot-overlap + double-submit fix). Today a client's phone / Instagram / Telegram appear only on
+  her own «Акаунт»; the master sees them nowhere. Add them to «Заявки» cards and the Schedule's
+  `BlockDetailPopup`, each tappable: `tel:` for the phone, `https://instagram.com/<handle>` and
+  `https://t.me/<handle>` (universal links — they open the app if installed, Safari otherwise; no
+  `LSApplicationQueriesSchemes` needed). Rules already let the master read `users/{uid}`, so no
+  deploy. Build a URL only from a valid handle (letters, digits, `.`, `_`; the stored value already
+  has `@` stripped) and fall back to plain text otherwise. `RequestsViewModel` already fetches
+  client names per `clientId` (`fetchNames`) — extend that rather than adding a second lookup.
 - **Changing the email address is not offered.** The account screen (M-23) shows `email` read-only.
   Firebase requires verifying the new address before it takes effect, so `users/{uid}.email` and the
   Auth record can disagree for an unbounded window, and the UI has nowhere to show that pending
