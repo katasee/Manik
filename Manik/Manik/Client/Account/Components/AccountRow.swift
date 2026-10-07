@@ -9,7 +9,7 @@ struct AccountRow: View {
         HStack(spacing: AccountMetrics.Spacing.inlineSpacing) {
             Image(systemName: iconName)
                 .font(.elmsSans(.regular, AccountMetrics.Size.rowIcon))
-                .foregroundStyle(.black)
+                .foregroundStyle(Color.ink)
                 .frame(width: AccountMetrics.Size.rowIcon)
 
             Text(labelKey)

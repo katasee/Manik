@@ -36,7 +36,7 @@ struct RoundIconButton: View {
         Button(action: action) {
             Image(systemName: systemImage)
                 .font(.elmsSans(.medium, size.glyph))
-                .foregroundStyle(Color.ink)
+                .foregroundStyle(Color.accentColor)
                 .frame(width: size.diameter, height: size.diameter)
                 .raisedSurface(.circle)
                 .frame(width: Layout.tapTarget, height: Layout.tapTarget)

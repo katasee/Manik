@@ -76,7 +76,7 @@ struct WeekDayStrip: View {
                     .font(.elmsSans(.medium, 11))
                     .foregroundStyle(
                         isSelected
-                            ? Color.white.opacity(Layout.selectedLetterOpacity)
+                            ? Color.onPrimary.opacity(Layout.selectedLetterOpacity)
                             : Color.textSecondary
                     )
 
@@ -89,7 +89,7 @@ struct WeekDayStrip: View {
             .background {
                 if isSelected {
                     RoundedRectangle(cornerRadius: Layout.cellCornerRadius)
-                        .fill(Color.ink)
+                        .fill(Color.primaryFill)
                         .brandShadow()
                         .matchedGeometryEffect(id: "selectedDay", in: namespace)
                 } else if isToday {
@@ -104,7 +104,7 @@ struct WeekDayStrip: View {
 
     private func dayNumberColor(isSelected: Bool, isToday: Bool) -> Color {
         if isSelected {
-            return Color.white
+            return Color.onPrimary
         }
         return isToday ? Color.wine : Color.ink
     }

@@ -21,13 +21,13 @@ struct BookingHeader: View {
     private var greeting: some View {
         Text(String(format: String(localized: "booking.greeting"), clientName))
             .font(.elmsSans(.regular, 15))
-            .foregroundStyle(Color.background.opacity(BookingMetrics.Opacity.headerGreeting))
+            .foregroundStyle(Color.onPrimary.opacity(BookingMetrics.Opacity.headerGreeting))
     }
 
     private var title: some View {
         Text("booking.title")
             .font(.elmsSans(.bold, 30))
-            .foregroundStyle(Color.background)
+            .foregroundStyle(Color.onPrimary)
     }
 
     @ViewBuilder
@@ -48,12 +48,12 @@ struct BookingHeader: View {
                     )
                 )
                 .font(.elmsSans(.bold, 14))
-                .foregroundStyle(Color.background)
+                .foregroundStyle(Color.onPrimary)
             }
             .padding(.horizontal, BookingMetrics.Spacing.pillPadding)
             .padding(.vertical, BookingMetrics.Spacing.pillSpacing)
             .background(
-                Color.background.opacity(BookingMetrics.Opacity.headerPill),
+                Color.onPrimary.opacity(BookingMetrics.Opacity.headerPill),
                 in: .capsule
             )
         }
@@ -65,7 +65,7 @@ struct BookingHeader: View {
         return GeometryReader { proxy in
             let stretch = max(0, proxy.frame(in: .scrollView).minY)
 
-            Color.ink
+            Color.primaryFill
                 .overlay(alignment: .topTrailing) { bubble(stretch: stretch) }
                 .clipShape(.rect(bottomLeadingRadius: radius, bottomTrailingRadius: radius))
                 .frame(height: proxy.size.height + stretch)
@@ -77,7 +77,7 @@ struct BookingHeader: View {
         let diameter = BookingMetrics.Size.headerBubble
 
         return Ellipse()
-            .fill(Color.background.opacity(BookingMetrics.Opacity.headerBubble))
+            .fill(Color.onPrimary.opacity(BookingMetrics.Opacity.headerBubble))
             .frame(width: diameter, height: diameter + stretch)
             .offset(x: diameter / 3, y: -diameter / 3)
     }
