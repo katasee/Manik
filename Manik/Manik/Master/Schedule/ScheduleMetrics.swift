@@ -35,4 +35,10 @@ enum ScheduleMetrics {
         static let closeHitSize: CGFloat = 44
         static let closeEdgeCompensation: CGFloat = 12
     }
+
+    enum CreatePopup {
+        static let wheelHeight: CGFloat = 150
+        static let timeHorizontalPadding: CGFloat = 12
+        static let timeVerticalPadding: CGFloat = 6
+    }
 }

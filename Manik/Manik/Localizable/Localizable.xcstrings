@@ -1769,6 +1769,38 @@
         }
       }
     },
+    "schedule.createSlot.hours" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hours"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Години"
+          }
+        }
+      }
+    },
+    "schedule.createSlot.minutes" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Minutes"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Хвилини"
+          }
+        }
+      }
+    },
     "schedule.createSlot.servicesHeader" : {
       "localizations" : {
         "en" : {
