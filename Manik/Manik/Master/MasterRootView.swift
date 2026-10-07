@@ -31,7 +31,7 @@ struct MasterRootView: View {
                 .badge(tab == .requests ? requestsViewModel.requests.count : 0)
             }
         }
-        .tint(Color.primaryFill)
+        .tint(Color.ink)
         .task {
             await requestsViewModel.observeBlocks()
         }

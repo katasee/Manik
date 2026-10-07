@@ -61,7 +61,7 @@ struct ClientRootView: View {
                 }
             }
         }
-        .tint(Color.primaryFill)
+        .tint(Color.ink)
     }
 
     private func showMyBookings() {
