@@ -31,7 +31,13 @@ struct ProfileCard: View {
 
     private var avatar: some View {
         Circle()
-            .fill(Color.raised)
+            .fill(
+                LinearGradient(
+                    colors: [Color.raised, Color.shadow.opacity(AccountMetrics.Opacity.avatarShade)],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+            )
             .cardShadow()
             .overlay {
                 Circle()

@@ -19,8 +19,8 @@ struct ServicesChecklist: View {
                             .font(.elmsSans(.regular, 24))
                             .symbolRenderingMode(.palette)
                             .foregroundStyle(
-                                isSelected(service) ? Color.onPrimary : Color.stroke,
-                                isSelected(service) ? Color.primaryFill : Color.stroke
+                                isSelected(service) ? Color.onPrimary : Color.ink,
+                                isSelected(service) ? Color.primaryFill : Color.ink
                             )
                     }
                     .frame(minHeight: 44)

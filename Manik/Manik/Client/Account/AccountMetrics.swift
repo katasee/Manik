@@ -27,5 +27,6 @@ enum AccountMetrics {
 
     enum Opacity {
         static let avatarContour: Double = 0.06
+        static let avatarShade: Double = 0.07
     }
 }
