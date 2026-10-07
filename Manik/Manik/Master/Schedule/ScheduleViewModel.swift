@@ -87,9 +87,7 @@ final class ScheduleViewModel {
 
     private func cascade(_ ordered: [Block]) -> [ScheduledBlock] {
         ordered.enumerated().map { index, block in
-            let depth = ordered[..<index].filter { earlier in
-                earlier.startMinutes < block.endMinutes && earlier.endMinutes > block.startMinutes
-            }.count
+            let depth = ordered[..<index].filter { $0.overlaps(block) }.count
 
             return ScheduledBlock(
                 block: block,
