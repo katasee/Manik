@@ -1475,6 +1475,20 @@ numbering drifts every time an item is added or closed (it already did once: PR9
     booking card; this ties into the booking-reminders item.
   - Both paths must handle the target block being taken mid-transaction (the transaction fails;
     show the same "time taken" message as booking, and keep the old booking intact).
+- **Master: find a client by Instagram handle** (requested 2026-10-07). The master has no client
+  list today — she meets clients only through their bookings. Wanted: type a handle, get the
+  **client card + her bookings** (user choice over a plain filter or a bare client list).
+  - **Card**: name and tappable contacts (shares the UI of the "Show the client's contacts to the
+    master" item — build that first, then reuse it here), upcoming and past bookings for her
+    `clientId` from the blocks the master already observes.
+  - **Data**: no rules change — `allow read: if isMaster() || …` on `users/{uid}` also covers a
+    list query by the master. For one salon the simplest search is to read the `role == "client"`
+    profiles once and filter on device with `localizedStandardContains`, which also gives prefix
+    and partial matches; a Firestore range query would need a normalized field. Instagram handles
+    are case-insensitive but stored as typed (only `@` is stripped), so compare lowercased.
+  - **Open**: where the entry point lives — a fourth master tab («Клієнтки»), or a search field on
+    an existing screen (the master's tabs are Розклад / Заявки / Статистика). Whether search also
+    matches name and phone, which is nearly free once the profiles are loaded.
 - **Changing the email address is not offered.** The account screen (M-23) shows `email` read-only.
   Firebase requires verifying the new address before it takes effect, so `users/{uid}.email` and the
   Auth record can disagree for an unbounded window, and the UI has nowhere to show that pending
