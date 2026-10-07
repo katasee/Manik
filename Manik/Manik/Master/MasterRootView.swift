@@ -16,18 +16,22 @@ struct MasterRootView: View {
                     systemImage: tab.systemImage,
                     value: tab
                 ) {
-                    switch tab {
-                    case .schedule:
-                        ScheduleView(viewModel: scheduleViewModel)
-                    case .requests:
-                        RequestsView(viewModel: requestsViewModel)
-                    case .stats:
-                        StatsView(viewModel: statsViewModel, onSignOut: onSignOut)
+                    Group {
+                        switch tab {
+                        case .schedule:
+                            ScheduleView(viewModel: scheduleViewModel)
+                        case .requests:
+                            RequestsView(viewModel: requestsViewModel)
+                        case .stats:
+                            StatsView(viewModel: statsViewModel, onSignOut: onSignOut)
+                        }
                     }
+                    .tint(Color.accentColor)
                 }
                 .badge(tab == .requests ? requestsViewModel.requests.count : 0)
             }
         }
+        .tint(Color.primaryFill)
         .task {
             await requestsViewModel.observeBlocks()
         }
