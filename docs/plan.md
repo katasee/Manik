@@ -1455,6 +1455,26 @@ numbering drifts every time an item is added or closed (it already did once: PR9
     adopting the Firebase CLI the project deliberately avoids (rules are deployed by hand today).
   - Still to decide either way: when to remind (day before / a few hours before / both), and
     whether the client can turn it off.
+- **Rescheduling a booking** (requested 2026-10-07). Today there is none: blocks have only
+  confirm / decline / cancel, and the rules pin `date`/`startTime`/`endTime` for the client. The
+  workaround is cancel + book again. In this model a reschedule never edits a block's time — it
+  **moves the booking from one block to another free block** in a single Firestore transaction:
+  the old block goes back to `available`, the new one is booked with the same service snapshot
+  (`bookedServiceId`/`Name`/`Price`).
+  - **By the client** — "Перенести" on an upcoming booking in «Мої записи», then the existing
+    date/slot picker. The new booking lands in `pending`, so **the master confirms it again**
+    (user requirement). No rules change: each half of the transaction is already allowed on its
+    own (`isClientCanceling()` on the old block, `isClientBooking()` on the new one). Decide what
+    the master sees in «Заявки» — a plain new request, or one marked "перенесено з <old slot>"
+    (the latter needs a field on `Block`, optional per `data-layer.md`).
+  - **By the master** — "Перенести на…" in `BlockDetailPopup`, picking a free block. The master's
+    writes are unrestricted by the rules. Open question: does the moved booking stay `confirmed`
+    (the master chose it) or go back to `pending` for the client's consent? The user asked only
+    that the master can do it, so `confirmed` is the working assumption. The client learns about it
+    only when she opens the app — with no pushes, consider a visible "перенесено" marker on her
+    booking card; this ties into the booking-reminders item.
+  - Both paths must handle the target block being taken mid-transaction (the transaction fails;
+    show the same "time taken" message as booking, and keep the old booking intact).
 - **Changing the email address is not offered.** The account screen (M-23) shows `email` read-only.
   Firebase requires verifying the new address before it takes effect, so `users/{uid}.email` and the
   Auth record can disagree for an unbounded window, and the UI has nowhere to show that pending
