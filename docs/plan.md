@@ -1641,6 +1641,20 @@ numbering drifts every time an item is added or closed (it already did once: PR9
     and a "Відхилити" button, so a queue of requests reads to VoiceOver as several identically
     labelled pairs with no way to tell which request each belongs to. Fix is an `accessibilityLabel`
     naming the client and the slot on both buttons. Declined in PR19 by the same precedent.
+- **Schedule week navigation keeps the weekday instead of landing sensibly** (reported 2026-10-07).
+  `WeekDayStrip.shiftWeek` adds ±7 days to the selected date (`WeekDayStrip.swift:45`), so Thursday
+  the 8th becomes Thursday the 15th; and since tabs keep their state, returning to «Розклад» keeps
+  whatever day was last selected. Wanted:
+  - switching week (arrows and swipe alike) lands on the **first day of the week**, or on **today**
+    when the target week contains it — one static rule in `WeekDayStrip`, e.g.
+    `landingDate(forWeekStarting:today:)`;
+  - **switching back to the «Розклад» tab resets to today**. Do it in `MasterRootView` with
+    `.onChange(of: selectedTab)` calling a `ScheduleViewModel.showToday()`, not with `.onAppear` in
+    `ScheduleView` — `onAppear` can also fire when a slot / block popup closes, which would yank the
+    master off the day she is working on. Re-tapping the already active tab doesn't reset.
+  - Master-only: the client's calendar is the month grid, `WeekDayStrip` has no other caller.
+  Verify on a device: Thu 8 → next week = Mon 12; back to this week = today; swipe = arrows;
+  Розклад → Заявки → Розклад = today; closing a popup on another day keeps that day.
 - **Slot creation can overlap an existing block**: since PR8 an hour still offers
   "+ Додати вільний час" while ≤20 min of it is taken, but `CreateBlockContext` carries only
   `startHour` (no minutes), so the popup opens at the top of the hour and can produce an
