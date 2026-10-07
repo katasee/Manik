@@ -1268,6 +1268,37 @@ this file is just "what's done, what's next," not a design doc.
     - Still ink on purpose, for a later call: the "+" circle in Мої послуги is the last ink round
       button.
 
+- **PR28 — Dark theme ("Темне вино") + appearance switcher** (commits prefixed `M-28`, which
+  collides with the M-28 Auth screen below — the screen milestone keeps its number).
+  - **Palette**: every colorset has a dark appearance from the canvas page "Темний + темне вино"
+    (`manik3-dark.css` + `manik3-merlot.css`): page `#0B080B`, card `#1F1A1F`, raised `#2C252C`,
+    secondary text `#9C939B`, wine fill `#6B3442`, accent `#D7ADB5`, statuses from the base dark
+    page. The light theme is pixel-identical except unavailable calendar days, which moved from
+    `TextSecondary` to `TextTertiary` to match both canvas pages (user decision).
+  - **Role tokens**: `Ink` was text, selected fill, shadow and backdrop at once, which cannot work
+    in two themes. It is now text and glyphs only; the other roles got `PrimaryFill`/`OnPrimary`,
+    `Raised`, `DestructiveFill`, `Shadow`, `Backdrop`, `HeaderFill` (booking header: ink in light,
+    card tone in dark) and `Highlight`. `Primary` was avoided as a name because the generated
+    `Color.primary` collides with SwiftUI's. The table lives in `code-style.md`.
+  - **Depth in dark**: black shadows vanish on the near-black page, so after a device pass the
+    surfaces got a top rim and a top-down sheen tinted with `Highlight` (clear in light).
+  - **Switcher**: `AppAppearance` (System / Light / Dark) in `@AppStorage("appearance")`, applied by
+    `.preferredColorScheme` on `RootView`, so it also covers Auth and survives sign-out. The light
+    lock `INFOPLIST_KEY_UIUserInterfaceStyle` is gone. A round button next to the "Акаунт" and
+    "Статистика" titles (new trailing slot in `LargeTitleHeader`) opens `AppearancePopup` — three
+    rows, applies on tap, stays open.
+  - **Tab bar**: the selected tab is `.tint(Color.ink)` (white in dark). Wine `#6B3442` and the
+    canvas's `#D7ADB5` were both tried on a device and rejected. Tab content is re-tinted with the
+    accent so the tint doesn't reach carets and pickers.
+  - Deliberate canvas deviations: fields on `Raised` (a card-tone field vanishes in a card-tone
+    popup), the "Вільно" pill keeps its outline, the booking header exists (M-31 replaces it), the
+    free-day dot stays green, the unchecked checklist circle is `Ink`.
+  - Fixed on the way: `AccountRow`'s hard-coded `.black` icon (black on black in dark) and the PR9
+    bare-`Rectangle()` popup backdrop.
+  - Reviewed with SwiftUI Pro (plan) and a whole-branch review. **Open, low impact**: no launch
+    screen colour, so a theme choice opposite to the device's flashes the other theme at launch;
+    `LargeTitleHeader` keeps its 12pt title-row spacing even without a trailing view.
+
 ## Screens (in order)
 
 This is the actual work queue, and the only numbered list here. The ordering follows the **data
@@ -1373,7 +1404,7 @@ those items are referred to by name, so the list can grow without renumbering an
 
 7. **Light redesign** ("Новий дизайн" on the canvas; spec
    `docs/superpowers/specs/2026-10-05-light-redesign-design.md`). Layout follows the artboards, data
-   stays as it is; the dark theme is a separate backlog item.
+   stays as it is; the dark theme shipped separately in PR28 (see "Done").
    - ~~**M-27 — foundation**~~ — **done**, see "Done" above.
    - **M-28 — Auth**. The mode switch is already done (footer link, see the M-27 follow-ups);
      what's left is the rest of the artboard (wordmark 44, subtitle 17).
@@ -1523,16 +1554,6 @@ numbering drifts every time an item is added or closed (it already did once: PR9
   makes it noticeable. Deliberately not pre-optimized.
 - **"Забули пароль?"**: decide tappable-stub vs. real `sendPasswordReset` flow, then implement.
   (Was tracked as a task in a now-disconnected MCP tool — re-track here instead.)
-- **Dark theme ("Темне вино")**: the app is pinned to light since M-26
-  (`INFOPLIST_KEY_UIUserInterfaceStyle = Light`), which fixed the "typed text invisible in dark
-  mode" bug found after PR12 — every colorset has a single appearance, while `TextField`/
-  `DatePicker` fall back to `Color.primary`, which flips. The real fix is a design task: dark
-  variants for all colorsets, following the canvas's "Темне вино" page. That same change must
-  remove the light lock and add `#D7ADB5` as `AccentColor`'s dark appearance (universal stays
-  `#0A0A0B`) — never before, since `#D7ADB5` is ~1.5:1 on the light background. The wine fill
-  `#6B3442` is a button/chip colour there, not the accent. `PopupContainer`'s bare `Rectangle()`
-  backdrop (PR9 review, see Housekeeping) belongs to the same pass. So do dark appearances for
-  `Wine`/`WineSoft` (added after M-27), which today exist only for the light theme.
 - **Accessibility debt (found in PR8 review, deliberately not fixed there)**:
   - `Font.elmsSans(_:_:)` calls `Font.custom(_:size:)` **without `relativeTo:`**, so Dynamic Type
     is effectively off app-wide. Adding it is one line, but the schedule also needs `@ScaledMetric`
@@ -1711,8 +1732,9 @@ numbering drifts every time an item is added or closed (it already did once: PR9
 - **Three PR9 review findings were reviewed and declined** — don't re-raise them: popup buttons'
   44pt tap target (modifiers sit outside the `Button`), `PopupContainer`'s bare `Rectangle()`
   backdrop in dark mode, and `BlockDetailPopup`'s default `FirestoreBlockRepository()` reaching
-  live Firestore from `ScheduleView`'s preview. **The dark-mode one has since been reopened** —
-  device testing after PR12 showed the same root cause makes typed text invisible — see the dark-mode item in the backlog.
+  live Firestore from `ScheduleView`'s preview. **The dark-mode one was reopened** (device testing
+  after PR12 showed the same root cause makes typed text invisible) **and fixed in PR28**: the
+  backdrop is the `Backdrop` token and every colorset has a dark appearance.
 - **Two PR11 review findings were reviewed and declined** — don't re-raise them:
   - `swiftui-pro`: `.accessibilityAddTraits(.isHeader)` on the add-service popup title.
   - `swift-concurrency-pro`: `FakeServiceRepository` has a genuine race — the synchronous

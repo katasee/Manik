@@ -94,7 +94,9 @@
   user switches away — so a subscription that feeds a tab badge starts in the router, not in the
   tab's screen — `MasterRootView` runs `RequestsViewModel.observeBlocks()`/`refreshRequests()` and
   `RequestsView` only renders the shared view model (its previews start `observeBlocks()`
-  themselves). The selected-tab colour is the asset-catalog `AccentColor`, never `.tint` in code.
+  themselves). The selected-tab colour is `.tint(Color.ink)` on the `TabView`,
+  with each tab's content re-tinted `.tint(Color.accentColor)` so it doesn't leak into carets and
+  pickers (see "Accent and tab bar" in `code-style.md`).
 - **Nested `NavigationLink`s don't work.** Wrapping a whole card in a link and then putting a link
   inside it is unpredictable in SwiftUI — the inner one may never receive taps, or both fire. If a
   card needs more than one destination, don't wrap the card: give each control its own link
@@ -133,6 +135,12 @@
   are singletons managed by the Firebase SDK itself; that's fine and expected — what we avoid is
   wrapping *our own* repository classes in `.shared` singletons. ViewModels take a repository
   protocol as an init parameter, defaulting to the real Firestore-backed implementation.
+- **App-wide settings shared by both cabinets get a top-level feature folder**, like `Auth/` and
+  `Root/`: `Appearance/` holds `AppAppearance` (System / Light / Dark, stored in
+  `@AppStorage("appearance")` and applied by `RootView`) and `AppearancePopup`, which both
+  "Акаунт" and "Статистика" present. It has no view model — the popup only reads and writes
+  `@AppStorage`. `LargeTitleHeader` takes an optional trailing view for the round button that opens
+  it.
 - Two `PBXFileSystemSynchronizedRootGroup`s feed the `Manik` target: `Manik/Manik/` (app source) and
   `Manik/Assets/` (build resources that aren't Swift source living next to feature code — currently
   just `Manik/Assets/Font/`). Both are auto-picked-up like the `GoogleService-Info.plist` case (see
