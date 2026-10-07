@@ -1413,6 +1413,14 @@ those items are referred to by name, so the list can grow without renumbering an
      where the artboard has a large title) are accepted. Reopen screen by screen only on a product
      reason.
 
+8. **Next up, in order** (user priority, 2026-10-07). Each links to its backlog item by name.
+   1. **Slot overlap + double-submit** — "Slot creation can overlap an existing block" and
+      "`CreateBlockViewModel.submit()` can double-submit", one small PR.
+   2. **Rescheduling** — "Rescheduling a booking" (client, then master confirms; and by the master).
+   - Not yet ordered, pick after these two: "Schedule week navigation keeps the weekday…",
+     "Show the client's contacts to the master" (then "Master: find a client by Instagram
+     handle", which reuses it), "Booking reminders for the client".
+
 ## Backlog and tech debt (unordered)
 
 Not a queue. These accumulate as they're found and get picked up when they block a screen, or when
