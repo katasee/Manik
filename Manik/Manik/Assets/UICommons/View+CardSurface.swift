@@ -9,6 +9,8 @@ struct CardSurface: ViewModifier {
     private enum Layout {
         static let contourOpacity: Double = 0.045
         static let contourWidth: CGFloat = 1
+        static let sheenOpacity: Double = 0.04
+        static let rimOpacity: Double = 0.14
     }
 
     func body(content: Content) -> some View {
@@ -16,12 +18,34 @@ struct CardSurface: ViewModifier {
             .background {
                 RoundedRectangle(cornerRadius: cornerRadius)
                     .fill(fill)
+                    .overlay {
+                        RoundedRectangle(cornerRadius: cornerRadius)
+                            .fill(
+                                LinearGradient(
+                                    colors: [Color.highlight.opacity(Layout.sheenOpacity), .clear],
+                                    startPoint: .top,
+                                    endPoint: .bottom
+                                )
+                            )
+                    }
                     .cardShadow()
             }
             .overlay {
                 RoundedRectangle(cornerRadius: cornerRadius)
                     .strokeBorder(
                         Color.ink.opacity(Layout.contourOpacity),
+                        lineWidth: Layout.contourWidth
+                    )
+                    .allowsHitTesting(false)
+            }
+            .overlay {
+                RoundedRectangle(cornerRadius: cornerRadius)
+                    .strokeBorder(
+                        LinearGradient(
+                            colors: [Color.highlight.opacity(Layout.rimOpacity), .clear],
+                            startPoint: .top,
+                            endPoint: .center
+                        ),
                         lineWidth: Layout.contourWidth
                     )
                     .allowsHitTesting(false)

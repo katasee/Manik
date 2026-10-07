@@ -3,6 +3,8 @@ import SwiftUI
 private enum RaisedSurfaceLayout {
     static let contourOpacity: Double = 0.06
     static let contourWidth: CGFloat = 1
+    static let sheenOpacity: Double = 0.06
+    static let rimOpacity: Double = 0.18
 }
 
 struct RaisedSurface<S: InsettableShape>: ViewModifier {
@@ -13,12 +15,34 @@ struct RaisedSurface<S: InsettableShape>: ViewModifier {
             .background {
                 shape
                     .fill(Color.raised)
+                    .overlay {
+                        shape
+                            .fill(
+                                LinearGradient(
+                                    colors: [Color.highlight.opacity(RaisedSurfaceLayout.sheenOpacity), .clear],
+                                    startPoint: .top,
+                                    endPoint: .bottom
+                                )
+                            )
+                    }
                     .raisedShadow()
             }
             .overlay {
                 shape
                     .strokeBorder(
                         Color.ink.opacity(RaisedSurfaceLayout.contourOpacity),
+                        lineWidth: RaisedSurfaceLayout.contourWidth
+                    )
+                    .allowsHitTesting(false)
+            }
+            .overlay {
+                shape
+                    .strokeBorder(
+                        LinearGradient(
+                            colors: [Color.highlight.opacity(RaisedSurfaceLayout.rimOpacity), .clear],
+                            startPoint: .top,
+                            endPoint: .center
+                        ),
                         lineWidth: RaisedSurfaceLayout.contourWidth
                     )
                     .allowsHitTesting(false)
