@@ -46,7 +46,7 @@ struct CalendarDayCell: View {
     private var numberColor: Color {
         if isSelected { return Color.onPrimary }
 
-        return day.isSelectable ? Color.ink : Color.textSecondary
+        return day.isSelectable ? Color.ink : Color.textTertiary
     }
 }
 
