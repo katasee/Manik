@@ -12,7 +12,7 @@ struct RaisedSurface<S: InsettableShape>: ViewModifier {
         content
             .background {
                 shape
-                    .fill(Color.card)
+                    .fill(Color.raised)
                     .raisedShadow()
             }
             .overlay {

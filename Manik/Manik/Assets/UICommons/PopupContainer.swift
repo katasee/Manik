@@ -5,7 +5,6 @@ enum PopupContainerLayout {
     static let cardPadding: CGFloat = 22
     static let rowSpacing: CGFloat = 16
     static let horizontalInset: CGFloat = 16
-    static let backdropOpacity: Double = 0.22
     static let shadowOpacity: Double = 0.25
     static let shadowRadius: CGFloat = 30
     static let shadowY: CGFloat = 24
@@ -35,7 +34,7 @@ struct PopupContainer<Content: View>: View {
     private var backdrop: some View {
         Button(action: fadeOutAndDismiss) {
             Rectangle()
-                .fill(Color.ink.opacity(PopupContainerLayout.backdropOpacity))
+                .fill(Color.backdrop)
         }
         .buttonStyle(.plain)
         .ignoresSafeArea()
@@ -51,7 +50,7 @@ struct PopupContainer<Content: View>: View {
             RoundedRectangle(cornerRadius: PopupContainerLayout.cornerRadius)
                 .fill(Color.card)
                 .shadow(
-                    color: Color.ink.opacity(PopupContainerLayout.shadowOpacity),
+                    color: Color.shadow.opacity(PopupContainerLayout.shadowOpacity),
                     radius: PopupContainerLayout.shadowRadius,
                     x: 0,
                     y: PopupContainerLayout.shadowY
