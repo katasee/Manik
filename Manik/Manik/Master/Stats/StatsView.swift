@@ -2,6 +2,7 @@ import SwiftUI
 
 struct StatsView: View {
     @State private var viewModel: StatsViewModel
+    @State private var isShowingAppearance = false
 
     private let onSignOut: () -> Void
 
@@ -13,7 +14,13 @@ struct StatsView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                LargeTitleHeader(titleKey: "stats.title")
+                LargeTitleHeader(titleKey: "stats.title") {
+                    RoundIconButton(
+                        systemImage: "circle.lefthalf.filled",
+                        accessibilityLabel: "appearance.action.open",
+                        action: showAppearance
+                    )
+                }
 
                 monthRow
 
@@ -31,6 +38,22 @@ struct StatsView: View {
             .task {
                 await viewModel.refreshStats()
             }
+        }
+        .fullScreenCover(isPresented: $isShowingAppearance) {
+            AppearancePopup(onDismiss: hideAppearance)
+                .presentationBackground(.clear)
+        }
+    }
+
+    private func showAppearance() {
+        withoutPresentationAnimation {
+            isShowingAppearance = true
+        }
+    }
+
+    private func hideAppearance() {
+        withoutPresentationAnimation {
+            isShowingAppearance = false
         }
     }
 

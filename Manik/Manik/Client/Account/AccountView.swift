@@ -5,6 +5,7 @@ struct AccountView: View {
         case profileForm
         case changePassword
         case deleteAccount
+        case appearance
 
         var id: String { rawValue }
     }
@@ -27,7 +28,13 @@ struct AccountView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            LargeTitleHeader(titleKey: "account.title")
+            LargeTitleHeader(titleKey: "account.title") {
+                RoundIconButton(
+                    systemImage: "circle.lefthalf.filled",
+                    accessibilityLabel: "appearance.action.open",
+                    action: showAppearance
+                )
+            }
 
             ScrollView {
                 VStack(alignment: .leading, spacing: AccountMetrics.Spacing.sectionSpacing) {
@@ -80,6 +87,8 @@ struct AccountView: View {
                 onDeleted: onAccountDeleted,
                 onDismiss: dismissPopup
             )
+        case .appearance:
+            AppearancePopup(onDismiss: dismissPopup)
         }
     }
 
@@ -105,6 +114,10 @@ struct AccountView: View {
 
     private func showDeleteAccount() {
         show(.deleteAccount)
+    }
+
+    private func showAppearance() {
+        show(.appearance)
     }
 
     private var contacts: some View {
