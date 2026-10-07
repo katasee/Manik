@@ -18,7 +18,7 @@ final class ScheduleViewModel {
 
     private var blockPendingDeletion: Block?
 
-    private var blocks: [Block] = [] {
+    private(set) var blocks: [Block] = [] {
         didSet { rebuildSchedule() }
     }
 

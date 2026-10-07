@@ -1,20 +1,28 @@
 import SwiftUI
 
+private enum TimeField {
+    case start
+    case end
+}
+
 struct AddNewSlotBlock: View {
     @State private var viewModel: CreateBlockViewModel
+    @State private var expandedField: TimeField?
     let onDismiss: () -> Void
 
+    private static let startHours = WorkHours.working.lowerBound...(WorkHours.working.upperBound - 1)
+    private static let endHours = WorkHours.working.lowerBound...WorkHours.working.upperBound
+
     init(
-        date: Date,
-        startHour: Int,
-        services: [Service],
+        context: CreateBlockContext,
         blockRepository: BlockRepository = FirestoreBlockRepository(),
         onDismiss: @escaping () -> Void
     ) {
         _viewModel = State(initialValue: CreateBlockViewModel(
-            date: date,
-            startHour: startHour,
-            services: services,
+            date: context.date,
+            startHour: context.startHour,
+            services: context.services,
+            blocks: context.blocks,
             blockRepository: blockRepository
         ))
         self.onDismiss = onDismiss
@@ -26,17 +34,36 @@ struct AddNewSlotBlock: View {
             onDismiss: onDismiss
         ) { dismiss in
             dateField
-            timeField("schedule.createSlot.startLabel", text: $viewModel.startTimeText)
-            timeField("schedule.createSlot.endLabel", text: $viewModel.endTimeText)
+
+            timeRow(
+                .start,
+                labelKey: "schedule.createSlot.startLabel",
+                time: viewModel.start
+            )
+            if expandedField == .start {
+                TimeWheel(time: $viewModel.start, hours: Self.startHours)
+            }
+
+            timeRow(
+                .end,
+                labelKey: "schedule.createSlot.endLabel",
+                time: viewModel.end
+            )
+            if expandedField == .end {
+                TimeWheel(time: $viewModel.end, hours: Self.endHours)
+            }
 
             divider
 
             servicesHeader
             servicesChecklist
 
-            errorText
+            messageText
 
             actions(dismiss: dismiss)
+        }
+        .onChange(of: viewModel.start) { oldValue, newValue in
+            viewModel.startDidChange(from: oldValue, to: newValue)
         }
     }
 
@@ -47,14 +74,29 @@ struct AddNewSlotBlock: View {
         }
     }
 
-    private func timeField(
-        _ labelKey: LocalizedStringKey,
-        text: Binding<String>
+    private func timeRow(
+        _ field: TimeField,
+        labelKey: LocalizedStringKey,
+        time: ClockTime
     ) -> some View {
         fieldRow(labelKey) {
-            TextField("", text: text)
-                .keyboardType(.numbersAndPunctuation)
-                .multilineTextAlignment(.trailing)
+            Button {
+                toggle(field)
+            } label: {
+                Text(DateFormat.displayTime(DateFormat.storageTime(minutesOfDay: time.minutesOfDay)))
+                    .font(.elmsSans(.semiBold, 15))
+                    .foregroundStyle(expandedField == field ? Color.accentColor : Color.ink)
+                    .padding(.horizontal, ScheduleMetrics.CreatePopup.timeHorizontalPadding)
+                    .padding(.vertical, ScheduleMetrics.CreatePopup.timeVerticalPadding)
+                    .raisedSurface(.capsule)
+            }
+            .buttonStyle(.plain)
+        }
+    }
+
+    private func toggle(_ field: TimeField) {
+        withAnimation(.snappy) {
+            expandedField = expandedField == field ? nil : field
         }
     }
 
@@ -96,12 +138,18 @@ struct AddNewSlotBlock: View {
     }
 
     @ViewBuilder
-    private var errorText: some View {
+    private var messageText: some View {
         if let errorMessage = viewModel.errorMessage {
-            Text(errorMessage)
-                .font(.elmsSans(.regular, 13))
-                .foregroundStyle(Color.destructive)
+            message(Text(errorMessage))
+        } else if let issue = viewModel.timeIssue {
+            message(Text(issue.messageKey))
         }
+    }
+
+    private func message(_ text: Text) -> some View {
+        text
+            .font(.elmsSans(.regular, 13))
+            .foregroundStyle(Color.destructive)
     }
 
     private func fieldRow(
@@ -126,15 +174,76 @@ struct AddNewSlotBlock: View {
     }
 }
 
-#Preview {
+#if DEBUG
+#Preview("Free hour") {
     Color.background
         .overlay {
             AddNewSlotBlock(
-                date: .now,
-                startHour: 17,
-                services: SchedulePreviewData.services,
+                context: CreateBlockContext(
+                    date: .now,
+                    startHour: 17,
+                    services: SchedulePreviewData.services,
+                    blocks: SchedulePreviewData.blocks
+                ),
                 blockRepository: FakeBlockRepository(),
                 onDismiss: {}
             )
         }
 }
+
+#Preview("Taken hour") {
+    Color.background
+        .overlay {
+            AddNewSlotBlock(
+                context: CreateBlockContext(
+                    date: .now,
+                    startHour: 10,
+                    services: SchedulePreviewData.services,
+                    blocks: SchedulePreviewData.blocks
+                ),
+                blockRepository: FakeBlockRepository(),
+                onDismiss: {}
+            )
+        }
+}
+
+#Preview("Next block off-grid") {
+    let today = DateFormat.date.string(from: .now)
+    let blocks = [
+        Block(
+            id: "short",
+            date: today,
+            startTime: "10:00",
+            endTime: "10:15",
+            offeredServiceIds: [],
+            bookedServiceId: nil,
+            status: .available,
+            clientId: nil
+        ),
+        Block(
+            id: "off-grid",
+            date: today,
+            startTime: "10:50",
+            endTime: "12:00",
+            offeredServiceIds: [],
+            bookedServiceId: nil,
+            status: .available,
+            clientId: nil
+        )
+    ]
+
+    Color.background
+        .overlay {
+            AddNewSlotBlock(
+                context: CreateBlockContext(
+                    date: .now,
+                    startHour: 10,
+                    services: SchedulePreviewData.services,
+                    blocks: blocks
+                ),
+                blockRepository: FakeBlockRepository(),
+                onDismiss: {}
+            )
+        }
+}
+#endif
