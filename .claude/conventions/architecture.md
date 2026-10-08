@@ -113,6 +113,12 @@
   the clean value from it, not the reverse. Don't reach for a `didSet` on the property either:
   property observers under `@Observable` are a macro-expansion question not worth answering when
   the state can be computed instead (`showsPhoneError` is `hasSubmitted && isPhoneValid == false`).
+  The same goes for **splitting one value across several controls** (hour and minute wheels for a
+  time): don't derive the parts with `Binding(get:set:)`. Model the value as a small struct whose
+  parts are stored properties and bind each control by key path — `TimeWheel` binds
+  `$time.hour`/`$time.minute` on `ClockTime`. A rule tying the parts together (hour 22 → minute
+  `00`) is a `didSet` on that plain struct, which is fine: the `@Observable` caution above is about
+  observers on view model properties, not on a value type stored in one.
 - **A `Task {}` created inside a `View`'s helper method does not inherit `MainActor`.** `Task`
   captures isolation *statically*, from the enclosing declaration — and helper methods on a `View`
   struct are nonisolated (only `body` carries the protocol's `@MainActor`). So anything

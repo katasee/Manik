@@ -1300,6 +1300,47 @@ this file is just "what's done, what's next," not a design doc.
     screen colour, so a theme choice opposite to the device's flashes the other theme at launch;
     `LargeTitleHeader` keeps its 12pt title-row spacing even without a trailing view.
 
+- **PR29 — Slot creation: no overlaps, no double submit** (commits prefixed `M-29`, branch
+  `feature/pr-29-Fix-slot-overlap`): closes the backlog items "Slot creation can overlap an
+  existing block" and "`CreateBlockViewModel.submit()` can double-submit".
+  - **Why it overlapped**: the popup always opened at `HH:00` for an hour, while an hour still
+    offers "+ Додати вільний час" with up to 20 min taken; and the free-typed `HH:mm` fields were
+    never checked against the day's blocks. `firestore.rules` cannot check this (rules can't query
+    other documents), so the check is client-side only.
+  - **Wheels instead of text fields**: hours | minutes `00/15/30/45`, start hours 8–21, end hours
+    8–22 with only `00` at 22. One wheel is expanded at a time, by tapping the time. The free-text
+    parsing (`*Text` + `didSet` + `parseTime`) is gone. A wheel was rejected in PR7 when it was a
+    `UIDatePicker`/`DatePicker`; this one is two plain `Picker(.wheel)`s, which is what allows the
+    15-minute step and the 8–22 range.
+  - **Opening range**: the first free 15-minute mark of the tapped hour (block 10:00–10:15 →
+    10:15); end = +60 min, capped by the next block — rounded *down* to the grid, because legacy
+    blocks may start off it (10:50 → 10:45) — and by 22:00. Moving the start shifts the end by the
+    same amount (user choice, like iOS Calendar), clamped to 08:00–22:00.
+  - **Disabled "Створити" with a hint**: "Цей час уже зайнятий" when the range overlaps any block of
+    the date selected in the popup (touching ends are fine), "Кінець має бути пізніше за початок"
+    when end ≤ start. A Firestore error, if present, wins over the hint. The popup gets **all**
+    blocks via `CreateBlockContext.blocks` because the date can change inside it; it is a snapshot
+    taken on open (accepted: one master, one device).
+  - **One overlap predicate**: `Models/Block/Block+Overlap.swift`, also used by the timeline
+    cascade, which inlined the same formula. `WorkHours` gained `slotStepMinutes`,
+    `openingMinutes`, `closingMinutes`; `DateFormat.storageTime(minutesOfDay:)` writes stored times.
+  - **`ClockTime` instead of `Binding(get:set:)`** (SwiftUI Pro review): the wheels bind by key path
+    to a small value type (`$time.hour` / `$time.minute`); the "22 → `00`" snap is a `didSet` on
+    that plain struct, not on `@Observable` state.
+  - **Double submit**: `guard isSaving == false` first in `submit()`. Reproducible only by calling
+    `create(then:)` twice per tap — a real double tap lands on a button already disabled by
+    `isLoading` one frame later — so this is a cheap guard, not a bug users could hit. The backlog
+    wording ("a fast double tap can create two identical blocks") overstated it.
+  - **Open**: side-by-side wheels may steal each other's drags (`.clipped()` clips drawing, not
+    hit-testing) — needs a device check; fallbacks in order: `.contentShape(.rect)`, fixed
+    per-column width + `.compositingGroup()`, then a `.menu` minutes column (system font — needs a
+    user OK). Deferred minors from the whole-branch review: a stale Firestore error hides the time
+    hint until the next submit; the popup doesn't scroll, so an open wheel (+150pt) can push
+    "Створити" off a small screen with many services; the time buttons' VoiceOver label is only the
+    time, not "Початок"/"Кінець".
+  - Not a bug after all: the old backlog note "deleting a `confirmed` block has no confirmation
+    step" was stale — `ScheduleView` already asks (`schedule.confirm.deleteBooked`).
+
 ## Screens (in order)
 
 This is the actual work queue, and the only numbered list here. The ordering follows the **data
@@ -1414,8 +1455,7 @@ those items are referred to by name, so the list can grow without renumbering an
      reason.
 
 8. **Next up, in order** (user priority, 2026-10-07). Each links to its backlog item by name.
-   1. **Slot overlap + double-submit** — "Slot creation can overlap an existing block" and
-      "`CreateBlockViewModel.submit()` can double-submit", one small PR.
+   1. ~~**Slot overlap + double-submit**~~ — **done** (PR29, under "Done" above).
    2. **Rescheduling** — "Rescheduling a booking" (client, then master confirms; and by the master).
    - Not yet ordered, pick after these two: "Schedule week navigation keeps the weekday…",
      "Show the client's contacts to the master" (then "Master: find a client by Instagram
@@ -1439,8 +1479,8 @@ numbering drifts every time an item is added or closed (it already did once: PR9
   untruth the redaction removes from the screen. `.accessibilityHidden(viewModel.hasLoadedStats ==
   false)` beside the existing modifier covers it without a new catalog key. Worth doing in whichever
   account PR is opened next rather than as a standalone change.
-- **Show the client's contacts to the master** (requested 2026-10-07, queued after the
-  slot-overlap + double-submit fix). Today a client's phone / Instagram / Telegram appear only on
+- **Show the client's contacts to the master** (requested 2026-10-07, not yet ordered —
+  see "Next up"). Today a client's phone / Instagram / Telegram appear only on
   her own «Акаунт»; the master sees them nowhere. Add them to «Заявки» cards and the Schedule's
   `BlockDetailPopup`, each tappable: `tel:` for the phone, `https://instagram.com/<handle>` and
   `https://t.me/<handle>` (universal links — they open the app if installed, Safari otherwise; no
@@ -1663,18 +1703,6 @@ numbering drifts every time an item is added or closed (it already did once: PR9
   - Master-only: the client's calendar is the month grid, `WeekDayStrip` has no other caller.
   Verify on a device: Thu 8 → next week = Mon 12; back to this week = today; swipe = arrows;
   Розклад → Заявки → Розклад = today; closing a popup on another day keeps that day.
-- **Slot creation can overlap an existing block**: since PR8 an hour still offers
-  "+ Додати вільний час" while ≤20 min of it is taken, but `CreateBlockContext` carries only
-  `startHour` (no minutes), so the popup opens at the top of the hour and can produce an
-  overlapping block. Teaching the context minutes touches `AddNewSlotBlock` +
-  `CreateBlockViewModel`. Deleting a `confirmed` block also has no confirmation step.
-- **`CreateBlockViewModel.submit()` can double-submit** (found in PR12's concurrency review,
-  deliberately left out of that PR's scope): it does `guard canSubmit` then `isSaving = true`,
-  but `isSaving` is only set once the `Task` reaches the main actor, so the button is still
-  enabled in between and a fast double tap can create two identical blocks. The fix is the same
-  one-liner PR12 applied to `ServiceFormViewModel` — `guard isSaving == false else { return false }`
-  at the top, which is atomic because the method is `@MainActor` and has no `await` before the
-  assignment.
 - **Swift 6 language mode**: the project builds in Swift 5 mode with `minimal` concurrency
   checking. `AddNewSlotBlock` still constructs a `@MainActor` view model from its nonisolated
   `init` — legal today, an error under Swift 6 until `View` conformance carries main-actor
