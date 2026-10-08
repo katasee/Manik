@@ -33,6 +33,20 @@ enum DateFormat {
         return clockTime.string(from: date)
     }
 
+    static func storageTime(minutesOfDay: Int) -> String {
+        let components = DateComponents(
+            year: 2000,
+            month: 1,
+            day: 1,
+            hour: minutesOfDay / 60,
+            minute: minutesOfDay % 60
+        )
+
+        guard let date = salonCalendar.date(from: components) else { return "" }
+
+        return time.string(from: date)
+    }
+
     static func displayTime(_ storageTime: String) -> String {
         guard let date = time.date(from: storageTime) else { return storageTime }
 

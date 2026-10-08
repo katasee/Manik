@@ -5,62 +5,52 @@ import Observation
 @Observable
 final class CreateBlockViewModel {
     var date: Date
-    var startTime: Date
-    var endTime: Date
-
-    var startTimeText: String {
-        didSet {
-            guard let parsed = Self.parseTime(startTimeText, into: startTime) else { return }
-            startTime = parsed
-        }
-    }
-
-    var endTimeText: String {
-        didSet {
-            guard let parsed = Self.parseTime(endTimeText, into: endTime) else { return }
-            endTime = parsed
-        }
-    }
-
+    var start: ClockTime
+    var end: ClockTime
     var selectedServiceIds: Set<String> = []
     var errorMessage: String?
     var isSaving = false
 
     let services: [Service]
 
+    private let blocks: [Block]
     private let blockRepository: BlockRepository
 
     init(
         date: Date,
         startHour: Int,
         services: [Service],
+        blocks: [Block],
         blockRepository: BlockRepository = FirestoreBlockRepository()
     ) {
         self.date = date
         self.services = services
+        self.blocks = blocks
         self.blockRepository = blockRepository
 
-        let calendar = Self.calendar
-        let start = calendar.date(
-            bySettingHour: startHour,
-            minute: 0,
-            second: 0,
-            of: date
-        ) ?? date
-        self.startTime = start
-        let end = calendar.date(
-            byAdding: .minute,
-            value: WorkHours.defaultSlotDurationMinutes,
-            to: start
-        ) ?? start
-        self.endTime = end
+        let dayBlocks = Self.blocks(on: date, from: blocks)
+        let startMinutes = Self.firstFreeStart(inHour: startHour, among: dayBlocks)
+        self.start = ClockTime(minutesOfDay: startMinutes)
+        self.end = ClockTime(minutesOfDay: Self.defaultEnd(after: startMinutes, among: dayBlocks))
+    }
 
-        self.startTimeText = DateFormat.time.string(from: start)
-        self.endTimeText = DateFormat.time.string(from: end)
+    var timeIssue: TimeIssue? {
+        if end.minutesOfDay <= start.minutesOfDay { return .endBeforeStart }
+
+        let overlaps = dayBlocks.contains { block in
+            block.overlaps(startMinutes: start.minutesOfDay, endMinutes: end.minutesOfDay)
+        }
+
+        return overlaps ? .overlap : nil
     }
 
     var canSubmit: Bool {
-        endTime > startTime && !selectedServiceIds.isEmpty
+        timeIssue == nil && selectedServiceIds.isEmpty == false
+    }
+
+    func startDidChange(from oldValue: ClockTime, to newValue: ClockTime) {
+        let shifted = end.minutesOfDay + newValue.minutesOfDay - oldValue.minutesOfDay
+        end = ClockTime(minutesOfDay: min(max(shifted, WorkHours.openingMinutes), WorkHours.closingMinutes))
     }
 
     func isSelected(_ service: Service) -> Bool {
@@ -78,7 +68,7 @@ final class CreateBlockViewModel {
     }
 
     func submit() async -> Bool {
-        guard canSubmit else { return false }
+        guard isSaving == false, canSubmit else { return false }
 
         isSaving = true
         errorMessage = nil
@@ -87,8 +77,8 @@ final class CreateBlockViewModel {
         let block = Block(
             id: nil,
             date: DateFormat.date.string(from: date),
-            startTime: DateFormat.time.string(from: startTime),
-            endTime: DateFormat.time.string(from: endTime),
+            startTime: DateFormat.storageTime(minutesOfDay: start.minutesOfDay),
+            endTime: DateFormat.storageTime(minutesOfDay: end.minutesOfDay),
             offeredServiceIds: Array(selectedServiceIds),
             bookedServiceId: nil,
             status: .available,
@@ -104,24 +94,37 @@ final class CreateBlockViewModel {
         }
     }
 
-    private static var calendar: Calendar {
-        var calendar = Calendar(identifier: .gregorian)
-        calendar.timeZone = DateFormat.salonTimeZone
-        return calendar
+    private var dayBlocks: [Block] {
+        Self.blocks(on: date, from: blocks)
     }
 
-    private static func parseTime(_ text: String, into date: Date) -> Date? {
-        let parts = text.split(separator: ":")
-        guard parts.count == 2,
-              let hour = Int(parts[0]), (0...23).contains(hour),
-              let minute = Int(parts[1]), (0...59).contains(minute)
-        else { return nil }
+    private static func blocks(on date: Date, from blocks: [Block]) -> [Block] {
+        let day = DateFormat.date.string(from: date)
+        return blocks.filter { $0.date == day }
+    }
 
-        return calendar.date(
-            bySettingHour: hour,
-            minute: minute,
-            second: 0,
-            of: date
+    private static func firstFreeStart(inHour hour: Int, among dayBlocks: [Block]) -> Int {
+        let step = WorkHours.slotStepMinutes
+        let hourStart = hour * 60
+
+        let freeStart = stride(from: hourStart, to: hourStart + 60, by: step).first { candidate in
+            dayBlocks.contains { $0.overlaps(startMinutes: candidate, endMinutes: candidate + step) } == false
+        }
+
+        return freeStart ?? hourStart
+    }
+
+    private static func defaultEnd(after start: Int, among dayBlocks: [Block]) -> Int {
+        let step = WorkHours.slotStepMinutes
+        let nextBlockStart = dayBlocks
+            .map(\.startMinutes)
+            .filter { $0 >= start + step }
+            .min() ?? WorkHours.closingMinutes
+
+        return min(
+            start + WorkHours.defaultSlotDurationMinutes,
+            nextBlockStart / step * step,
+            WorkHours.closingMinutes
         )
     }
 }

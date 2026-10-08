@@ -5,4 +5,5 @@ struct CreateBlockContext: Identifiable {
     let date: Date
     let startHour: Int
     let services: [Service]
+    let blocks: [Block]
 }

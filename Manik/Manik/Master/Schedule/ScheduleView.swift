@@ -59,13 +59,8 @@ struct ScheduleView: View {
         .fullScreenCover(item: $popup) { popup in
             switch popup {
             case .createSlot(let context):
-                AddNewSlotBlock(
-                    date: context.date,
-                    startHour: context.startHour,
-                    services: context.services,
-                    onDismiss: dismissPopup
-                )
-                .presentationBackground(.clear)
+                AddNewSlotBlock(context: context, onDismiss: dismissPopup)
+                    .presentationBackground(.clear)
 
             case .blockDetail(let context):
                 BlockDetailPopup(context: context, onDismiss: dismissPopup)
@@ -96,7 +91,8 @@ struct ScheduleView: View {
                 CreateBlockContext(
                     date: viewModel.selectedDate,
                     startHour: hour,
-                    services: viewModel.offeredServices
+                    services: viewModel.offeredServices,
+                    blocks: viewModel.blocks
                 )
             )
         }

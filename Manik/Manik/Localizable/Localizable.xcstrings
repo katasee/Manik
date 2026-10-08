@@ -1753,6 +1753,22 @@
         }
       }
     },
+    "schedule.createSlot.endBeforeStart" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "End must be after start"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Кінець має бути пізніше за початок"
+          }
+        }
+      }
+    },
     "schedule.createSlot.endLabel" : {
       "localizations" : {
         "en" : {
@@ -1765,6 +1781,54 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Кінець"
+          }
+        }
+      }
+    },
+    "schedule.createSlot.hours" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hours"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Години"
+          }
+        }
+      }
+    },
+    "schedule.createSlot.minutes" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Minutes"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Хвилини"
+          }
+        }
+      }
+    },
+    "schedule.createSlot.overlap" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This time is already taken"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Цей час уже зайнятий"
           }
         }
       }
