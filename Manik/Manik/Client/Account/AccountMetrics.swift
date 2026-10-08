@@ -3,8 +3,8 @@ import CoreGraphics
 enum AccountMetrics {
     enum Size {
         static let cardCornerRadius: CGFloat = 24
-        static let fieldCornerRadius: CGFloat = 12
         static let avatar: CGFloat = 64
+        static let avatarContourWidth: CGFloat = 1
         static let rowIcon: CGFloat = 20
         static let rowHeight: CGFloat = 44
         static let tapTarget: CGFloat = 44
@@ -18,7 +18,6 @@ enum AccountMetrics {
         static let sectionSpacing: CGFloat = 24
         static let cardPadding: CGFloat = 16
         static let actionPadding: CGFloat = 14
-        static let fieldPadding: CGFloat = 12
         static let cardContentSpacing: CGFloat = 4
         static let rowSpacing: CGFloat = 12
         static let cardSpacing: CGFloat = 14
@@ -26,7 +25,8 @@ enum AccountMetrics {
         static let prefixSpacing: CGFloat = 4
     }
 
-    enum Tracking {
-        static let sectionLabel: CGFloat = 1.2
+    enum Opacity {
+        static let avatarContour: Double = 0.06
+        static let avatarShade: Double = 0.07
     }
 }

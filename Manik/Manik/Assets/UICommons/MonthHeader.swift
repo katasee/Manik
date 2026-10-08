@@ -9,11 +9,7 @@ struct MonthHeader: View {
 
     private enum Layout {
         static let spacing: CGFloat = 8
-        static let tapTarget: CGFloat = 44
-        static let circle: CGFloat = 32
-        static let title: CGFloat = 18
-        static let icon: CGFloat = 14
-        static let disabled: Double = 0.3
+        static let title: CGFloat = 17
     }
 
     var body: some View {
@@ -26,7 +22,7 @@ struct MonthHeader: View {
             )
 
             Text(verbatim: title)
-                .font(.elmsSans(.bold, Layout.title))
+                .font(.elmsSans(.semiBold, Layout.title))
                 .foregroundStyle(Color.ink)
                 .frame(maxWidth: .infinity)
 
@@ -45,23 +41,13 @@ struct MonthHeader: View {
         isEnabled: Bool,
         action: @escaping () -> Void
     ) -> some View {
-        Button(action: action) {
-            Label(labelKey, systemImage: systemName)
-                .labelStyle(.iconOnly)
-                .font(.elmsSans(.semiBold, Layout.icon))
-                .foregroundStyle(Color.ink)
-                .frame(width: Layout.tapTarget, height: Layout.tapTarget)
-                .background {
-                    Circle()
-                        .fill(Color.fieldBackground)
-                        .frame(width: Layout.circle, height: Layout.circle)
-                        .cardShadow()
-                }
-                .contentShape(.circle)
-        }
-        .buttonStyle(.plain)
+        RoundIconButton(
+            systemImage: systemName,
+            size: .small,
+            accessibilityLabel: labelKey,
+            action: action
+        )
         .disabled(isEnabled == false)
-        .opacity(isEnabled ? 1 : Layout.disabled)
     }
 }
 

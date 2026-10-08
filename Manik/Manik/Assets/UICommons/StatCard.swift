@@ -2,7 +2,6 @@ import SwiftUI
 
 struct StatCard: View {
     let iconName: String
-    let tint: Color
     let value: String
     var unitKey: LocalizedStringKey?
     let titleKey: LocalizedStringKey
@@ -10,7 +9,7 @@ struct StatCard: View {
     var trend: StatsTrend?
 
     private enum Layout {
-        static let contentSpacing: CGFloat = 8
+        static let contentSpacing: CGFloat = 10
         static let valueSpacing: CGFloat = 4
         static let padding: CGFloat = 16
         static let cornerRadius: CGFloat = 24
@@ -40,7 +39,7 @@ struct StatCard: View {
     }
 
     private var badge: some View {
-        IconBadge(systemName: iconName, tint: tint)
+        IconBadge(systemName: iconName)
     }
 
     private var valueRow: some View {
@@ -77,14 +76,12 @@ struct StatCard: View {
         GridRow {
             StatCard(
                 iconName: "checkmark.circle",
-                tint: Color.statusConfirmed,
                 value: "12",
                 titleKey: "stats.card.visits"
             )
 
             StatCard(
                 iconName: "person.2",
-                tint: Color.statusPending,
                 value: "9",
                 titleKey: "stats.card.clients",
                 trend: StatsTrend(direction: .up, valueLabel: "2")
@@ -94,7 +91,6 @@ struct StatCard: View {
         GridRow {
             StatCard(
                 iconName: "heart",
-                tint: Color.freeSlot,
                 value: "Манікюр + гель-лак",
                 titleKey: "account.stats.favorite",
                 valueLineLimit: 2
@@ -102,7 +98,6 @@ struct StatCard: View {
 
             StatCard(
                 iconName: "clock",
-                tint: Color.statusAvailable,
                 value: "8,5",
                 unitKey: "stats.hours.unit",
                 titleKey: "stats.card.hours"

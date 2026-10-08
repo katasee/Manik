@@ -27,7 +27,7 @@ struct AccountView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            ScreenHeader(titleKey: "account.title")
+            LargeTitleHeader(titleKey: "account.title")
 
             ScrollView {
                 VStack(alignment: .leading, spacing: AccountMetrics.Spacing.sectionSpacing) {
@@ -109,7 +109,7 @@ struct AccountView: View {
 
     private var contacts: some View {
         VStack(alignment: .leading, spacing: AccountMetrics.Spacing.rowSpacing) {
-            sectionLabel("account.section.contacts")
+            SectionLabel(titleKey: "account.section.contacts")
 
             VStack(spacing: 0) {
                 AccountRow(
@@ -139,20 +139,18 @@ struct AccountView: View {
 
     private var stats: some View {
         VStack(alignment: .leading, spacing: AccountMetrics.Spacing.rowSpacing) {
-            sectionLabel("account.section.stats")
+            SectionLabel(titleKey: "account.section.stats")
 
             Grid(horizontalSpacing: AccountMetrics.Spacing.cardSpacing) {
                 GridRow {
                     StatCard(
                         iconName: "checkmark.circle",
-                        tint: Color.statusConfirmed,
                         value: viewModel.stats.visitCount.formatted(),
                         titleKey: "account.stats.visits"
                     )
 
                     StatCard(
                         iconName: "heart",
-                        tint: Color.freeSlot,
                         value: favoriteServiceName,
                         titleKey: "account.stats.favorite",
                         valueLineLimit: 2
@@ -165,14 +163,6 @@ struct AccountView: View {
 
     private var favoriteServiceName: String {
         viewModel.stats.favoriteServiceName ?? String(localized: "account.stats.empty")
-    }
-
-    private func sectionLabel(_ titleKey: LocalizedStringKey) -> some View {
-        Text(titleKey)
-            .font(.elmsSans(.semiBold, 13))
-            .tracking(AccountMetrics.Tracking.sectionLabel)
-            .textCase(.uppercase)
-            .foregroundStyle(Color.textSecondary)
     }
 
     private var actions: some View {

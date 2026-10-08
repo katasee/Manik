@@ -13,10 +13,7 @@ struct MyBookingCard: View {
         .padding([.vertical, .trailing], MyBookingsMetrics.Spacing.cardPadding)
         .padding(.leading, MyBookingsMetrics.Spacing.cardLeadingPadding)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(
-            Color.surface,
-            in: .rect(cornerRadius: MyBookingsMetrics.Size.cardCornerRadius)
-        )
+        .cardSurface(padding: 0, cornerRadius: MyBookingsMetrics.Size.cardCornerRadius)
         .overlay(alignment: .leading) { accent }
     }
 

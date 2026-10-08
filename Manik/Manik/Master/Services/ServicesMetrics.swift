@@ -5,7 +5,6 @@ enum ServicesMetrics {
         static let rowCornerRadius: CGFloat = 24
         static let rowIcon: CGFloat = 36
         static let rowIconGlyph: CGFloat = 15
-        static let rowIconBorder: CGFloat = 1
         static let addButton: CGFloat = 52
         static let addIcon: CGFloat = 20
     }

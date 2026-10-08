@@ -59,7 +59,7 @@ struct AddNewSlotBlock: View {
     }
 
     private var divider: some View {
-        Color.surface
+        Color.hairline
             .frame(height: 1)
     }
 
@@ -77,9 +77,9 @@ struct AddNewSlotBlock: View {
 
             Spacer()
 
-            PopupPrimaryButton(
+            CapsuleButton(
                 titleKey: "schedule.createSlot.create",
-                color: .ink,
+                role: .primary,
                 isLoading: viewModel.isSaving,
                 isEnabled: viewModel.canSubmit,
                 action: { create(then: dismiss) }

@@ -27,10 +27,7 @@ struct ServiceOfferCard: View {
             .padding(BookingMetrics.Spacing.cardPadding)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(
-            Color.surface,
-            in: .rect(cornerRadius: BookingMetrics.Size.cardCornerRadius)
-        )
+        .cardSurface(padding: 0, cornerRadius: BookingMetrics.Size.cardCornerRadius)
     }
 
     private var titleRow: some View {
@@ -88,12 +85,12 @@ struct ServiceOfferCard: View {
     private var chevron: some View {
         Image(systemName: "chevron.right")
             .font(.elmsSans(.bold, BookingMetrics.Size.chevron))
-            .foregroundStyle(Color.background)
+            .foregroundStyle(Color.ink)
             .frame(
                 width: BookingMetrics.Size.chevronButton,
                 height: BookingMetrics.Size.chevronButton
             )
-            .background(Color.ink, in: .circle)
+            .raisedSurface(.circle)
             .allowsHitTesting(false)
     }
 }

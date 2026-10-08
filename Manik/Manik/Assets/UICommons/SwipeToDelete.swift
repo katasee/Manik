@@ -47,7 +47,7 @@ struct SwipeToDelete<Content: View>: View {
                     width: SwipeToDeleteLayout.iconSize,
                     height: SwipeToDeleteLayout.iconSize
                 )
-                .foregroundStyle(Color.fieldBackground)
+                .foregroundStyle(.white)
                 .frame(width: SwipeToDeleteLayout.actionWidth)
                 .frame(maxHeight: .infinity)
                 .contentShape(.rect)
@@ -108,7 +108,7 @@ struct SwipeToDelete<Content: View>: View {
     SwipeToDelete(id: "preview", openId: $openId, cornerRadius: 18, onDelete: {}) {
         Text("Swipe me")
             .frame(maxWidth: .infinity, minHeight: 80)
-            .background(Color.fieldBackground, in: .rect(cornerRadius: 18))
+            .cardSurface(padding: 0, cornerRadius: 18)
     }
     .padding()
     .background(Color.background)

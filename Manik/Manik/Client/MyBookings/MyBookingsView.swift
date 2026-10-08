@@ -10,7 +10,7 @@ struct MyBookingsView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            ScreenHeader(titleKey: "myBookings.title")
+            LargeTitleHeader(titleKey: "myBookings.title")
 
             ScrollView {
                 VStack(alignment: .leading, spacing: MyBookingsMetrics.Spacing.sectionSpacing) {

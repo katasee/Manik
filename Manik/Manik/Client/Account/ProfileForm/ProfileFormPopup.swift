@@ -138,9 +138,9 @@ struct ProfileFormPopup: View {
 
             Spacer()
 
-            PopupPrimaryButton(
+            CapsuleButton(
                 titleKey: "account.form.submit",
-                color: .ink,
+                role: .primary,
                 isLoading: viewModel.isSaving,
                 isEnabled: viewModel.canSubmit,
                 action: { save(then: dismiss) }

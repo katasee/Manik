@@ -20,10 +20,10 @@ enum BlockAction: String, Identifiable {
         }
     }
 
-    var iconName: String {
+    var iconName: String? {
         switch self {
         case .confirm: "checkmark"
-        case .decline, .cancelBooking: "xmark"
+        case .decline, .cancelBooking: nil
         }
     }
 

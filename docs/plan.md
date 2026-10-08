@@ -1205,6 +1205,69 @@ this file is just "what's done, what's next," not a design doc.
     accent appearing on Dark Mode devices, the booking stack and the previews all came from those
     reviews).
 
+- **M-27 — Light redesign foundation (branch `feature/pr27-Redesign`, 9 tasks)**: the design
+  system of the canvas's "Новий дизайн" page, applied app-wide; screen layouts are still the old
+  ones until M-28…M-32. Spec: `docs/superpowers/specs/2026-10-05-light-redesign-design.md`.
+  - **Tokens**: `Background` is white, `Ink` `#0A0A0B`, `TextSecondary` `#6E6E73`, `Destructive`
+    `#C42F2F`; the three `Status*` colours are now the pill's *text* colour. New: `Card`,
+    `Hairline`, `Stroke`, `TextTertiary`, `StatusPendingFill`, `StatusConfirmedFill`. Deleted:
+    `Surface`, `FieldBackground`, `Badge` (unused — the system `TabView` draws the badge).
+  - **Surfaces are three modifiers**: `.cardSurface` (contour + two soft shadows; `padding: 0` for
+    cards that pad themselves asymmetrically), `.raisedSurface(shape)` (chips, round buttons,
+    fields, tiles) and `.insetSurface(shape)` (outlined summary boxes, the Auth segment track — a
+    small addition to the spec). Shadows moved onto the surface's background shape, so card text no
+    longer casts its own shadow. This closes the old "two card surfaces" backlog item.
+  - **Components**: `CapsuleButton` (`.primary`/`.secondary`/`.destructive`, 50pt, optional
+    `systemImage`, `fillsWidth`) replaces `PopupPrimaryButton` and `CardActionButton`;
+    `BlockAction.iconName` is optional so only "Підтвердити" carries the ✓. New
+    `RoundIconButton` (44/36pt, dims itself from `\.isEnabled`), `LargeTitleHeader`,
+    `SectionLabel`, `.inputFieldStyle()`. Restyled: `BlockStatusPill` (tinted, with a dot),
+    `ScreenHeader` (navbar with a round back button; `onBack` now required), `MonthHeader`,
+    `WeekDayStrip`, `DashedSlot`, `PopupContainer` (ink 22% scrim, 28pt sheet), `IconBadge`
+    (monochrome — `tint` is gone from it, `StatCard` and `StatsLinkRow`), `StatsTrendLabel`.
+  - **Root tabs on `LargeTitleHeader` already**: Заявки, Статистика, Мої записи, Акаунт moved in
+    M-27, because `ScreenHeader` became a 17pt navbar and their headings would otherwise have shrunk
+    until their screen PR. Schedule and Booking draw their own headers (M-29/M-31).
+  - **Popups keep two close shapes on purpose**: ✕ only on the informational `BlockDetailPopup`,
+    a bottom text button paired with the primary action on the four form popups — the artboards
+    draw exactly this, which settles the old "popups disagree" backlog item.
+  - **Week strip trade-off, for M-29 to decide**: `WeekDayStrip` kept its 32pt prev/next chevrons
+    (the artboard has none) because they are the only non-gesture way to change week; the cost is
+    that seven flexible day cells come out ≈40pt wide on a 390pt screen and the chevrons are 32pt —
+    both under the 44pt minimum, as before M-27. Options: 44pt chevrons with narrower cells, or no
+    chevrons plus `accessibilityAdjustableAction` on the strip.
+  - Reviewed with the SwiftUI Pro skill at plan stage; of its five findings three were applied
+    (pill fill + stroke chain instead of an `if` overlay, the field-tap note, the week-strip note)
+    and two were deliberately not (an `accessibilityLabel` on `CapsuleButton` while loading, `Label`
+    instead of `Image` in `RoundIconButton`).
+  - **Device-pass follow-ups** (commit `M-27 small fixes` + review fixes, 2026-10-06), decided
+    screen by screen from device screenshots:
+    - **Auth mode switch → footer link.** Five variants were compared on an HTML artifact; the black
+      segment lost because it stacked a second black capsule over the submit button. `ModeSwitcher`
+      is deleted; `ModeSwapPrompt` sits under the button ("Немає акаунта? **Зареєструватися**" /
+      "Вже є акаунт? **Увійти**"). New keys `auth.swap.noAccount`/`auth.swap.haveAccount`;
+      `auth.mode.signUp` removed as unused. A system `Picker(.segmented)` (Liquid Glass on iOS 26)
+      was tried first and reverted — glass on a white page has nothing to refract.
+    - **Wine accent**: `Wine` `#7D2E3E` and `WineSoft` `#F6E9EC`, explored on a Claude Design
+      canvas. Applied by name, in small doses: the auth link, `IconBadge` (wine glyph on a flat
+      `WineSoft` tile — Stats and Account), the expected-revenue amount, today's number in
+      `WeekDayStrip`. **The tab bar stays ink** (user decision), so `AccentColor` stays `#0A0A0B`.
+      Canvas-only ideas not built: client initials on request cards, a "Сьогодні" button, a
+      current-time line, a dot after the wordmark, a focus ring on fields.
+    - **Nothing readable as an object is flat**: both popup summaries moved from `.insetSurface` to
+      `.cardSurface`, and `.insetSurface` was deleted. `SlotChip` is a white `.raisedSurface`
+      (selected = ink + `brandShadow`, as an explicit `if`/`else`); the chip row uses
+      `.scrollClipDisabled()` so shadows aren't clipped (an inner/outer padding variant was tried
+      after review and reverted by the user). The offer chevron is a white raised circle instead of ink. The
+      Account avatar is a top-lit raised circle (`Card` → ink 7% gradient, card shadow, contour).
+    - `Background` became Display P3 (0.990, 1, 1).
+    - Tried and reverted: a backdrop blur behind popups, and a wine `MeshGradient` page background.
+    - Reviewed with SwiftUI Pro: `SlotChip`'s stacked layers, `ProfileCard`'s literal `1` and
+      `Hairline`-as-fill were fixed; the clip stays. **Open**: `ModeSwapPrompt`'s `HStack` cannot
+      wrap, so a long translation or large text truncates — `ViewThatFits` (HStack → VStack).
+    - Still ink on purpose, for a later call: the "+" circle in Мої послуги is the last ink round
+      button.
+
 ## Screens (in order)
 
 This is the actual work queue, and the only numbered list here. The ordering follows the **data
@@ -1308,6 +1371,18 @@ those items are referred to by name, so the list can grow without renumbering an
      password check *after* the bookings were cancelled and the profile deleted, so a mistyped
      password would have destroyed both and still left the account alive.
 
+7. **Light redesign** ("Новий дизайн" on the canvas; spec
+   `docs/superpowers/specs/2026-10-05-light-redesign-design.md`). Layout follows the artboards, data
+   stays as it is; the dark theme is a separate backlog item.
+   - ~~**M-27 — foundation**~~ — **done**, see "Done" above.
+   - **M-28 — Auth**. The mode switch is already done (footer link, see the M-27 follow-ups);
+     what's left is the rest of the artboard (wordmark 44, subtitle 17).
+   - **M-29 — Schedule**: Розклад, new slot popup, block detail popup (also decides the week strip
+     trade-off recorded in M-27).
+   - **M-30 — Master rest**: Заявки, Статистика, Мої послуги, service form popup.
+   - **M-31 — Booking**: Запис, Оберіть дату, booking confirmation popup.
+   - **M-32 — Client rest**: Мої записи, cancel popup, Акаунт.
+
 ## Backlog and tech debt (unordered)
 
 Not a queue. These accumulate as they're found and get picked up when they block a screen, or when
@@ -1315,13 +1390,6 @@ something nearby is already being touched. **No numbers on purpose** — cite th
 numbering drifts every time an item is added or closed (it already did once: PR9's entry pointed at
 "step 9" for what was item 10).
 
-- **Two card surfaces in one app** (created by M-22, made visible by M-23). `.cardSurface` fills
-  with `FieldBackground` (near-white) and adds `cardShadow`; the older idiom is a hand-written
-  `.background(Color.surface, in: .rect(cornerRadius:))` (mid-grey, no shadow). The master's stats
-  and the whole client account screen use the former; `MyBookingCard`, `ServiceOfferCard`,
-  `ConfirmBar`, `RequestCard`, `SlotChip` and the popups still use the latter. Converging them is
-  one deliberate pass across those files — migrating screens one at a time is what makes the app
-  look inconsistent in the meantime, so it should be done in a single change or not at all.
 - **Three accessibility items left open on the account screen** (two from M-23's review, one from
   M-24's). None blocks a PR, all are one line each: the contact rows' SF Symbols are announced by
   VoiceOver ("phone. Телефон. +48 600 123 456") and want `.accessibilityHidden(true)`, since the
@@ -1432,21 +1500,16 @@ numbering drifts every time an item is added or closed (it already did once: PR9
     verification ever needs repeating; it would also mean adopting the Firebase CLI, which this
     project deliberately does not have. Not scoped — noted so the next person doesn't rediscover the
     cost from scratch.
-- **Popups disagree on how you close them** (created by M-20, 2026-08-22, deliberately not fixed
-  there). `BlockDetailPopup` now closes via a small `xmark` in its header; the other four —
-  `AddNewSlotBlock`, `ServiceFormPopup`, `BookingConfirmPopup`, `CancelBookingPopup` — still carry a
-  text button at the bottom (`PopupDismissButton`, labelled "Скасувати" / "Скасувати" / "Скасувати" /
-  "Назад"). All five also dismiss on a backdrop tap, so this is about the visible affordance, not
-  reachability.
-  - Left as an exception on purpose: folding four more screens across both cabinets into M-20 would
-    have made its name ("Block detail popup restyle") false, which is the mistake M-20 itself was
-    carved out of PR19 to avoid.
-  - If it gets unified, the close control belongs in `PopupContainer` rather than copy-pasted five
-    times — the container already owns the backdrop and its `dismissLabel` (currently only an
-    accessibility label for the backdrop button), so it is the natural home. Note the four remaining
-    popups are **forms**, where a bottom "Скасувати" sits next to a primary action and reads as a
-    deliberate pair; `BlockDetailPopup` is the only one that is purely informational. That may be a
-    reason to keep two shapes rather than one — decide before doing the work, not during.
+- **Duration on offer cards and booking confirmation** (raised by the light redesign). The
+  artboards show "1 год" on the client's offer cards and in the confirmation popup; `Service` has
+  no duration field since PR11. A slot's length is derivable from its block, but that is new
+  presentation logic, not styling, so the redesign does not build it.
+- **Popup scrim blur** (dropped from the light redesign). The artboards blur the backdrop by 3px;
+  on iOS 18 that means a `Material` with its own tint, and 3px is barely visible.
+- **Input fields focus only on their text line** (found in M-27's SwiftUI Pro review).
+  `.inputFieldStyle()` pads 15/16pt around a `TextField`/`SecureField`, which hit-tests only its
+  text frame, so tapping the padding does nothing. Predates M-27 (it was the same with 12pt). A fix
+  needs a `FocusState`-aware field, which changes the modifier's API.
 - **Deleting a block rewrites past revenue** (created by M-22). The master can swipe away a completed
   `confirmed` block in the Schedule, and last month's reported income changes retroactively with no
   trace. Same shape as the existing "deleting a `confirmed` block has no confirmation step" item, and
@@ -1468,7 +1531,8 @@ numbering drifts every time an item is added or closed (it already did once: PR9
   remove the light lock and add `#D7ADB5` as `AccentColor`'s dark appearance (universal stays
   `#0A0A0B`) — never before, since `#D7ADB5` is ~1.5:1 on the light background. The wine fill
   `#6B3442` is a button/chip colour there, not the accent. `PopupContainer`'s bare `Rectangle()`
-  backdrop (PR9 review, see Housekeeping) belongs to the same pass.
+  backdrop (PR9 review, see Housekeeping) belongs to the same pass. So do dark appearances for
+  `Wine`/`WineSoft` (added after M-27), which today exist only for the light theme.
 - **Accessibility debt (found in PR8 review, deliberately not fixed there)**:
   - `Font.elmsSans(_:_:)` calls `Font.custom(_:size:)` **without `relativeTo:`**, so Dynamic Type
     is effectively off app-wide. Adding it is one line, but the schedule also needs `@ScaledMetric`

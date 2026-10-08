@@ -50,12 +50,19 @@
   `Manik/Manik/Assets/UICommons/` (e.g. `WeekDayStrip`, `DashedSlot`, `View+BrandShadow`, the
   `ElmsSans` font extension), not in a feature folder, and must not depend on any feature's types
   (e.g. a feature's `*Metrics`) — give it its own private constants or take them as parameters.
+  Those constants are a `private enum Layout` **nested inside the component's struct** — the
+  pattern of every non-generic component there (`CapsuleButton`, `WeekDayStrip`,
+  `LargeTitleHeader`, …). It moves to file scope as `private enum <Name>Layout` only when nesting
+  is impossible: a generic type (below) or a bare `View` extension with no struct to nest in
+  (`View+InputField`). `PopupContainerLayout` is file-scope *and* internal because callers reuse
+  its `fade`.
   **When several cards repeat themselves, extract the chrome, not the card.** Cards that differ in
   structure — centred vs leading, a row with a chevron, one of them a `NavigationLink` — stay
   separate views; folding them into one configurable card trades short honest files for a chain of
   `if`s behind a growing set of flags. What is genuinely shared is the surface: padding, fill,
   corner radius, shadow. That lives in `.cardSurface(fill:padding:cornerRadius:fillsHeight:)`, and
-  the repeated tinted glyph in `IconBadge`. Note `fillsHeight`: the frame that equalizes heights in
+  the repeated glyph tile in `IconBadge` (wine glyph on `WineSoft`; see the wine accent in
+  `code-style.md`). Note `fillsHeight`: the frame that equalizes heights in
   a `GridRow` must sit *between* the padding and the background, which a caller cannot reproduce
   from outside, so the modifier branches internally instead of exposing the order.
   A feature folder holds only that feature's View, view model, feature-private model, subviews, and

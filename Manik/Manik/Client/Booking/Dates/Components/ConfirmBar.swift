@@ -36,10 +36,9 @@ struct ConfirmBar: View {
             }
             .buttonStyle(.plain)
         }
-        .padding(BookingMetrics.Spacing.cardPadding)
-        .background(
-            Color.surface,
-            in: .rect(cornerRadius: BookingMetrics.Size.cardCornerRadius)
+        .cardSurface(
+            padding: BookingMetrics.Spacing.cardPadding,
+            cornerRadius: BookingMetrics.Size.cardCornerRadius
         )
     }
 }

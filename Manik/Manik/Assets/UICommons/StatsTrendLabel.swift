@@ -38,7 +38,7 @@ struct StatsTrendLabel: View {
     }
 
     private var color: Color {
-        trend.direction == .up ? Color.freeSlot : Color.destructive
+        trend.direction == .up ? Color.statusConfirmed : Color.destructive
     }
 
     var body: some View {
@@ -47,7 +47,7 @@ struct StatsTrendLabel: View {
                 .font(.elmsSans(.bold, 11))
 
             Text(verbatim: trend.valueLabel)
-                .font(.elmsSans(.bold, 13))
+                .font(.elmsSans(.semiBold, 13))
 
             Text("stats.trend.previousMonth")
                 .font(.elmsSans(.regular, 13))

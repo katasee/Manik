@@ -12,7 +12,6 @@ enum BookingMetrics {
         static let chipCornerRadius: CGFloat = 14
         static let chipHeight: CGFloat = 44
         static let chipMinWidth: CGFloat = 72
-        static let chipBorderWidth: CGFloat = 1
         static let dayCell: CGFloat = 44
         static let daySelection: CGFloat = 34
         static let dayUnderlineWidth: CGFloat = 20
@@ -51,6 +50,5 @@ enum BookingMetrics {
         static let headerPill: Double = 0.12
         static let headerGreeting: Double = 0.7
         static let outsideMonth: Double = 0.3
-        static let chipBorder: Double = 0.18
     }
 }

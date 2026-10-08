@@ -16,10 +16,7 @@ struct ServiceRow: View {
         .padding(.horizontal, ServicesMetrics.Spacing.rowHorizontalPadding)
         .padding(.vertical, ServicesMetrics.Spacing.rowVerticalPadding)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(
-            Color.fieldBackground,
-            in: .rect(cornerRadius: ServicesMetrics.Size.rowCornerRadius)
-        )
+        .cardSurface(padding: 0, cornerRadius: ServicesMetrics.Size.rowCornerRadius)
     }
 
     private var icon: some View {
@@ -31,10 +28,7 @@ struct ServiceRow: View {
                     width: ServicesMetrics.Size.rowIcon,
                     height: ServicesMetrics.Size.rowIcon
                 )
-                .overlay {
-                    Circle()
-                        .strokeBorder(Color.surface, lineWidth: ServicesMetrics.Size.rowIconBorder)
-                }
+                .raisedSurface(.circle)
                 .contentShape(.circle)
         }
         .buttonStyle(.plain)
