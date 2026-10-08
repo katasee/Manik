@@ -114,6 +114,7 @@ struct MyServicesView: View {
             }
             .padding(.horizontal, ServicesMetrics.Spacing.horizontalPadding)
             .padding(.top, ServicesMetrics.Spacing.listTopPadding)
+            .padding(.bottom, ServicesMetrics.Spacing.listBottomPadding)
         }
         .overlay {
             ListStatusOverlay(

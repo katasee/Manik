@@ -56,3 +56,14 @@ two Swift files in `Manik/Assets/Font/` and are registered by hand in `Info.plis
 `UIAppFonts` — adding a new weight means dropping the `.ttf` in that folder *and* adding its
 filename to `UIAppFonts`, or `Font.custom` silently falls back to the system font with no warning
 or crash.
+
+The one exception is **tab bar labels**: they are drawn by the system `TabView`, which renders them in
+the system font; don't try to force ElmsSans onto them through `UITabBarAppearance`.
+
+**Colour scheme and accent.** The app is locked to light (`INFOPLIST_KEY_UIUserInterfaceStyle =
+Light`) because no colorset has a dark variant yet. The accent — selected tab, alert buttons,
+text-field carets — comes only from the `AccentColor` asset (`#0A0A0B`, the light redesign's ink);
+don't set the accent or the tab selection colour with `.tint` in code (a local `.tint` on a
+spinner or a button, as `ListStatusOverlay` and `PopupPrimaryButton` do, is fine). The dark theme ("Темне вино") will remove the lock and give
+`AccentColor` a dark appearance (`#D7ADB5`) in the same change — never ship that dark value while
+the app is light-only, it is ~1.5:1 on the light background.

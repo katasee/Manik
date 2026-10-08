@@ -3,25 +3,23 @@ import SwiftUI
 struct BookingView: View {
     @State private var viewModel: BookingViewModel
     @State private var confirmContext: BookingConfirmContext?
+    @State private var path: [ServiceOffer] = []
 
     let clientName: String
-    let bottomClearance: CGFloat
     let onBooked: () -> Void
 
     init(
         viewModel: BookingViewModel,
         clientName: String,
-        bottomClearance: CGFloat,
         onBooked: @escaping () -> Void
     ) {
         _viewModel = State(initialValue: viewModel)
         self.clientName = clientName
-        self.bottomClearance = bottomClearance
         self.onBooked = onBooked
     }
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $path) {
             GeometryReader { proxy in
                 ScrollView {
                     VStack(spacing: 0) {
@@ -50,11 +48,7 @@ struct BookingView: View {
             .background(Color.background)
             .toolbar(.hidden, for: .navigationBar)
             .navigationDestination(for: ServiceOffer.self) { offer in
-                BookingDatesView(
-                    viewModel: viewModel.makeDatesViewModel(for: offer),
-                    bottomClearance: bottomClearance,
-                    onBooked: onBooked
-                )
+                BookingDatesView(viewModel: viewModel.makeDatesViewModel(for: offer), onBooked: finishBooking)
             }
             .fullScreenCover(item: $confirmContext) { context in
                 BookingConfirmPopup(
@@ -106,7 +100,7 @@ struct BookingView: View {
         }
         .padding(.horizontal, BookingMetrics.Spacing.horizontalPadding)
         .padding(.top, BookingMetrics.Spacing.listTopPadding)
-        .bottomClearance(bottomClearance)
+        .padding(.bottom, BookingMetrics.Spacing.listBottomPadding)
     }
 
     private func presentConfirm(offer: ServiceOffer, slot: BookingSlot) {
@@ -125,6 +119,11 @@ struct BookingView: View {
         dismissConfirm()
         onBooked()
     }
+
+    private func finishBooking() {
+        path.removeAll()
+        onBooked()
+    }
 }
 
 #if DEBUG
@@ -136,7 +135,6 @@ struct BookingView: View {
             serviceRepository: FakeServiceRepository(services: BookingPreviewData.services)
         ),
         clientName: "Олена",
-        bottomClearance: 0,
         onBooked: {}
     )
 }
@@ -149,7 +147,6 @@ struct BookingView: View {
             serviceRepository: FakeServiceRepository(services: BookingPreviewData.services)
         ),
         clientName: "Олена",
-        bottomClearance: 0,
         onBooked: {}
     )
 }

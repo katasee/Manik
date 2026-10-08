@@ -24,6 +24,7 @@ struct RequestsView: View {
                 }
                 .padding(.horizontal, RequestsMetrics.Spacing.horizontalPadding)
                 .padding(.top, RequestsMetrics.Spacing.listTopPadding)
+                .padding(.bottom, RequestsMetrics.Spacing.listBottomPadding)
             }
             .scrollIndicators(.hidden)
         }
@@ -40,49 +41,55 @@ struct RequestsView: View {
         .alert("requests.error.generic", isPresented: $viewModel.hasFailed) {
             Button("common.action.ok", role: .cancel) {}
         }
-        .task {
-            await viewModel.observeBlocks()
-        }
-        .task {
-            await viewModel.refreshRequests()
-        }
     }
 }
 
 #if DEBUG
 #Preview("Заявки") {
-    RequestsView(
-        viewModel: RequestsViewModel(
-            blockRepository: FakeBlockRepository(blocks: RequestsPreviewData.blocks),
-            userRepository: FakeUserRepository(profiles: RequestsPreviewData.profiles)
-        )
+    let viewModel = RequestsViewModel(
+        blockRepository: FakeBlockRepository(blocks: RequestsPreviewData.blocks),
+        userRepository: FakeUserRepository(profiles: RequestsPreviewData.profiles)
     )
+
+    return RequestsView(viewModel: viewModel)
+        .task {
+            await viewModel.observeBlocks()
+        }
 }
 
 #Preview("Порожньо") {
-    RequestsView(
-        viewModel: RequestsViewModel(
-            blockRepository: FakeBlockRepository(blocks: []),
-            userRepository: FakeUserRepository(profiles: RequestsPreviewData.profiles)
-        )
+    let viewModel = RequestsViewModel(
+        blockRepository: FakeBlockRepository(blocks: []),
+        userRepository: FakeUserRepository(profiles: RequestsPreviewData.profiles)
     )
+
+    return RequestsView(viewModel: viewModel)
+        .task {
+            await viewModel.observeBlocks()
+        }
 }
 
 #Preview("Профіль не читається") {
-    RequestsView(
-        viewModel: RequestsViewModel(
-            blockRepository: FakeBlockRepository(blocks: RequestsPreviewData.unreadableClient),
-            userRepository: FakeUserRepository(profiles: RequestsPreviewData.profiles)
-        )
+    let viewModel = RequestsViewModel(
+        blockRepository: FakeBlockRepository(blocks: RequestsPreviewData.unreadableClient),
+        userRepository: FakeUserRepository(profiles: RequestsPreviewData.profiles)
     )
+
+    return RequestsView(viewModel: viewModel)
+        .task {
+            await viewModel.observeBlocks()
+        }
 }
 
 #Preview("Помилка дії") {
-    RequestsView(
-        viewModel: RequestsViewModel(
-            blockRepository: FailingBlockRepository(blocks: RequestsPreviewData.blocks),
-            userRepository: FakeUserRepository(profiles: RequestsPreviewData.profiles)
-        )
+    let viewModel = RequestsViewModel(
+        blockRepository: FailingBlockRepository(blocks: RequestsPreviewData.blocks),
+        userRepository: FakeUserRepository(profiles: RequestsPreviewData.profiles)
     )
+
+    return RequestsView(viewModel: viewModel)
+        .task {
+            await viewModel.observeBlocks()
+        }
 }
 #endif

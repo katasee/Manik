@@ -20,6 +20,7 @@ struct MyBookingsView: View {
                 }
                 .padding(.horizontal, MyBookingsMetrics.Spacing.horizontalPadding)
                 .padding(.top, MyBookingsMetrics.Spacing.listTopPadding)
+                .padding(.bottom, MyBookingsMetrics.Spacing.listBottomPadding)
             }
             .scrollIndicators(.hidden)
         }
