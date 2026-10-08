@@ -94,7 +94,7 @@ struct AuthView: View {
             Group {
                 if viewModel.isLoading {
                     ProgressView()
-                        .tint(.white)
+                        .tint(Color.onPrimary)
                 } else if viewModel.mode == .signIn {
                     Text("auth.mode.signIn")
                         .font(.elmsSans(.bold, AuthMetrics.FontSize.submitLabel))
@@ -107,8 +107,8 @@ struct AuthView: View {
             .padding(.vertical, AuthMetrics.Spacing.submitVerticalPadding)
         }
         .buttonStyle(.plain)
-        .foregroundStyle(.white)
-        .background(Color.ink, in: .capsule)
+        .foregroundStyle(Color.onPrimary)
+        .background(Color.primaryFill, in: .capsule)
         .brandShadow()
         .disabled(viewModel.isLoading || !viewModel.canSubmit)
         .opacity(viewModel.isLoading || !viewModel.canSubmit ? AuthMetrics.disabledOpacity : 1)

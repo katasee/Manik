@@ -7,7 +7,7 @@ struct SlotChip: View {
     var body: some View {
         Text(slot.timeLabel)
             .font(.elmsSans(.bold, 15))
-            .foregroundStyle(isSelected ? Color.background : Color.ink)
+            .foregroundStyle(isSelected ? Color.onPrimary : Color.ink)
             .lineLimit(1)
             .padding(.horizontal, BookingMetrics.Spacing.chipPadding)
             .frame(
@@ -17,7 +17,7 @@ struct SlotChip: View {
             .background {
                 if isSelected {
                     Capsule()
-                        .fill(Color.ink)
+                        .fill(Color.primaryFill)
                         .brandShadow()
                 } else {
                     Color.clear

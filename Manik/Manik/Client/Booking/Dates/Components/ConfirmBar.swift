@@ -25,11 +25,11 @@ struct ConfirmBar: View {
             Button(action: action) {
                 Text("booking.action.continue")
                     .font(.elmsSans(.bold, 15))
-                    .foregroundStyle(Color.background)
+                    .foregroundStyle(Color.onPrimary)
                     .padding(.horizontal, BookingMetrics.Spacing.headerPadding)
                     .frame(minHeight: BookingMetrics.Size.chipHeight)
                     .background(
-                        Color.ink,
+                        Color.primaryFill,
                         in: .rect(cornerRadius: BookingMetrics.Size.chipCornerRadius)
                     )
                     .contentShape(.rect)

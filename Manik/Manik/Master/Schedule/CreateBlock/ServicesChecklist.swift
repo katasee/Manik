@@ -16,7 +16,12 @@ struct ServicesChecklist: View {
                             .font(.elmsSans(.regular, 15))
                         Spacer()
                         Image(systemName: isSelected(service) ? "checkmark.circle.fill" : "circle")
-                            .font(.system(size: 24))
+                            .font(.elmsSans(.regular, 24))
+                            .symbolRenderingMode(.palette)
+                            .foregroundStyle(
+                                isSelected(service) ? Color.onPrimary : Color.ink,
+                                isSelected(service) ? Color.primaryFill : Color.ink
+                            )
                     }
                     .frame(minHeight: 44)
                 }

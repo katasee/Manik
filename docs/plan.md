@@ -1207,7 +1207,7 @@ this file is just "what's done, what's next," not a design doc.
 
 - **M-27 — Light redesign foundation (branch `feature/pr27-Redesign`, 9 tasks)**: the design
   system of the canvas's "Новий дизайн" page, applied app-wide; screen layouts are still the old
-  ones until M-28…M-32. Spec: `docs/superpowers/specs/2026-10-05-light-redesign-design.md`.
+  ones until M-28…M-32 (later dropped, see "Screens"). Spec: `docs/superpowers/specs/2026-10-05-light-redesign-design.md`.
   - **Tokens**: `Background` is white, `Ink` `#0A0A0B`, `TextSecondary` `#6E6E73`, `Destructive`
     `#C42F2F`; the three `Status*` colours are now the pill's *text* colour. New: `Card`,
     `Hairline`, `Stroke`, `TextTertiary`, `StatusPendingFill`, `StatusConfirmedFill`. Deleted:
@@ -1267,6 +1267,38 @@ this file is just "what's done, what's next," not a design doc.
       wrap, so a long translation or large text truncates — `ViewThatFits` (HStack → VStack).
     - Still ink on purpose, for a later call: the "+" circle in Мої послуги is the last ink round
       button.
+
+- **PR28 — Dark theme ("Темне вино") + appearance switcher** (commits prefixed `M-28`; the M-28
+  Auth screen milestone it would have collided with was dropped).
+  - **Palette**: every colorset has a dark appearance from the canvas page "Темний + темне вино"
+    (`manik3-dark.css` + `manik3-merlot.css`): page `#0B080B`, card `#1F1A1F`, raised `#2C252C`,
+    secondary text `#9C939B`, wine fill `#6B3442`, accent `#D7ADB5`, statuses from the base dark
+    page. The light theme is pixel-identical except unavailable calendar days, which moved from
+    `TextSecondary` to `TextTertiary` to match both canvas pages (user decision).
+  - **Role tokens**: `Ink` was text, selected fill, shadow and backdrop at once, which cannot work
+    in two themes. It is now text and glyphs only; the other roles got `PrimaryFill`/`OnPrimary`,
+    `Raised`, `DestructiveFill`, `Shadow`, `Backdrop`, `HeaderFill` (booking header: ink in light,
+    card tone in dark) and `Highlight`. `Primary` was avoided as a name because the generated
+    `Color.primary` collides with SwiftUI's. The table lives in `code-style.md`.
+  - **Depth in dark**: black shadows vanish on the near-black page, so after a device pass the
+    surfaces got a top rim and a top-down sheen tinted with `Highlight` (clear in light).
+  - **Switcher**: `AppAppearance` (System / Light / Dark) in `@AppStorage("appearance")`, applied by
+    `.preferredColorScheme` on `RootView`, so it also covers Auth and survives sign-out. The light
+    lock `INFOPLIST_KEY_UIUserInterfaceStyle` is gone. A round button next to the "Акаунт" and
+    "Статистика" titles (new trailing slot in `LargeTitleHeader`) opens `AppearancePopup` — three
+    rows, applies on tap, stays open.
+  - **Tab bar**: the selected tab is `.tint(Color.ink)` (white in dark). Wine `#6B3442` and the
+    canvas's `#D7ADB5` were both tried on a device and rejected. Tab content is re-tinted with the
+    accent so the tint doesn't reach carets and pickers.
+  - Deliberate canvas deviations: fields on `Raised` (a card-tone field vanishes in a card-tone
+    popup), the "Вільно" pill keeps its outline, the booking header stays (the per-screen
+    layout milestones were dropped), the
+    free-day dot stays green, the unchecked checklist circle is `Ink`.
+  - Fixed on the way: `AccountRow`'s hard-coded `.black` icon (black on black in dark) and the PR9
+    bare-`Rectangle()` popup backdrop.
+  - Reviewed with SwiftUI Pro (plan) and a whole-branch review. **Open, low impact**: no launch
+    screen colour, so a theme choice opposite to the device's flashes the other theme at launch;
+    `LargeTitleHeader` keeps its 12pt title-row spacing even without a trailing view.
 
 ## Screens (in order)
 
@@ -1373,15 +1405,21 @@ those items are referred to by name, so the list can grow without renumbering an
 
 7. **Light redesign** ("Новий дизайн" on the canvas; spec
    `docs/superpowers/specs/2026-10-05-light-redesign-design.md`). Layout follows the artboards, data
-   stays as it is; the dark theme is a separate backlog item.
+   stays as it is; the dark theme shipped separately in PR28 (see "Done").
    - ~~**M-27 — foundation**~~ — **done**, see "Done" above.
-   - **M-28 — Auth**. The mode switch is already done (footer link, see the M-27 follow-ups);
-     what's left is the rest of the artboard (wordmark 44, subtitle 17).
-   - **M-29 — Schedule**: Розклад, new slot popup, block detail popup (also decides the week strip
-     trade-off recorded in M-27).
-   - **M-30 — Master rest**: Заявки, Статистика, Мої послуги, service form popup.
-   - **M-31 — Booking**: Запис, Оберіть дату, booking confirmation popup.
-   - **M-32 — Client rest**: Мої записи, cancel popup, Акаунт.
+   - ~~**M-28…M-32 — per-screen layouts**~~ — **dropped** (user decision, 2026-10-07): after M-27
+     and the dark theme the screens are close enough to the artboards; no further layout work is
+     planned. The remaining canvas differences (e.g. the booking screen still has `BookingHeader`
+     where the artboard has a large title) are accepted. Reopen screen by screen only on a product
+     reason.
+
+8. **Next up, in order** (user priority, 2026-10-07). Each links to its backlog item by name.
+   1. **Slot overlap + double-submit** — "Slot creation can overlap an existing block" and
+      "`CreateBlockViewModel.submit()` can double-submit", one small PR.
+   2. **Rescheduling** — "Rescheduling a booking" (client, then master confirms; and by the master).
+   - Not yet ordered, pick after these two: "Schedule week navigation keeps the weekday…",
+     "Show the client's contacts to the master" (then "Master: find a client by Instagram
+     handle", which reuses it), "Booking reminders for the client".
 
 ## Backlog and tech debt (unordered)
 
@@ -1401,6 +1439,64 @@ numbering drifts every time an item is added or closed (it already did once: PR9
   untruth the redaction removes from the screen. `.accessibilityHidden(viewModel.hasLoadedStats ==
   false)` beside the existing modifier covers it without a new catalog key. Worth doing in whichever
   account PR is opened next rather than as a standalone change.
+- **Show the client's contacts to the master** (requested 2026-10-07, queued after the
+  slot-overlap + double-submit fix). Today a client's phone / Instagram / Telegram appear only on
+  her own «Акаунт»; the master sees them nowhere. Add them to «Заявки» cards and the Schedule's
+  `BlockDetailPopup`, each tappable: `tel:` for the phone, `https://instagram.com/<handle>` and
+  `https://t.me/<handle>` (universal links — they open the app if installed, Safari otherwise; no
+  `LSApplicationQueriesSchemes` needed). Rules already let the master read `users/{uid}`, so no
+  deploy. Build a URL only from a valid handle (letters, digits, `.`, `_`; the stored value already
+  has `@` stripped) and fall back to plain text otherwise. `RequestsViewModel` already fetches
+  client names per `clientId` (`fetchNames`) — extend that rather than adding a second lookup.
+- **Booking reminders for the client** (requested 2026-10-07; approach undecided). The MVP spec
+  lists push notifications and reminders as out of scope, so picking this up changes scope — update
+  the spec's out-of-scope list in the same PR. Two approaches were weighed:
+  - **Local notifications** (`UNUserNotificationCenter`, no server). The client's app schedules
+    "tomorrow at 10:00 — <service>" when it sees her booking and removes it when the booking goes
+    away. No APNs key, no paid plan, app-only code. Weakness: the app learns of changes only while
+    it runs, so a booking the master confirms or cancels while the app stays closed leaves a missing
+    or stale reminder. Mitigations: schedule already at `pending`, and reconcile all reminders on
+    every launch / foreground. Recommended as the first step for a single salon.
+  - **Real push** (FCM + scheduled Cloud Functions). Always reflects the current booking state, and
+    the same pipe would carry "your booking was confirmed" and the master's "new request". Costs:
+    an APNs key, the Firebase Blaze plan, server code (TypeScript), stored FCM tokens per user, and
+    adopting the Firebase CLI the project deliberately avoids (rules are deployed by hand today).
+  - Still to decide either way: when to remind (day before / a few hours before / both), and
+    whether the client can turn it off.
+- **Rescheduling a booking** (requested 2026-10-07). Today there is none: blocks have only
+  confirm / decline / cancel, and the rules pin `date`/`startTime`/`endTime` for the client. The
+  workaround is cancel + book again. In this model a reschedule never edits a block's time — it
+  **moves the booking from one block to another free block** in a single Firestore transaction:
+  the old block goes back to `available`, the new one is booked with the same service snapshot
+  (`bookedServiceId`/`Name`/`Price`).
+  - **By the client** — "Перенести" on an upcoming booking in «Мої записи», then the existing
+    date/slot picker. The new booking lands in `pending`, so **the master confirms it again**
+    (user requirement). No rules change: each half of the transaction is already allowed on its
+    own (`isClientCanceling()` on the old block, `isClientBooking()` on the new one). Decide what
+    the master sees in «Заявки» — a plain new request, or one marked "перенесено з <old slot>"
+    (the latter needs a field on `Block`, optional per `data-layer.md`).
+  - **By the master** — "Перенести на…" in `BlockDetailPopup`, picking a free block. The master's
+    writes are unrestricted by the rules. Open question: does the moved booking stay `confirmed`
+    (the master chose it) or go back to `pending` for the client's consent? The user asked only
+    that the master can do it, so `confirmed` is the working assumption. The client learns about it
+    only when she opens the app — with no pushes, consider a visible "перенесено" marker on her
+    booking card; this ties into the booking-reminders item.
+  - Both paths must handle the target block being taken mid-transaction (the transaction fails;
+    show the same "time taken" message as booking, and keep the old booking intact).
+- **Master: find a client by Instagram handle** (requested 2026-10-07). The master has no client
+  list today — she meets clients only through their bookings. Wanted: type a handle, get the
+  **client card + her bookings** (user choice over a plain filter or a bare client list).
+  - **Card**: name and tappable contacts (shares the UI of the "Show the client's contacts to the
+    master" item — build that first, then reuse it here), upcoming and past bookings for her
+    `clientId` from the blocks the master already observes.
+  - **Data**: no rules change — `allow read: if isMaster() || …` on `users/{uid}` also covers a
+    list query by the master. For one salon the simplest search is to read the `role == "client"`
+    profiles once and filter on device with `localizedStandardContains`, which also gives prefix
+    and partial matches; a Firestore range query would need a normalized field. Instagram handles
+    are case-insensitive but stored as typed (only `@` is stripped), so compare lowercased.
+  - **Open**: where the entry point lives — a fourth master tab («Клієнтки»), or a search field on
+    an existing screen (the master's tabs are Розклад / Заявки / Статистика). Whether search also
+    matches name and phone, which is nearly free once the profiles are loaded.
 - **Changing the email address is not offered.** The account screen (M-23) shows `email` read-only.
   Firebase requires verifying the new address before it takes effect, so `users/{uid}.email` and the
   Auth record can disagree for an unbounded window, and the UI has nowhere to show that pending
@@ -1523,16 +1619,6 @@ numbering drifts every time an item is added or closed (it already did once: PR9
   makes it noticeable. Deliberately not pre-optimized.
 - **"Забули пароль?"**: decide tappable-stub vs. real `sendPasswordReset` flow, then implement.
   (Was tracked as a task in a now-disconnected MCP tool — re-track here instead.)
-- **Dark theme ("Темне вино")**: the app is pinned to light since M-26
-  (`INFOPLIST_KEY_UIUserInterfaceStyle = Light`), which fixed the "typed text invisible in dark
-  mode" bug found after PR12 — every colorset has a single appearance, while `TextField`/
-  `DatePicker` fall back to `Color.primary`, which flips. The real fix is a design task: dark
-  variants for all colorsets, following the canvas's "Темне вино" page. That same change must
-  remove the light lock and add `#D7ADB5` as `AccentColor`'s dark appearance (universal stays
-  `#0A0A0B`) — never before, since `#D7ADB5` is ~1.5:1 on the light background. The wine fill
-  `#6B3442` is a button/chip colour there, not the accent. `PopupContainer`'s bare `Rectangle()`
-  backdrop (PR9 review, see Housekeeping) belongs to the same pass. So do dark appearances for
-  `Wine`/`WineSoft` (added after M-27), which today exist only for the light theme.
 - **Accessibility debt (found in PR8 review, deliberately not fixed there)**:
   - `Font.elmsSans(_:_:)` calls `Font.custom(_:size:)` **without `relativeTo:`**, so Dynamic Type
     is effectively off app-wide. Adding it is one line, but the schedule also needs `@ScaledMetric`
@@ -1563,6 +1649,20 @@ numbering drifts every time an item is added or closed (it already did once: PR9
     and a "Відхилити" button, so a queue of requests reads to VoiceOver as several identically
     labelled pairs with no way to tell which request each belongs to. Fix is an `accessibilityLabel`
     naming the client and the slot on both buttons. Declined in PR19 by the same precedent.
+- **Schedule week navigation keeps the weekday instead of landing sensibly** (reported 2026-10-07).
+  `WeekDayStrip.shiftWeek` adds ±7 days to the selected date (`WeekDayStrip.swift:45`), so Thursday
+  the 8th becomes Thursday the 15th; and since tabs keep their state, returning to «Розклад» keeps
+  whatever day was last selected. Wanted:
+  - switching week (arrows and swipe alike) lands on the **first day of the week**, or on **today**
+    when the target week contains it — one static rule in `WeekDayStrip`, e.g.
+    `landingDate(forWeekStarting:today:)`;
+  - **switching back to the «Розклад» tab resets to today**. Do it in `MasterRootView` with
+    `.onChange(of: selectedTab)` calling a `ScheduleViewModel.showToday()`, not with `.onAppear` in
+    `ScheduleView` — `onAppear` can also fire when a slot / block popup closes, which would yank the
+    master off the day she is working on. Re-tapping the already active tab doesn't reset.
+  - Master-only: the client's calendar is the month grid, `WeekDayStrip` has no other caller.
+  Verify on a device: Thu 8 → next week = Mon 12; back to this week = today; swipe = arrows;
+  Розклад → Заявки → Розклад = today; closing a popup on another day keeps that day.
 - **Slot creation can overlap an existing block**: since PR8 an hour still offers
   "+ Додати вільний час" while ≤20 min of it is taken, but `CreateBlockContext` carries only
   `startHour` (no minutes), so the popup opens at the top of the hour and can produce an
@@ -1711,8 +1811,9 @@ numbering drifts every time an item is added or closed (it already did once: PR9
 - **Three PR9 review findings were reviewed and declined** — don't re-raise them: popup buttons'
   44pt tap target (modifiers sit outside the `Button`), `PopupContainer`'s bare `Rectangle()`
   backdrop in dark mode, and `BlockDetailPopup`'s default `FirestoreBlockRepository()` reaching
-  live Firestore from `ScheduleView`'s preview. **The dark-mode one has since been reopened** —
-  device testing after PR12 showed the same root cause makes typed text invisible — see the dark-mode item in the backlog.
+  live Firestore from `ScheduleView`'s preview. **The dark-mode one was reopened** (device testing
+  after PR12 showed the same root cause makes typed text invisible) **and fixed in PR28**: the
+  backdrop is the `Backdrop` token and every colorset has a dark appearance.
 - **Two PR11 review findings were reviewed and declined** — don't re-raise them:
   - `swiftui-pro`: `.accessibilityAddTraits(.isHeader)` on the add-service popup title.
   - `swift-concurrency-pro`: `FakeServiceRepository` has a genuine race — the synchronous

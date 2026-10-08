@@ -29,7 +29,7 @@ struct CapsuleButton: View {
     }
 
     private var labelColor: Color {
-        role == .secondary ? Color.ink : Color.white
+        role == .secondary ? Color.ink : Color.onPrimary
     }
 
     private var isDisabled: Bool {
@@ -76,16 +76,16 @@ struct CapsuleButton: View {
         switch role {
         case .primary:
             Capsule()
-                .fill(Color.ink)
+                .fill(Color.primaryFill)
                 .brandShadow(isDisabled == false)
         case .secondary:
             Color.clear
                 .raisedSurface(.capsule)
         case .destructive:
             Capsule()
-                .fill(Color.destructive)
+                .fill(Color.destructiveFill)
                 .shadow(
-                    color: Color.destructive.opacity(isDisabled ? 0 : Layout.destructiveShadowOpacity),
+                    color: Color.destructiveFill.opacity(isDisabled ? 0 : Layout.destructiveShadowOpacity),
                     radius: Layout.destructiveShadowRadius,
                     x: 0,
                     y: Layout.destructiveShadowY

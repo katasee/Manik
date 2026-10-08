@@ -2,6 +2,7 @@ import SwiftUI
 
 struct RootView: View {
     @State private var viewModel = RootViewModel()
+    @AppStorage(AppAppearance.storageKey) private var appearance: AppAppearance = .system
 
     var body: some View {
         Group {
@@ -36,6 +37,7 @@ struct RootView: View {
                 }
             }
         }
+        .preferredColorScheme(appearance.colorScheme)
         .task {
             await viewModel.refresh()
         }

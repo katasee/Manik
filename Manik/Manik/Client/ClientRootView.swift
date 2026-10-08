@@ -39,25 +39,29 @@ struct ClientRootView: View {
                     systemImage: tab.systemImage,
                     value: tab
                 ) {
-                    switch tab {
-                    case .booking:
-                        BookingView(
-                            viewModel: bookingViewModel,
-                            clientName: profile.name,
-                            onBooked: showMyBookings
-                        )
-                    case .myBookings:
-                        MyBookingsView(viewModel: myBookingsViewModel)
-                    case .account:
-                        AccountView(
-                            viewModel: accountViewModel,
-                            onSignOut: onSignOut,
-                            onAccountDeleted: onAccountDeleted
-                        )
+                    Group {
+                        switch tab {
+                        case .booking:
+                            BookingView(
+                                viewModel: bookingViewModel,
+                                clientName: profile.name,
+                                onBooked: showMyBookings
+                            )
+                        case .myBookings:
+                            MyBookingsView(viewModel: myBookingsViewModel)
+                        case .account:
+                            AccountView(
+                                viewModel: accountViewModel,
+                                onSignOut: onSignOut,
+                                onAccountDeleted: onAccountDeleted
+                            )
+                        }
                     }
+                    .tint(Color.accentColor)
                 }
             }
         }
+        .tint(Color.ink)
     }
 
     private func showMyBookings() {

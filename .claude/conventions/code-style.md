@@ -37,16 +37,21 @@ in the light theme, so a bare `.background(Color.card, …)` is invisible. Use o
 modifiers from `Assets/UICommons/`: `.cardSurface(padding:cornerRadius:)` for cards and boxes —
 popup summaries included (contour + two soft shadows; pass `padding: 0` when the card pads itself
 asymmetrically) — and `.raisedSurface(shape)` for small raised controls (unselected chips, round
-buttons, fields). **Nothing a user reads as an object is flat**: a flat outlined box
+buttons, fields; filled with `Raised`). In dark the shadows (tinted with `Shadow`, black there)
+vanish on the near-black page, so depth comes from tone (`Card` `#1F1A1F` and `Raised` `#2C252C`
+on `Background` `#0B080B`) plus a top rim and a soft top-down sheen tinted with `Highlight` —
+clear in light, white in dark, so the light theme is untouched. Both modifiers draw it; don't add
+`colorScheme` branches to get depth. **Nothing a user reads as an object is flat**: a flat outlined box
 (`.insetSurface`) existed in M-27 and was removed after a device pass, because a summary plate that
 does not lift reads as a hole in the popup. The deliberately flat exceptions are markers, not
 objects: the dashed free slot, the "today" outline in `WeekDayStrip`, the "Вільно" pill outline.
-A raised control that can be *selected* swaps its surface for an ink fill with `.brandShadow()`
-(`SlotChip`, the selected day); write that as an explicit `if`/`else` in `.background`, not as an
-ink layer stacked over a raised one. `Hairline` is for dividers and outlines only — never a fill
-(the avatar's shading is `Ink` at low opacity instead) — and `Stroke` is for the dashed free slot
-and unchecked checks. Shadows sit on the surface's background shape, never on the whole content —
-`.shadow` on a view with children shadows each child. A horizontal `ScrollView` of raised chips
+A raised control that can be *selected* swaps its surface for a `PrimaryFill` fill with
+`.brandShadow()` (`SlotChip`, the selected day); write that as an explicit `if`/`else` in
+`.background`, not as a fill stacked over a raised one. `Hairline` is for dividers and outlines
+only — never a fill (the avatar's shading is a `Raised` → `Shadow` gradient instead) — and
+`Stroke` is for the dashed free slot (the unchecked `ServicesChecklist` circle is `Ink`, kept from
+before the dark theme so light stays unchanged). Shadows sit on the surface's background shape,
+never on the whole content — `.shadow` on a view with children shadows each child. A horizontal `ScrollView` of raised chips
 clips their shadows; the chip row uses `.scrollClipDisabled()` (scrolled chips may then paint into
 the screen gutters — accepted).
 
@@ -71,19 +76,40 @@ or crash.
 The one exception is **tab bar labels**: they are drawn by the system `TabView`, which renders them in
 the system font; don't try to force ElmsSans onto them through `UITabBarAppearance`.
 
-**Colour scheme and accent.** The app is locked to light (`INFOPLIST_KEY_UIUserInterfaceStyle =
-Light`) because no colorset has a dark variant yet. The accent — selected tab, alert buttons,
-text-field carets — comes only from the `AccentColor` asset (`#0A0A0B`, the light redesign's ink);
-don't set the accent or the tab selection colour with `.tint` in code (a local `.tint` on a
-spinner or a button, as `ListStatusOverlay` and `CapsuleButton` do, is fine). The dark theme ("Темне вино") will remove the lock and give
-`AccentColor` a dark appearance (`#D7ADB5`) in the same change — never ship that dark value while
-the app is light-only, it is ~1.5:1 on the light background.
+**Colour scheme and roles.** The app has a light and a dark theme ("Темне вино", the canvas page
+"Темний + темне вино"); every colorset carries both appearances. The user picks System / Light /
+Dark in a popup (`Appearance/`); the choice is `AppAppearance` in `@AppStorage("appearance")`,
+applied once with `.preferredColorScheme` on `RootView`. There is no light lock any more — don't
+reintroduce `INFOPLIST_KEY_UIUserInterfaceStyle`, and don't branch on `colorScheme` in views: a
+colour that differs between themes is a colorset, not an `if`.
 
-**The wine accent is a separate token, not the accent colour.** `Wine` (`#7D2E3E`, 9:1 on white)
-and `WineSoft` (`#F6E9EC`, the tile under it; wine on it is 7.7:1) are the light half of "Темне
-вино", applied *by name* in small doses: the auth swap link, `IconBadge` (wine glyph on a flat
-`WineSoft` tile), the expected-revenue amount, today's number in `WeekDayStrip`. `AccentColor`
-stays ink on purpose — it drives the selected tab, and the tab bar and its badge are explicitly
-kept out of the wine (user decision), so routing wine through `AccentColor` would recolour the tab
-bar. Primary buttons, the selected day, status colours and destructive red don't change either.
+Each token has **one role**, because one colour cannot serve two roles in both themes (that is
+what broke when `Ink` was text *and* fill *and* shadow):
+
+| Token | Role | Light / dark |
+|---|---|---|
+| `Ink` | text and glyphs only | `#0A0A0B` / `#FFFFFF` |
+| `PrimaryFill` / `OnPrimary` | primary button and every selected fill / text on it | `#0A0A0B` / `#6B3442`; white |
+| `Raised` | `.raisedSurface` fill, avatar | `#FFFFFF` / `#2C252C` |
+| `Destructive` / `DestructiveFill` | destructive text / destructive fill | `#C42F2F`; `#FF6961` / `#D93A3A` |
+| `Shadow` | every shadow | `#0A0A0B` / `#000000` |
+| `Backdrop` | popup backdrop | ink 22% / black 55% |
+| `Highlight` | surface rim and sheen | clear / white |
+| `HeaderFill` | `BookingHeader` block | `#0A0A0B` / `#1F1A1F` (card tone) |
+
+Never name a colorset after an existing SwiftUI `Color` member — the generated symbol collides
+(`Primary` would be `Color.primary`, hence `PrimaryFill`).
+
+**Accent and tab bar.** `AccentColor` is `#0A0A0B` / `#D7ADB5`; it drives carets, alert buttons,
+pickers and the `RoundIconButton` glyph. The selected **tab** is deliberately *not* the accent:
+both `TabView`s are `.tint(Color.ink)` (black / white, user decision after a device pass — wine
+`#6B3442` on the dark glass bar was ~1.7:1), and each tab's content is re-tinted
+`.tint(Color.accentColor)` so the tab tint does not leak into carets and pickers. That pair of
+`.tint`s is the one sanctioned exception to "no global tint in code"; a local `.tint` on a spinner
+or a button (`ListStatusOverlay`, `CapsuleButton`) is fine as before.
+
+**The wine marks are a separate token, not the accent.** `Wine` (`#7D2E3E` / `#D7ADB5`) and
+`WineSoft` (`#F6E9EC` / `#2C252C`, the tile under it) are applied *by name* in small doses: the auth
+swap link, `IconBadge` (wine glyph on a flat `WineSoft` tile), the expected-revenue amount,
+today's number in `WeekDayStrip`. In dark the wine *fill* `#6B3442` is `PrimaryFill`, not `Wine`.
 Wine marks; it never replaces ink.

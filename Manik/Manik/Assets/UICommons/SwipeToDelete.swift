@@ -27,7 +27,7 @@ struct SwipeToDelete<Content: View>: View {
                 .simultaneousGesture(dragGesture)
         }
         .background(
-            Color.destructive.opacity(isRevealed ? 1 : 0),
+            Color.destructiveFill.opacity(isRevealed ? 1 : 0),
             in: .rect(cornerRadius: cornerRadius)
         )
         .clipShape(.rect(cornerRadius: cornerRadius))
@@ -47,7 +47,7 @@ struct SwipeToDelete<Content: View>: View {
                     width: SwipeToDeleteLayout.iconSize,
                     height: SwipeToDeleteLayout.iconSize
                 )
-                .foregroundStyle(.white)
+                .foregroundStyle(Color.onPrimary)
                 .frame(width: SwipeToDeleteLayout.actionWidth)
                 .frame(maxHeight: .infinity)
                 .contentShape(.rect)

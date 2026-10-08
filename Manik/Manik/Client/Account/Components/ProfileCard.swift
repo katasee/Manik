@@ -33,7 +33,7 @@ struct ProfileCard: View {
         Circle()
             .fill(
                 LinearGradient(
-                    colors: [Color.card, Color.ink.opacity(AccountMetrics.Opacity.avatarShade)],
+                    colors: [Color.raised, Color.shadow.opacity(AccountMetrics.Opacity.avatarShade)],
                     startPoint: .top,
                     endPoint: .bottom
                 )
