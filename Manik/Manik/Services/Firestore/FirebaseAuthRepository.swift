@@ -25,6 +25,9 @@ final class FirebaseAuthRepository: AuthRepository {
         try await db.collection("users")
             .document(result.user.uid)
             .setData(encoded)
+
+        Auth.auth().useAppLanguage()
+        try? await result.user.sendEmailVerification()
     }
 
     func signIn(email: String, password: String) async throws {

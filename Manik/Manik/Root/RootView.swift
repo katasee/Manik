@@ -21,6 +21,13 @@ struct RootView: View {
                         await viewModel.refresh()
                     }
                 }
+            case .awaitingVerification(let email):
+                VerifyEmailView(
+                    viewModel: VerifyEmailViewModel(email: email),
+                    onVerified: { await viewModel.refresh() },
+                    onSignOut: viewModel.signOut
+                )
+                .id(email)
             case .signedIn(let profile):
                 MasterRootView(onSignOut: viewModel.signOut)
                     .id(profile.uid)
