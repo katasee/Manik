@@ -14,7 +14,6 @@ final class FirebaseAuthRepository: AuthRepository {
         let result = try await Auth.auth().createUser(withEmail: email, password: password)
         let profile = UserProfile(
             uid: result.user.uid,
-            role: .client,
             name: name,
             email: email
         )
@@ -40,63 +39,5 @@ final class FirebaseAuthRepository: AuthRepository {
         guard snapshot.exists else { throw AccountError.profileNotFound }
 
         return try snapshot.data(as: UserProfile.self)
-    }
-
-    func reauthenticate(password: String) async throws {
-        let user = try currentUser()
-
-        guard let email = user.email else { throw AccountError.generic }
-
-        let credential = EmailAuthProvider.credential(withEmail: email, password: password)
-
-        do {
-            _ = try await user.reauthenticate(with: credential)
-        } catch {
-            throw Self.accountError(from: error)
-        }
-    }
-
-    func updatePassword(to newPassword: String) async throws {
-        let user = try currentUser()
-
-        do {
-            try await user.updatePassword(to: newPassword)
-        } catch {
-            throw Self.accountError(from: error)
-        }
-    }
-
-    func deleteAccount() async throws {
-        let user = try currentUser()
-
-        do {
-            try await user.delete()
-        } catch {
-            throw Self.accountError(from: error)
-        }
-    }
-
-    private func currentUser() throws -> User {
-        guard let user = Auth.auth().currentUser else { throw AccountError.requiresRecentLogin }
-
-        return user
-    }
-
-    private static func accountError(from error: Error) -> AccountError {
-        let error = error as NSError
-
-        guard error.domain == AuthErrors.domain,
-              let code = AuthErrorCode(rawValue: error.code) else { return .generic }
-
-        switch code {
-        case .wrongPassword, .invalidCredential, .userMismatch:
-            return .wrongPassword
-        case .weakPassword:
-            return .weakPassword
-        case .requiresRecentLogin:
-            return .requiresRecentLogin
-        default:
-            return .generic
-        }
     }
 }

@@ -53,24 +53,6 @@ final class FakeBlockRepository: BlockRepository {
         }
     }
 
-    func book(
-        blockId: String,
-        clientId: String,
-        service: BookedService
-    ) async throws {
-        guard blocks.first(where: { $0.id == blockId })?.status == .available else {
-            throw BookingError.slotUnavailable
-        }
-
-        update(blockId) {
-            $0.status = .pending
-            $0.clientId = clientId
-            $0.bookedServiceId = service.id
-            $0.bookedServiceName = service.name
-            $0.bookedServicePrice = service.price
-        }
-    }
-
     private func update(_ blockId: String, _ change: (inout Block) -> Void) {
         guard let index = blocks.firstIndex(where: { $0.id == blockId }) else { return }
 

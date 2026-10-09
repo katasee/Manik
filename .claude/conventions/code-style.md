@@ -19,10 +19,10 @@ line, even though `VStack.init` genuinely takes three parameters and the closure
 (`content:`). Counting it would split every stack, `Button(action:)` and `ForEach` in the app,
 which is not what the rest of the code does — the whole of `Auth/`, `Master/Schedule/` and
 `Assets/UICommons/` writes these on one line, and the handful of split ones that had accumulated in
-`Client/Booking/` were normalized back to match.
+`Client/Booking/` (removed in M-30) were normalized back to match.
 
 One agreed exception: **literal fixture arrays inside `#if DEBUG` preview data may stay packed**
-(`BookingPreviewData.swift`, `ServicesPreviewData.swift`). A column of `Service(...)` / `block(...)`
+(`ServicesPreviewData.swift`, `SchedulePreviewData.swift`). A column of `Service(...)` / `block(...)`
 calls reads as a table, which is the point of the file, and none of it ships. The exception is for
 fixture *literals* only — production code and preview *views* follow the normal rule.
 
@@ -46,13 +46,13 @@ clear in light, white in dark, so the light theme is untouched. Both modifiers d
 does not lift reads as a hole in the popup. The deliberately flat exceptions are markers, not
 objects: the dashed free slot, the "today" outline in `WeekDayStrip`, the "Вільно" pill outline.
 A raised control that can be *selected* swaps its surface for a `PrimaryFill` fill with
-`.brandShadow()` (`SlotChip`, the selected day); write that as an explicit `if`/`else` in
+`.brandShadow()` (the selected day in `WeekDayStrip`); write that as an explicit `if`/`else` in
 `.background`, not as a fill stacked over a raised one. `Hairline` is for dividers and outlines
-only — never a fill (the avatar's shading is a `Raised` → `Shadow` gradient instead) — and
+only — never a fill (the client avatar, removed in M-30, shaded with a `Raised` → `Shadow` gradient instead) — and
 `Stroke` is for the dashed free slot (the unchecked `ServicesChecklist` circle is `Ink`, kept from
 before the dark theme so light stays unchanged). Shadows sit on the surface's background shape,
 never on the whole content — `.shadow` on a view with children shadows each child. A horizontal `ScrollView` of raised chips
-clips their shadows; the chip row uses `.scrollClipDisabled()` (scrolled chips may then paint into
+clips their shadows; the client booking chip row (removed in M-30) used `.scrollClipDisabled()` (scrolled chips may then paint into
 the screen gutters — accepted).
 
 User-facing strings never sit as bare literals in a View — they go in
@@ -90,19 +90,19 @@ what broke when `Ink` was text *and* fill *and* shadow):
 |---|---|---|
 | `Ink` | text and glyphs only | `#0A0A0B` / `#FFFFFF` |
 | `PrimaryFill` / `OnPrimary` | primary button and every selected fill / text on it | `#0A0A0B` / `#6B3442`; white |
-| `Raised` | `.raisedSurface` fill, avatar | `#FFFFFF` / `#2C252C` |
+| `Raised` | `.raisedSurface` fill | `#FFFFFF` / `#2C252C` |
 | `Destructive` / `DestructiveFill` | destructive text / destructive fill | `#C42F2F`; `#FF6961` / `#D93A3A` |
 | `Shadow` | every shadow | `#0A0A0B` / `#000000` |
 | `Backdrop` | popup backdrop | ink 22% / black 55% |
 | `Highlight` | surface rim and sheen | clear / white |
-| `HeaderFill` | `BookingHeader` block | `#0A0A0B` / `#1F1A1F` (card tone) |
+| `HeaderFill` | `BookingHeader` block — unused since M-30 removed it | `#0A0A0B` / `#1F1A1F` (card tone) |
 
 Never name a colorset after an existing SwiftUI `Color` member — the generated symbol collides
 (`Primary` would be `Color.primary`, hence `PrimaryFill`).
 
 **Accent and tab bar.** `AccentColor` is `#0A0A0B` / `#D7ADB5`; it drives carets, alert buttons,
 pickers and the `RoundIconButton` glyph. The selected **tab** is deliberately *not* the accent:
-both `TabView`s are `.tint(Color.ink)` (black / white, user decision after a device pass — wine
+the `TabView` is `.tint(Color.ink)` (black / white, user decision after a device pass — wine
 `#6B3442` on the dark glass bar was ~1.7:1), and each tab's content is re-tinted
 `.tint(Color.accentColor)` so the tab tint does not leak into carets and pickers. That pair of
 `.tint`s is the one sanctioned exception to "no global tint in code"; a local `.tint` on a spinner

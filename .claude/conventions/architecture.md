@@ -10,15 +10,17 @@
   `AuthView.swift` and `AuthViewModel.swift` together, rather than spreading them across generic
   top-level `Views/`/`ViewModels` folders. A model only lives inside a feature folder if it's
   genuinely private to that feature; anything referenced from more than one feature belongs in
-  `Manik/Manik/Models/` instead — that's where `UserProfile`, `Service`, and `Block` live, since all
-  three get read from both the master and client cabinets (e.g. a client's name shown in the
-  master's requests list), not just from the screen that created them. `Models/` is the **domain
+  `Manik/Manik/Models/` instead — that's where `Service` and `Block` live, since each is read
+  by more than one feature (`Service` by Мої послуги and the Schedule's slot popup; `Block` by the
+  Schedule and Статистика), not just by the screen that created it — and `UserProfile`, the
+  account model `Root/` reads. `Models/` is the **domain
   layer** — the M of MVVM — not "files that contain a struct": it also holds derived properties of
   domain types (`Block/Block+Minutes.swift`, `Block/Block+StartDate.swift`) and domain
   configuration with no fields at all (`WorkHours.swift`). **A domain rule that two features must
   agree on lives here too, even when it is one line.** `Block/Block+Completed.swift`
   (`isCompleted(now:)` — `confirmed` and already ended) is read by both the master's
-  `StatsCalculator` and the client's `AccountStats`; it started as a private helper inside the
+  `StatsCalculator` and the client's `AccountStats` (the client cabinet, removed in M-30 — the
+  extraction rule stands); it started as a private helper inside the
   former and was extracted the moment the latter needed the same answer. Two copies that happen to
   agree today is not the same thing as one predicate that cannot disagree — and the design doc for
   the second consumer had in fact already drifted to a different definition before the extraction
@@ -34,7 +36,7 @@
   is supporting type first, the file's namesake second. This is not a licence to pile unrelated
   types together: the test is whether the type would ever be referenced without its host, and a
   three-line enum that only feeds one `navigationDestination` would not. A feature also owns
-  **presentation models** — `BookingSlot`, `ServiceOffer`, `MonthlyStats` — built from a persistence
+  **presentation models** — `MonthlyStats`, `ScheduledBlock` — built from a persistence
   model and never written back. They carry ready-made
   display strings so views never touch `DateFormat` or a raw stored value, and they keep persistence
   fields the screen has no business with (`status`, `clientId`) out of reach of the view.
@@ -74,45 +76,43 @@
   **file scope**, not nested inside the struct — Swift forbids static stored properties in types
   nested within generic types, and moving them "tidily" inside breaks the build.
 - Screen-covering popups are presented by the feature that owns them, via `.fullScreenCover` +
-  `.presentationBackground(.clear)` — **not** by hoisting state into `MasterRootView`/
-  `ClientRootView` so a shared `ZStack` can draw them above the tab bar. Presentation modifiers
+  `.presentationBackground(.clear)` — **not** by hoisting state into `MasterRootView`
+  so a shared `ZStack` can draw them above the tab bar. Presentation modifiers
   render outside the view hierarchy, so the tab bar stops being a reason to leak feature types into
   the router. To keep a custom fade instead of the system slide-up, wrap the *state mutation* in a
   `Transaction` with `disablesAnimations = true` and animate inside the popup; never put
   `.transaction { }` on the modifier, which disables animations for the whole subtree.
-- **The routers are a system `TabView`** (`Tab(_:systemImage:value:)` over `MasterTab`/`ClientTab`),
+- **The routers are a system `TabView`** (`Tab(_:systemImage:value:)` over `MasterTab`),
   which renders Liquid Glass on iOS 26 and the standard bar on 18 from the same code, with no
   `#available`. It owns the bottom safe area, including inside a screen's own `NavigationStack`, so
   screens take no clearance parameter. The inset stops scroll content *at* the bar's top edge, not
   above it, so every scrolling tab screen ends its content with its own bottom padding from its
   metrics file (`contentBottomPadding`/`listBottomPadding`, 24pt) — without it the last row sits
-  flush against the glass (found on a device: Account's "Видалити акаунт"). Two consequences of
+  flush against the glass (found on a device: the old client Account screen's "Видалити акаунт"). Two consequences of
   the system bar: **tabs keep their state across switches**, so a flow that hands off to another tab
-  must reset its own navigation path first (`BookingView` owns `path: [ServiceOffer]` and clears it
-  in `finishBooking()` before `onBooked()` switches to "Мої записи"); and **a tab's `.task`s run
+  must reset its own navigation path first (the client booking flow, removed in M-30, cleared its
+  `path` in `finishBooking()` before switching to "Мої записи"); and **a tab's `.task`s run
   only while it is on screen** — they don't start for a tab never opened and are cancelled when the
   user switches away — so a subscription that feeds a tab badge starts in the router, not in the
-  tab's screen — `MasterRootView` runs `RequestsViewModel.observeBlocks()`/`refreshRequests()` and
-  `RequestsView` only renders the shared view model (its previews start `observeBlocks()`
-  themselves). The selected-tab colour is `.tint(Color.ink)` on the `TabView`,
+  tab's screen (the Requests badge did this until the tab was removed in M-30). The selected-tab colour is `.tint(Color.ink)` on the `TabView`,
   with each tab's content re-tinted `.tint(Color.accentColor)` so it doesn't leak into carets and
   pickers (see "Accent and tab bar" in `code-style.md`).
 - **Nested `NavigationLink`s don't work.** Wrapping a whole card in a link and then putting a link
   inside it is unpredictable in SwiftUI — the inner one may never receive taps, or both fire. If a
   card needs more than one destination, don't wrap the card: give each control its own link
-  (`ServiceOfferCard` does this — each hour chip pushes that slot, the round chevron pushes the
-  whole offer). Accept that the card body then stops being tappable, and give any icon-only control
+  (the client `ServiceOfferCard`, removed in M-30, did this — each hour chip pushed that slot, the
+  round chevron pushed the whole offer). Accept that the card body then stops being tappable, and give any icon-only control
   an `accessibilityLabel`, since it is otherwise silent to VoiceOver.
 - **Input masking uses `.onChange`, never `Binding(get:set:)`.** The obvious way to cap or reformat
   what a `TextField` accepts — a computed binding whose `set` filters the incoming string — **does
   not work**: when the filtered result equals the value the property already held, nothing
   observable changed, so the field keeps the text the user typed and the rejected character stays on
   screen. Bind straight to the view model property and normalize in `.onChange`, where the corrected
-  value genuinely differs from the typed one and the field updates (`ProfileFormPopup` masks the
-  phone this way). The consequence is that the view model stores the **display** text and derives
+  value genuinely differs from the typed one and the field updates (the client `ProfileFormPopup`,
+  removed in M-30, masked the phone this way; M-32's client form is the next one). The consequence is that the view model stores the **display** text and derives
   the clean value from it, not the reverse. Don't reach for a `didSet` on the property either:
   property observers under `@Observable` are a macro-expansion question not worth answering when
-  the state can be computed instead (`showsPhoneError` is `hasSubmitted && isPhoneValid == false`).
+  the state can be computed instead (e.g. `showsPhoneError = hasSubmitted && isPhoneValid == false`).
   The same goes for **splitting one value across several controls** (hour and minute wheels for a
   time): don't derive the parts with `Binding(get:set:)`. Model the value as a small struct whose
   parts are stored properties and bind each control by key path — `TimeWheel` binds
@@ -141,10 +141,13 @@
   are singletons managed by the Firebase SDK itself; that's fine and expected — what we avoid is
   wrapping *our own* repository classes in `.shared` singletons. ViewModels take a repository
   protocol as an init parameter, defaulting to the real Firestore-backed implementation.
-- **App-wide settings shared by both cabinets get a top-level feature folder**, like `Auth/` and
+  Every master's data lives under her own `users/{uid}/`; the Firestore repositories reach it
+  through `Firestore.userCollection(_:)` (`Firestore+UserCollection.swift`), never a hard-coded
+  top-level `collection(...)`, so protocols and view models never see the uid.
+- **App-wide settings get a top-level feature folder**, like `Auth/` and
   `Root/`: `Appearance/` holds `AppAppearance` (System / Light / Dark, stored in
-  `@AppStorage("appearance")` and applied by `RootView`) and `AppearancePopup`, which both
-  "Акаунт" and "Статистика" present. It has no view model — the popup only reads and writes
+  `@AppStorage("appearance")` and applied by `RootView`) and `AppearancePopup`, which
+  "Статистика" presents. It has no view model — the popup only reads and writes
   `@AppStorage`. `LargeTitleHeader` takes an optional trailing view for the round button that opens
   it.
 - Two `PBXFileSystemSynchronizedRootGroup`s feed the `Manik` target: `Manik/Manik/` (app source) and

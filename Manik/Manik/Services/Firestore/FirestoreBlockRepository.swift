@@ -5,7 +5,12 @@ final class FirestoreBlockRepository: BlockRepository {
 
     func observeBlocks() -> AsyncStream<[Block]> {
         AsyncStream { continuation in
-            let listener = db.collection("blocks").addSnapshotListener { snapshot, _ in
+            guard let blocks = try? db.userCollection("blocks") else {
+                continuation.finish()
+                return
+            }
+
+            let listener = blocks.addSnapshotListener { snapshot, _ in
                 let blocks = snapshot?.documents.compactMap { try? $0.data(as: Block.self) } ?? []
                 continuation.yield(blocks)
             }
@@ -15,39 +20,21 @@ final class FirestoreBlockRepository: BlockRepository {
 
     func addBlock(_ block: Block) async throws {
         let encoded = try Firestore.Encoder().encode(block)
-        _ = try await db.collection("blocks").addDocument(data: encoded)
+        _ = try await db.userCollection("blocks").addDocument(data: encoded)
     }
 
     func deleteBlock(blockId: String) async throws {
-        try await db.collection("blocks").document(blockId).delete()
-    }
-
-    func book(
-        blockId: String,
-        clientId: String,
-        service: BookedService
-    ) async throws {
-        do {
-            try await db.collection("blocks").document(blockId).updateData([
-                "status": BlockStatus.pending.rawValue,
-                "clientId": clientId,
-                "bookedServiceId": service.id,
-                "bookedServiceName": service.name,
-                "bookedServicePrice": service.price
-            ])
-        } catch let error as NSError where error.isSlotUnavailable {
-            throw BookingError.slotUnavailable
-        }
+        try await db.userCollection("blocks").document(blockId).delete()
     }
 
     func confirm(blockId: String) async throws {
-        try await db.collection("blocks").document(blockId).updateData([
+        try await db.userCollection("blocks").document(blockId).updateData([
             "status": BlockStatus.confirmed.rawValue
         ])
     }
 
     func decline(blockId: String) async throws {
-        try await db.collection("blocks").document(blockId).updateData([
+        try await db.userCollection("blocks").document(blockId).updateData([
             "status": BlockStatus.available.rawValue,
             "clientId": FieldValue.delete(),
             "bookedServiceId": FieldValue.delete(),
@@ -57,18 +44,12 @@ final class FirestoreBlockRepository: BlockRepository {
     }
 
     func cancel(blockId: String) async throws {
-        try await db.collection("blocks").document(blockId).updateData([
+        try await db.userCollection("blocks").document(blockId).updateData([
             "status": BlockStatus.available.rawValue,
             "clientId": FieldValue.delete(),
             "bookedServiceId": FieldValue.delete(),
             "bookedServiceName": FieldValue.delete(),
             "bookedServicePrice": FieldValue.delete()
         ])
-    }
-}
-
-private extension NSError {
-    var isSlotUnavailable: Bool {
-        domain == FirestoreErrorDomain && code == FirestoreErrorCode.permissionDenied.rawValue
     }
 }

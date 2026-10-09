@@ -1,128 +1,86 @@
-# Manik MVP — Design Spec
+# Manik — Product Spec
 
-Date: 2026-07-15
-Status: Approved
+First approved: 2026-07-15 (two cabinets: master + client).
+Rewritten: 2026-10-09 for the **master-only pivot** (independent cabinets, one per master). The two-cabinet version lives in git history;
+the full pivot design (alternatives, data model detail, open points) is
+`docs/superpowers/specs/2026-10-09-master-only-pivot-design.md`. Until PRs M-31…M-38 land
+(`docs/plan.md`, item 9), the code is partway there: since M-30 there is no client side and every
+account is an independent master, but the Schedule still runs on the old `blocks` model until M-33.
 
-## Мета
+## Goal
 
-iOS-застосунок бронювання (типу Booksy) для одного майстра манікюру. Майстер керує календарем вільних блоків, клієнтки бронюють та скасовують записи.
+An iOS app for nail masters. Each master signs up and gets an independent cabinet: her client base,
+her free windows, her bookings and her personal plans in one calendar. It replaces the Notes list she keeps today and the screenshot she posts to
+Instagram. Clients never use the app — they write to the master in Instagram (or by phone), and
+the master books them herself.
 
-## Скоуп MVP
+## Scope
 
-- Один застосунок (SwiftUI), роль визначається після логіну
-- Один фіксований майстер (без мультитенантності)
-- Firebase: Auth (email/password) + Cloud Firestore
-- Без push-сповіщень — тільки realtime-оновлення через Firestore listeners
-- Без онлайн-оплати
+- One SwiftUI app; every user is a master. Sign-up and sign-in (email + password), forgot password,
+  change password, delete account (App Store requires in-app deletion). No roles, no salons.
+- Firebase Auth + Cloud Firestore; all of a master's data lives under `users/{uid}/`, readable and
+  writable only by her.
+  Kept behind repository protocols so it can be swapped for SwiftData + CloudKit later.
+- No push notifications, no reminders, no payments, nothing sent automatically to Instagram.
+- Light and dark themes (System / Light / Dark, per device, from a round button next to the
+  "Статистика" title).
 
-## Технічний стек
-
-- SwiftUI, існуючий Xcode-проєкт `Manik`
-- Firebase iOS SDK (Auth, Firestore) через Swift Package Manager
-- MVVM: ViewModel на кабінет/екран, Firestore listeners напряму в ViewModel
-
-## Модель даних (Firestore)
-
-```
-users/{uid}
-  role: "master" | "client"
-  name: string
-  email: string
-
-services/{id}
-  name: string
-  price: number          // одна фіксована ціна, без діапазонів
-
-blocks/{id}
-  date: string (YYYY-MM-DD)
-  startTime: string (HH:mm)
-  endTime: string (HH:mm)
-  offeredServiceIds: string[]   // послуги, які майстер дозволив у цей блок (чекбокси при створенні)
-  bookedServiceId: string | null // конкретна послуга, яку обрала клієнтка при бронюванні
-  status: "available" | "pending" | "confirmed"
-  clientId: string | null
-```
-
-Єдина колекція `blocks` замість розділених availability/bookings — весь стан блоку в одному документі, один listener, атомарні переходи статусу.
-
-Тривалість візиту задають виключно межі блоку (`startTime`/`endTime`) — у послуги тривалості немає взагалі. Майстер сам відповідає за те, щоб не пропонувати 90-хвилинну послугу в 15-хвилинному блоці; автоматичного розбиття чи перевірки тривалості в MVP немає, і застосунок цих чисел не знає. Коли клієнтка бронює блок, вона обирає одну послугу зі списку `offeredServiceIds` — цей вибір записується в `bookedServiceId` і використовується для ціни в "Моїх записах", "Заявках" і статистиці.
-
-Порядок вибору в кабінеті клієнтки — **послуга спершу, час потім** (спочатку планувалось навпаки). Клієнтка приходить за конкретною послугою, а не за конкретною годиною, тож питання "коли є час на манікюр" відповідається одним екраном, а не перебором днів у пошуках блоку з потрібною послугою. На модель це не впливає: `bookedServiceId` просто відомий раніше за блок, а не навпаки.
-
-### Стейт-машина блоку
+## Data model (Firestore)
 
 ```
-[available] --клієнтка бронює--> [pending] --майстер підтверджує--> [confirmed]
-     ^                                |                                  |
-     |                          майстер відхиляє                  клієнтка скасовує
-     |                                |                                  |
-     +--------------------------------+----------------------------------+
+users/{uid}              name, email                                       — created at sign-up
+… and under it:
+clients/{autoId}         name?, instagram? (lowercased, no "@"), phone? (+48 + 9 digits),
+                         createdAt, lastBookedAt?          — name or instagram required
+slots/{yyyy-MM-dd_HHmm}  date, time, clientId?, serviceId?, serviceName?, servicePrice?
+                         — no client = free window; id from date+time, so no duplicates
+events/{autoId}          title, startTime, endTime, date? | weekdays[] + fromDate, skippedDates[]
+eventTemplates/{autoId}  title, startTime, endTime, weekdays[]            — "Мої справи"
+services/{autoId}        name, price (whole PLN), isFavorite?
 ```
 
-## Авторизація та ролі
+A slot is a **date + start time**; visits have no duration. Booking sets `clientId` and a snapshot
+of the service; cancelling clears them (the window is free again); rescheduling moves the booking
+to another date/time in one batch and frees the old window.
 
-- Firebase Auth, email + пароль
-- Роль зберігається в `users/{uid}.role`, визначає, в який кабінет потрапляє користувач після логіну
-- Реєстрація майстра — одноразова, вручну (не публічна форма реєстрації майстра)
-- Клієнтки реєструються самостійно через звичайну форму реєстрації
+## Navigation
 
-## Навігація
+Three tabs: **Розклад / Клієнтки / Статистика**. "Мої послуги" and "Мої справи" are entries inside
+Статистика ("set up once" screens), "Мої справи" also from the personal-plan sheet.
 
-**Кабінет майстра — 3 таби:** Розклад / Заявки / Статистика (екран "Мої послуги" — не окремий таб, а кнопка-вхід усередині Статистики, бо це фіча "налаштував один раз").
+## Flows
 
-**Кабінет клієнтки — 3 таби:** Запис / Мої записи / Акаунт (третій таб — редагований профіль з телефоном та хендлами, плюс дві плитки статистики: кількість візитів і улюблена послуга. «Візит» тут означає те саме, що в статистиці майстра, — `confirmed` блок, який уже завершився; спільний предикат живе в `Block.isCompleted(now:)`. Знизу — блок із трьох дій: зміна пароля, вихід, видалення акаунта. Видалення скасовує майбутні записи клієнтки, потім прибирає `users/{uid}`, потім сам Auth-акаунт — саме в цьому порядку, бо правила вимагають живого `request.auth.uid`).
+1. **Clients** — add a client by Instagram handle and/or name (+ optional phone). Search by name,
+   handle or phone. The card opens the Instagram DM (`https://ig.me/m/<handle>`) or, without a
+   handle, calls / texts the phone.
+2. **Free windows** — "+" → "Вільні вікна на місяць": select several days on a month grid, pick
+   hours, add them all at once. Repeat for days with other hours.
+3. **Publish** — "Надіслати графік": the free windows from today as a 9:16 image for stories
+   (list layout, one line per day: `1.10 Чт 10:00 · 13:00 · 16:00`) and as text for DMs/SMS.
+   "Надіслати прайс" does the same for the price list.
+4. **Book** — tap a free window → search focused, recent clients first; if nobody matches,
+   "Додати @…" creates the client and books her in one tap; the service is optional (favourites
+   first).
+5. **Booking actions** — tap a booked slot → Перенести (to a free window or own time), Написати,
+   Скасувати запис. Where the recipient is known, "Надіслати @нік" copies the message and opens her
+   chat; the master pastes and sends.
+6. **Personal plans** — "Своя справа" (boxing, gym): title, start–end, one date or weekly on chosen
+   days, filled from the "Мої справи" list in one tap. A free window that overlaps a plan (assuming
+   a 60-minute visit) is flagged and left out of what is published; it is not deleted.
 
-## Календар (UI)
+## Statistics (calendar month, navigable back)
 
-- **Майстер (Розклад):** горизонтальна стрічка днів тижня зверху (тап обирає день), під нею погодинний список лише обраного дня — порожня година показує кнопку "+ Додати вільний час", зайнята година показує картку (ім'я клієнтки, статус-пілюля, назва обраної послуги).
-  Creating a slot (PR29): start and end are picked on wheels in 15-minute steps within 08:00–22:00;
-  the popup opens at the first free 15 minutes of the tapped hour, and a range that overlaps any
-  block that day (or ends before it starts) cannot be created. Overlap is checked in the app only —
-  Firestore rules cannot compare documents.
-- **Клієнтка (Запис):** вхід — список послуг, які взагалі десь пропонуються (картка = послуга + найближчий вільний час). Тап веде на екран послуги: місячний календар (сітка ПН–НД, дні сусідніх місяців приглушені, гортання по місяцях, доступні дати підкреслені), під ним ряд чипів доступного часу обраного дня, знизу — футер-бар з обраною послугою, слотом і ціною.
+- **Revenue** — sum of `servicePrice` over booked slots that already happened.
+- **Expected** — the same over all booked slots of the month, past and future; hidden for a
+  finished month.
+- **Visits** — booked slots that already happened. **Clients** — distinct `clientId` among them.
+- **Free windows** — in the current month the ones still ahead; in a past month the unbooked ones.
+- **Comparison with the previous month** — money (percent) and clients (count), full calendar
+  months; hidden when the previous month earned nothing.
+- No "hours worked": visits have no duration.
 
-## Флоу майстра
+## Out of scope
 
-1. Логін → кабінет майстра, таб "Розклад"
-2. Тап на порожню годину → форма нового блоку: час початку-кінця + чекбокси послуг зі свого прайсу (`offeredServiceIds`) → блок створюється зі статусом `available`
-3. Таб "Заявки": список блоків у статусі `pending` (ім'я клієнтки, час, обрана послуга) → кнопки "Підтвердити" / "Відхилити". Після дії запис одразу зникає з цього списку (лишається видимим у Розкладі зі своїм статусом)
-4. Підтвердження → `confirmed`; відхилення → назад в `available`, `bookedServiceId`/`clientId` очищаються
-5. Скасування клієнткою відображається в реальному часі в Розкладі (без дій майстра)
-6. Таб "Статистика": підсумок за обраний місяць (гортання стрілками) — дохід, кількість візитів; кнопка "Мої послуги" веде на екран CRUD прайс-листа (назва, ціна)
-
-## Флоу клієнтки
-
-1. Реєстрація/логін (email+пароль) → кабінет клієнтки, таб "Запис"
-2. Список послуг → обирає послугу → її місячний календар: обирає день → чипи вільного часу (`available` блоки цього дня, що пропонують цю послугу)
-3. Обирає час → футер-бар показує послугу/час/ціну і кнопку "Продовжити"
-4. "Продовжити" → статус блоку `pending`, записуються `clientId` і `bookedServiceId`
-5. Таб "Мої записи": список власних блоків (pending/confirmed) двома секціями — "Майбутні" і "Минулі"; минулі обрізані до пʼяти останніх і показуються без пілюлі статусу (секція вже є статусом), порожня секція не рендериться. Кнопка "Скасувати" → блок повертається в `available`, `clientId`/`bookedServiceId` очищаються
-6. Скасування: кнопка є лише в майбутніх записів (і `pending`, і `confirmed`, без часового вікна — рівно те, що дозволяє `isClientCanceling()`), відкриває попап підтвердження з назвою послуги, датою й часом. Успіх — попап просто закривається, картка зникає зі списку сама через realtime; помилка — червоний рядок інлайн у попапі, без окремого алерта
-
-## Статистика (майстер)
-
-- Період — календарний місяць, з навігацією "назад" по попередніх місяцях (стрілки, як у мінікалендарі)
-- **Дохід** — сума `bookedServicePrice` по блоках `confirmed`, чия дата+час вже минули (заплановані на майбутнє підтверджені записи в дохід не рахуються). Блок, підтверджений до появи знімка послуги, ціни не має і дає нуль, але візитом рахується
-- **Очікувана сума** — сума по **всіх** `confirmed` блоках місяця, і минулих, і майбутніх, тобто скільки місяць принесе, якщо ніхто не скасує. У завершеному місяці не показується взагалі: там вона дорівнювала б доходу
-- **Візити** — кількість `confirmed` блоків цього місяця, що вже відбулися
-- **Годин відпрацьовано** — сума тривалостей тих самих блоків, з одним знаком після коми
-- **Клієнтки** — кількість різних `clientId` серед тих самих блоків
-- **Вільні слоти** — у поточному місяці `available` блоки, що ще не почались ("Вільні слоти"); у завершеному — всі `available` блоки того місяця ("Не заброньовано"): та сама цифра означає різне, і підпис це називає
-- **Порівняння з попереднім місяцем** — по грошах (у відсотках) і по клієнтках (у штуках). Порівнюються **повні календарні місяці**, тож у перші тижні місяця дельта від'ємна, навіть коли все гаразд — свідомий розмін проти порівняння однакових відрізків. Якщо попередній місяць дав нуль доходу, рядок не показується: відсоток проти нуля беззмістовний
-
-**Appearance (added in PR28).** Light and dark themes; the user picks System / Light / Dark from
-a round button next to the large title of "Статистика" (master) and "Акаунт" (client). The choice
-is per device (`@AppStorage`), not synced through Firestore, and also applies on the Auth screen.
-
-## Явно поза скоупом MVP
-
-- Push-сповіщення
-- Мультитенантність / кілька майстрів
-- Онлайн-оплата
-- Історія минулих (проведених) записів у клієнтки
-- Нагадування про запис
-- Автогенерація слотів за розкладом (тільки ручне створення блоків)
-- Відгуки/рейтинги, фото робіт/портфоліо
-- Діапазон цін на послугу (одна фіксована ціна; коригування за нетиповими випадками — поза застосунком)
-- No-show як окремий статус
-- Розбивка статистики за послугами, порівняння з попередніми місяцями
+Client accounts or a client app; salons or data shared between masters; automatic sending to Instagram; WhatsApp; push notifications and
+reminders; payments; service durations; reviews, portfolio; price ranges;
+no-show status; per-service statistics; a client-facing web page (possible later).

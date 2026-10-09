@@ -65,21 +65,18 @@
   and one bad document fails the whole query.
 - In `firestore.rules`, **`write` means create + update + delete**, and on a delete
   `request.resource` is `null`. Any rule that validates incoming fields must therefore be attached
-  to `create, update` with `delete` allowed separately — `allow write: if isMaster() &&
+  to `create, update` with `delete` allowed separately — `allow write: if isOwner(uid) &&
   hasValidServiceFormat()` silently breaks deletion. Both `services` and `blocks` are split this way.
 - Block state machine: `available → pending → confirmed`, with cancel/decline both returning to
   `available`. A block carries `offeredServiceIds: [String]` (services the master allows for that
   time slot) and `bookedServiceId: String?` (the one the client actually picked at booking time).
-  Firestore rules (`firestore.rules`, deployed manually via Firebase Console — no CLI/CI hookup)
-  mirror this server-side, not just at the SwiftUI layer: `hasValidBlockFormat()` enforces the
-  `date`/`startTime`/`endTime` format, and `isClientBooking()`/`isClientCanceling()` require
-  `bookedServiceId` to be a member of `offeredServiceIds` *and* pin `date`/`startTime`/`endTime`/
-  `offeredServiceIds` to stay unchanged — a client's write can only touch `status`/`clientId`/
-  `bookedServiceId`, never reschedule the slot itself.
-- One fixed master account, no multi-tenancy. Role lives in `users/{uid}.role` and is set manually
-  in the Firebase Console after sign-up (there's no admin UI for granting the master role).
-  `firestore.rules` protects this: a user can only self-create their `users/{uid}` doc with
-  `role == "client"`, and `update` requires `role` to stay unchanged, so a client can never write
-  their way to `master` through the app or the SDK directly. Reads are also restricted to the
-  owner or the master (`isMaster() || request.auth.uid == uid`) so clients can't list/harvest other
-  clients' names and emails.
+  Since M-30 nobody but the owning master writes a block (client booking is gone), so
+  `firestore.rules` (deployed manually via Firebase Console — no CLI/CI hookup) only checks the
+  `date`/`startTime`/`endTime` format server-side with `hasValidBlockFormat()`. The whole block
+  model is replaced by `slots` in M-33.
+- **Independent cabinets, no roles** (since M-30). Every account is a master; sign-up creates
+  `users/{uid}` (`name`, `email`), and all her data lives under it: `users/{uid}/services`,
+  `users/{uid}/blocks`, and every later collection. The Firestore repositories resolve the path with
+  `Firestore.userCollection(_:)` from the signed-in user. `firestore.rules` has one gate,
+  `isOwner(uid)`, on the user document and everything below it — no `get()` lookups, no role field
+  (old documents may still carry `role`; `UserProfile` ignores it).

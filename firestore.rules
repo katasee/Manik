@@ -2,8 +2,13 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    function isSignedIn() {
-      return request.auth != null;
+    function isOwner(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+
+    function hasValidProfile() {
+      return request.resource.data.name is string &&
+        request.resource.data.email is string;
     }
 
     function hasValidBlockFormat() {
@@ -19,63 +24,20 @@ service cloud.firestore {
         request.resource.data.price >= 0;
     }
 
-    function isMaster() {
-      return isSignedIn() &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "master";
-    }
-
-    function bookedService() {
-      return get(/databases/$(database)/documents/services/$(request.resource.data.bookedServiceId)).data;
-    }
-
-    function isClientBooking() {
-      return isSignedIn() &&
-        resource.data.status == "available" &&
-        request.resource.data.status == "pending" &&
-        request.resource.data.clientId == request.auth.uid &&
-        request.resource.data.bookedServiceId in resource.data.offeredServiceIds &&
-        request.resource.data.bookedServiceName == bookedService().name &&
-        request.resource.data.bookedServicePrice == bookedService().price &&
-        request.resource.data.date == resource.data.date &&
-        request.resource.data.startTime == resource.data.startTime &&
-        request.resource.data.endTime == resource.data.endTime &&
-        request.resource.data.offeredServiceIds == resource.data.offeredServiceIds;
-    }
-
-    function isClientCanceling() {
-      return isSignedIn() &&
-        resource.data.clientId == request.auth.uid &&
-        request.resource.data.status == "available" &&
-        !('clientId' in request.resource.data) &&
-        !('bookedServiceId' in request.resource.data) &&
-        !('bookedServiceName' in request.resource.data) &&
-        !('bookedServicePrice' in request.resource.data) &&
-        request.resource.data.date == resource.data.date &&
-        request.resource.data.startTime == resource.data.startTime &&
-        request.resource.data.endTime == resource.data.endTime &&
-        request.resource.data.offeredServiceIds == resource.data.offeredServiceIds;
-    }
-
+    // Every master's data lives under her own document; only she can touch it.
     match /users/{uid} {
-      allow read: if isMaster() || request.auth.uid == uid;
-      allow create: if isSignedIn() && request.auth.uid == uid
-        && request.resource.data.role == "client";
-      allow update: if isSignedIn() && request.auth.uid == uid
-        && request.resource.data.role == resource.data.role;
-      allow delete: if isSignedIn() && request.auth.uid == uid;
-    }
+      allow read, delete: if isOwner(uid);
+      allow create, update: if isOwner(uid) && hasValidProfile();
 
-    match /services/{serviceId} {
-      allow read: if isSignedIn();
-      allow create, update: if isMaster() && hasValidServiceFormat();
-      allow delete: if isMaster();
-    }
+      match /services/{serviceId} {
+        allow read, delete: if isOwner(uid);
+        allow create, update: if isOwner(uid) && hasValidServiceFormat();
+      }
 
-    match /blocks/{blockId} {
-      allow read: if isSignedIn();
-      allow create: if isMaster() && hasValidBlockFormat();
-      allow delete: if isMaster();
-      allow update: if (isMaster() && hasValidBlockFormat()) || isClientBooking() || isClientCanceling();
+      match /blocks/{blockId} {
+        allow read, delete: if isOwner(uid);
+        allow create, update: if isOwner(uid) && hasValidBlockFormat();
+      }
     }
   }
 }
