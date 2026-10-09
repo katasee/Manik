@@ -86,7 +86,6 @@ final class FirebaseAuthRepository: AuthRepository {
             try await Auth.auth().sendPasswordReset(withEmail: email)
         } catch let error as NSError where error.domain == AuthErrors.domain
             && error.code == AuthErrorCode.userNotFound.rawValue {
-            // Reported as sent, so the popup can't reveal which addresses are registered.
         } catch {
             throw Self.accountError(from: error)
         }

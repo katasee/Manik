@@ -35,5 +35,6 @@ enum AuthMetrics {
     }
 
     static let disabledOpacity: Double = 0.5
+    static let successIcon: CGFloat = 44
     static let swapTapHeight: CGFloat = 44
 }

@@ -2,9 +2,6 @@ import FirebaseAuth
 import FirebaseFirestore
 
 final class FirestoreUserDataRepository: UserDataRepository {
-    /// Every collection under `users/{uid}/`. A collection missing here survives account
-    /// deletion, so the PR that adds one adds it here too (M-32 `clients`, M-33 `slots`,
-    /// M-37 `events` and `eventTemplates`).
     static let collections = ["services", "blocks"]
 
     private static let batchLimit = 500

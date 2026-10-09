@@ -45,8 +45,6 @@ final class VerifyEmailViewModel {
         isResending == false && resendSecondsLeft == 0
     }
 
-    /// `reportsPending` is false for the automatic check on returning to the app, which
-    /// should not flash "not verified yet" at a master who hasn't opened the email.
     func check(reportsPending: Bool) async -> Bool {
         guard isChecking == false else { return false }
 
@@ -67,15 +65,11 @@ final class VerifyEmailViewModel {
             return false
         }
 
-        // The reload above already flipped the cached flag, so RootViewModel.refresh() will treat
-        // her as verified and skip its own refresh — the rules need the new `email_verified` claim now.
         try? await authRepository.refreshIdToken()
 
         return true
     }
 
-    /// Starts the cooldown only after a send or Firebase's rate limit — a network failure can be
-    /// retried at once.
     func resend() async {
         guard canResend else { return }
 
@@ -97,7 +91,6 @@ final class VerifyEmailViewModel {
         cooldownRun += 1
     }
 
-    /// Driven by the view's `.task(id: cooldownRun)`, so it stops when the screen goes away.
     func runCooldown() async {
         while resendSecondsLeft > 0 {
             do {

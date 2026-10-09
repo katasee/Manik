@@ -135,6 +135,22 @@
         }
       }
     },
+    "auth.action.forgotPassword" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Forgot password?"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Забули пароль?"
+          }
+        }
+      }
+    },
     "auth.action.signUp" : {
       "localizations" : {
         "en" : {
@@ -163,6 +179,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Щось пішло не так. Спробуйте ще раз."
+          }
+        }
+      }
+    },
+    "auth.error.invalidEmail" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "That email address isn't valid."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Неправильний формат email."
+          }
+        }
+      }
+    },
+    "auth.error.network" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No internet connection."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Немає з'єднання з інтернетом."
           }
         }
       }
@@ -243,6 +291,86 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Увійти"
+          }
+        }
+      }
+    },
+    "auth.reset.note" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enter your email and we'll send a link to set a new password."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Введіть email — ми надішлемо посилання, щоб задати новий пароль."
+          }
+        }
+      }
+    },
+    "auth.reset.sentMessage" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "If an account with this address exists, we've sent a password reset link."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Якщо акаунт із цією адресою існує, ми надіслали посилання для скидання пароля."
+          }
+        }
+      }
+    },
+    "auth.reset.sentTitle" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check your email"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Перевірте пошту"
+          }
+        }
+      }
+    },
+    "auth.reset.submit" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Send email"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Надіслати лист"
+          }
+        }
+      }
+    },
+    "auth.reset.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reset password"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Скидання пароля"
           }
         }
       }
