@@ -2,7 +2,6 @@ import SwiftUI
 
 enum MasterTab: CaseIterable, Identifiable {
     case schedule
-    case requests
     case stats
 
     var id: Self { self }
@@ -10,7 +9,6 @@ enum MasterTab: CaseIterable, Identifiable {
     var systemImage: String {
         switch self {
         case .schedule: "calendar"
-        case .requests: "bell"
         case .stats: "slider.horizontal.3"
         }
     }
@@ -18,7 +16,6 @@ enum MasterTab: CaseIterable, Identifiable {
     var titleKey: LocalizedStringKey {
         switch self {
         case .schedule: "tabBar.tab.schedule"
-        case .requests: "tabBar.tab.requests"
         case .stats: "tabBar.tab.stats"
         }
     }

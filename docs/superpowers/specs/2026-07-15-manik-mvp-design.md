@@ -1,23 +1,25 @@
 # Manik — Product Spec
 
 First approved: 2026-07-15 (two cabinets: master + client).
-Rewritten: 2026-10-09 for the **master-only pivot**. The two-cabinet version lives in git history;
+Rewritten: 2026-10-09 for the **master-only pivot** (independent cabinets, one per master). The two-cabinet version lives in git history;
 the full pivot design (alternatives, data model detail, open points) is
-`docs/superpowers/specs/2026-10-09-master-only-pivot-design.md`. Until PRs M-30…M-37 land
-(`docs/plan.md`, item 9), the code still contains the old two-cabinet flows described there.
+`docs/superpowers/specs/2026-10-09-master-only-pivot-design.md`. Until PRs M-31…M-38 land
+(`docs/plan.md`, item 9), the code is partway there: since M-30 there is no client side and every
+account is an independent master, but the Schedule still runs on the old `blocks` model until M-33.
 
 ## Goal
 
-An iOS app for one nail master: her client base, her free windows, her bookings and her personal
-plans in one calendar. It replaces the Notes list she keeps today and the screenshot she posts to
+An iOS app for nail masters. Each master signs up and gets an independent cabinet: her client base,
+her free windows, her bookings and her personal plans in one calendar. It replaces the Notes list she keeps today and the screenshot she posts to
 Instagram. Clients never use the app — they write to the master in Instagram (or by phone), and
 the master books them herself.
 
 ## Scope
 
-- One SwiftUI app, one user: the master. Sign-in only (email + password); no sign-up, no roles
-  other than the master's.
-- Firebase Auth + Cloud Firestore, every collection readable and writable only by the master.
+- One SwiftUI app; every user is a master. Sign-up and sign-in (email + password), forgot password,
+  change password, delete account (App Store requires in-app deletion). No roles, no salons.
+- Firebase Auth + Cloud Firestore; all of a master's data lives under `users/{uid}/`, readable and
+  writable only by her.
   Kept behind repository protocols so it can be swapped for SwiftData + CloudKit later.
 - No push notifications, no reminders, no payments, nothing sent automatically to Instagram.
 - Light and dark themes (System / Light / Dark, per device, from a round button next to the
@@ -26,6 +28,8 @@ the master books them herself.
 ## Data model (Firestore)
 
 ```
+users/{uid}              name, email                                       — created at sign-up
+… and under it:
 clients/{autoId}         name?, instagram? (lowercased, no "@"), phone? (+48 + 9 digits),
                          createdAt, lastBookedAt?          — name or instagram required
 slots/{yyyy-MM-dd_HHmm}  date, time, clientId?, serviceId?, serviceName?, servicePrice?
@@ -33,7 +37,6 @@ slots/{yyyy-MM-dd_HHmm}  date, time, clientId?, serviceId?, serviceName?, servic
 events/{autoId}          title, startTime, endTime, date? | weekdays[] + fromDate, skippedDates[]
 eventTemplates/{autoId}  title, startTime, endTime, weekdays[]            — "Мої справи"
 services/{autoId}        name, price (whole PLN), isFavorite?
-users/{uid}              role: "master"                                    — access gate only
 ```
 
 A slot is a **date + start time**; visits have no duration. Booking sets `clientId` and a snapshot
@@ -78,7 +81,6 @@ Three tabs: **Розклад / Клієнтки / Статистика**. "Мо�
 
 ## Out of scope
 
-Client accounts or a client app; automatic sending to Instagram; WhatsApp; push notifications and
-reminders; payments; several masters; service durations; reviews, portfolio; price ranges;
-no-show status; per-service statistics; a client-facing web page (possible later — the reason
-Firebase is kept).
+Client accounts or a client app; salons or data shared between masters; automatic sending to Instagram; WhatsApp; push notifications and
+reminders; payments; service durations; reviews, portfolio; price ranges;
+no-show status; per-service statistics; a client-facing web page (possible later).

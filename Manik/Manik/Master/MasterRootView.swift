@@ -5,7 +5,6 @@ struct MasterRootView: View {
 
     @State private var selectedTab: MasterTab = .schedule
     @State private var scheduleViewModel = ScheduleViewModel()
-    @State private var requestsViewModel = RequestsViewModel()
     @State private var statsViewModel = StatsViewModel()
 
     var body: some View {
@@ -20,24 +19,15 @@ struct MasterRootView: View {
                         switch tab {
                         case .schedule:
                             ScheduleView(viewModel: scheduleViewModel)
-                        case .requests:
-                            RequestsView(viewModel: requestsViewModel)
                         case .stats:
                             StatsView(viewModel: statsViewModel, onSignOut: onSignOut)
                         }
                     }
                     .tint(Color.accentColor)
                 }
-                .badge(tab == .requests ? requestsViewModel.requests.count : 0)
             }
         }
         .tint(Color.ink)
-        .task {
-            await requestsViewModel.observeBlocks()
-        }
-        .task {
-            await requestsViewModel.refreshRequests()
-        }
     }
 }
 

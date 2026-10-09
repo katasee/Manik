@@ -1341,6 +1341,37 @@ this file is just "what's done, what's next," not a design doc.
   - Not a bug after all: the old backlog note "deleting a `confirmed` block has no confirmation
     step" was stale — `ScheduleView` already asks (`schedule.confirm.deleteBooked`).
 
+- **M-30 — Remove the client side, one cabinet per master** (branch
+  `feature/pr-30-Remove-client-side`; first PR of the pivot, item 9).
+  - **Removed**: `Client/` (Запис, Мої записи, Акаунт) and `Master/Requests/` — 56 Swift files, `Role` and
+    every role check, `UserRepository` (+ Firestore, fake), `ProfileEdit`, `BookingError`,
+    `BlockRepository.book(...)` and `BookedService`, `SectionLabel`, the auth fakes, and 70 String
+    Catalog keys (`account.*`, `booking.*`, `myBookings.*`, `requests.*`, four tab titles). The tab
+    bar is Розклад / Статистика until M-32 adds Клієнтки.
+  - **Every account is a master**: sign-up stays and writes `users/{uid}` as `name` + `email`;
+    `UserProfile` has no `role` (old documents that still carry one decode fine — unknown keys are
+    ignored). `AuthRepository` lost `reauthenticate`/`updatePassword`/`deleteAccount`.
+  - **Independent cabinets**: services and blocks moved to `users/{uid}/services` and
+    `users/{uid}/blocks`. `Firestore.userCollection(_:)` (`Services/Firestore/Firestore+UserCollection.swift`)
+    builds the path from the signed-in user, so protocols, view models and screens are unchanged;
+    with nobody signed in it throws (`observe…` streams just finish) instead of building an empty
+    document path. `firestore.rules` is one `isOwner(uid)` gate on `users/{uid}` and below.
+  - **Restore point for M-31**: the client cabinet's `ChangePassword`/`DeleteAccount` popups are
+    in commit `12262eb` (and `main` at `98e8882`) under `Manik/Manik/Client/Account/` —
+    `git show 98e8882:Manik/Manik/Client/Account/DeleteAccount/DeleteAccountViewModel.swift`.
+  - Catalog cleanup was done as a text-level block removal (a JSON re-dump re-sorts keys
+    differently from Xcode); `git diff --minimal` shows deletions only.
+  - **By hand, in the Console — rules first, then the build**: deploy the new rules *before* running
+    the M-30 build. Under the old rules a sign-up's `users/{uid}` write is rejected after the Auth
+    account already exists, and that account is stuck (every sign-in hits `profileNotFound` and is
+    signed out; signing up again says the email is taken) until it is deleted in the Console. Then
+    delete the top-level `services`/`blocks`, every `users` doc but the master's, and those Auth
+    accounts (all test data).
+  - Conventions updated where their examples cited removed files; the rules themselves stand.
+  - **Verified 2026-10-09**: rules deployed and test data wiped in the Console; on a device sign-in,
+    both tabs, adding a service and a slot, and a second master signing up into an empty cabinet that
+    doesn't see the first one's data.
+
 ## Screens (in order)
 
 This is the actual work queue, and the only numbered list here. The ordering follows the **data
@@ -1457,29 +1488,35 @@ those items are referred to by name, so the list can grow without renumbering an
 8. ~~**Next up, in order** (user priority, 2026-10-07)~~ — **superseded by item 9** (2026-10-09).
    Item 1 (slot overlap + double-submit) shipped as PR29; the rest was overtaken by the pivot.
 
-9. **Pivot: a calendar for one master** (decided 2026-10-09; screens on the "Manik Screens"
+9. **Pivot: a calendar for nail masters** (decided 2026-10-09; screens on the "Manik Screens"
    canvas, page "Тільки майстриня"; full design in
    `docs/superpowers/specs/2026-10-09-master-only-pivot-design.md`, the product summary in the MVP
    spec). Clients don't install an app to book one manicure, so the client cabinet goes and Manik
    becomes the master's own tool: a client base, free windows published as a stories image and as
    text, booking a client into a window, rescheduling, and personal plans in the same calendar.
-   Firebase stays for now; existing Firestore data is test data, so there is no migration. One PR
-   each, in this order, every one shippable:
-   1. **M-30 Remove the client side** — `Client/`, Requests, sign-up, client rules; the tab bar is
-      Розклад / Статистика for one PR. Removal goes first so Клієнтки lands in the final tab bar
-      instead of a throwaway fourth tab.
-   2. **M-31 Клієнтки** — `clients` collection, tab (Розклад / Клієнтки / Статистика), search,
+   **Every master signs up and gets an independent cabinet** — her data lives under
+   `users/{uid}/`, no roles, no salons. Firebase stays; existing Firestore data is test data, so
+   there is no migration. One PR each, in this order, every one shippable:
+   1. ~~**M-30 Remove the client side, one cabinet per master**~~ — **done** (under "Done"). `Client/`, Requests, roles;
+      sign-up creates a master; `services`/`blocks` move under `users/{uid}/`; owner-only rules;
+      tab bar Розклад / Статистика for one PR. Removal goes first so Клієнтки lands in the final
+      tab bar instead of a throwaway fourth tab.
+   2. **M-31 Master account** — forgot password, change password, delete account (wipes all her
+      data); required by the App Store once sign-up exists. The client cabinet's
+      `ChangePassword`/`DeleteAccount` popups are deleted in M-30 and restored from git history
+      here (`git show <M-30 parent>:Manik/Manik/Client/Account/…`), rebuilt for the master.
+   3. **M-32 Клієнтки** — `clients`, tab (Розклад / Клієнтки / Статистика), search,
       add/edit/delete, client card with Instagram DM (`ig.me/m/`) or call/SMS.
-   3. **M-32 Windows** — `slots` (date + start time), new Розклад day list, Заповнити місяць;
+   4. **M-33 Windows** — `slots` (date + start time), new Розклад day list, Заповнити місяць;
       `Block`/`blocks` removed.
-   4. **M-33 Booking** — book a client into a window (search + inline add), booking actions,
+   5. **M-34 Booking** — book a client into a window (search + inline add), booking actions,
       history on the client card.
-   5. **M-34 Publishing** — free windows as a 9:16 image (layout A) and as text, Надіслати прайс,
+   6. **M-35 Publishing** — free windows as a 9:16 image (layout A) and as text, Надіслати прайс,
       favourite services, "Надіслати @нік".
-   6. **M-35 Reschedule**.
-   7. **M-36 Personal plans** — `events` + `eventTemplates` (Мої справи), weekly repeat, conflict
+   7. **M-36 Reschedule**.
+   8. **M-37 Personal plans** — `events` + `eventTemplates` (Мої справи), weekly repeat, conflict
       warnings.
-   8. **M-37 Statistics on slots**.
+   9. **M-38 Statistics on slots**.
 
 ## Backlog and tech debt (unordered)
 
@@ -1499,7 +1536,7 @@ numbering drifts every time an item is added or closed (it already did once: PR9
   untruth the redaction removes from the screen. `.accessibilityHidden(viewModel.hasLoadedStats ==
   false)` beside the existing modifier covers it without a new catalog key. Worth doing in whichever
   account PR is opened next rather than as a standalone change.
-- ~~**Show the client's contacts to the master**~~ — **superseded by the pivot** (contacts live on the master's own client records (M-31, M-33)). (requested 2026-10-07, not yet ordered —
+- ~~**Show the client's contacts to the master**~~ — **superseded by the pivot** (contacts live on the master's own client records (M-32, M-34)). (requested 2026-10-07, not yet ordered —
   see "Next up"). Today a client's phone / Instagram / Telegram appear only on
   her own «Акаунт»; the master sees them nowhere. Add them to «Заявки» cards and the Schedule's
   `BlockDetailPopup`, each tappable: `tel:` for the phone, `https://instagram.com/<handle>` and
@@ -1523,7 +1560,7 @@ numbering drifts every time an item is added or closed (it already did once: PR9
     adopting the Firebase CLI the project deliberately avoids (rules are deployed by hand today).
   - Still to decide either way: when to remind (day before / a few hours before / both), and
     whether the client can turn it off.
-- ~~**Rescheduling a booking**~~ — **superseded by the pivot** (redone for the new model as M-35 (a slot's date/time moves; no block-to-block transaction)). (requested 2026-10-07). Today there is none: blocks have only
+- ~~**Rescheduling a booking**~~ — **superseded by the pivot** (redone for the new model as M-36 (a slot's date/time moves; no block-to-block transaction)). (requested 2026-10-07). Today there is none: blocks have only
   confirm / decline / cancel, and the rules pin `date`/`startTime`/`endTime` for the client. The
   workaround is cancel + book again. In this model a reschedule never edits a block's time — it
   **moves the booking from one block to another free block** in a single Firestore transaction:
@@ -1543,7 +1580,7 @@ numbering drifts every time an item is added or closed (it already did once: PR9
     booking card; this ties into the booking-reminders item.
   - Both paths must handle the target block being taken mid-transaction (the transaction fails;
     show the same "time taken" message as booking, and keep the old booking intact).
-- ~~**Master: find a client by Instagram handle**~~ — **superseded by the pivot** (became the Клієнтки tab, M-31). (requested 2026-10-07). The master has no client
+- ~~**Master: find a client by Instagram handle**~~ — **superseded by the pivot** (became the Клієнтки tab, M-32). (requested 2026-10-07). The master has no client
   list today — she meets clients only through their bookings. Wanted: type a handle, get the
   **client card + her bookings** (user choice over a plain filter or a bare client list).
   - **Card**: name and tappable contacts (shares the UI of the "Show the client's contacts to the

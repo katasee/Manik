@@ -22,19 +22,8 @@ struct RootView: View {
                     }
                 }
             case .signedIn(let profile):
-                switch profile.role {
-                case .master:
-                    MasterRootView(onSignOut: viewModel.signOut)
-                        .id(profile.uid)
-                case .client:
-                    ClientRootView(
-                        profile: profile,
-                        onSignOut: viewModel.signOut,
-                        onProfileUpdated: viewModel.update(profile:),
-                        onAccountDeleted: viewModel.reset
-                    )
+                MasterRootView(onSignOut: viewModel.signOut)
                     .id(profile.uid)
-                }
             }
         }
         .preferredColorScheme(appearance.colorScheme)

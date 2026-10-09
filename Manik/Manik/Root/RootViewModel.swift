@@ -43,10 +43,6 @@ final class RootViewModel {
         state = .signedOut
     }
 
-    func update(profile: UserProfile) {
-        state = .signedIn(profile)
-    }
-
     func signOut() {
         do {
             try repository.signOut()

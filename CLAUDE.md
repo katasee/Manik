@@ -14,11 +14,12 @@ There is no test target, linter, or formatter configured yet.
 
 ## Project
 
-Manik is an iOS calendar for a single nail master: her client base, free windows, bookings and
-personal plans in one place; clients never use the app (they write to her in Instagram and she
-books them). SwiftUI + Firebase (Auth + Firestore). It was a two-cabinet booking app (master /
-client) until the 2026-10-09 pivot; the code moves to master-only over PRs M-30…M-37 (`docs/plan.md`,
-item 9), so until M-30 lands the client cabinet still exists in the code. Full product spec —
+Manik is an iOS calendar for nail masters: each master signs up and gets an independent cabinet
+(her data under `users/{uid}/`) with her client base, free windows, bookings and personal plans;
+clients never use the app (they write to her in Instagram and she books them). SwiftUI + Firebase
+(Auth + Firestore). It was a two-cabinet booking app (one master / clients) until the 2026-10-09
+pivot; the code moves over PRs M-30…M-38 (`docs/plan.md`, item 9) — since M-30 the client cabinet
+is gone, and the Schedule still runs on the old `blocks` model until M-33. Full product spec —
 data model, screen flows, out-of-scope list — lives in
 `docs/superpowers/specs/2026-07-15-manik-mvp-design.md`; keep it in sync with any product decision
 that changes scope, not just this file.
@@ -52,6 +53,14 @@ plan and design a feature before the code does; after the code lands, the code i
 truth and these files are just stale duplication. Two files are the exception and must stay:
 `docs/superpowers/specs/2026-07-15-manik-mvp-design.md` (the product-wide MVP spec, referenced
 above) and `docs/plan.md` (the living status checklist, which is not a superpowers artifact).
+
+## Git
+
+**The user creates branches, commits and pushes themselves.** Don't run `git switch -c`/`git branch`,
+`git commit` (including `--amend`) or `git push`, and don't merge or cherry-pick into `main` —
+leave the changes in the working tree and say what is ready to commit. Read-only git (`status`,
+`diff`, `log`) is fine. If a skill's workflow says to commit after a step, skip that step and
+mention it instead.
 
 ## Conventions
 
