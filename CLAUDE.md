@@ -14,8 +14,11 @@ There is no test target, linter, or formatter configured yet.
 
 ## Project
 
-Manik is a Booksy-style iOS booking app for a single nail salon master. SwiftUI + Firebase
-(Auth + Firestore), one app with two role-gated cabinets (master / client). Full product spec —
+Manik is an iOS calendar for a single nail master: her client base, free windows, bookings and
+personal plans in one place; clients never use the app (they write to her in Instagram and she
+books them). SwiftUI + Firebase (Auth + Firestore). It was a two-cabinet booking app (master /
+client) until the 2026-10-09 pivot; the code moves to master-only over PRs M-30…M-37 (`docs/plan.md`,
+item 9), so until M-30 lands the client cabinet still exists in the code. Full product spec —
 data model, screen flows, out-of-scope list — lives in
 `docs/superpowers/specs/2026-07-15-manik-mvp-design.md`; keep it in sync with any product decision
 that changes scope, not just this file.
