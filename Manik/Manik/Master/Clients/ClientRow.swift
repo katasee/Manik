@@ -16,7 +16,6 @@ struct ClientRow: View {
         }
         .padding(.horizontal, ClientsMetrics.Spacing.rowHorizontalPadding)
         .padding(.vertical, ClientsMetrics.Spacing.rowVerticalPadding)
-        .frame(maxWidth: .infinity, alignment: .leading)
         .cardSurface(padding: 0, cornerRadius: ClientsMetrics.Size.rowCornerRadius)
         .accessibilityElement(children: .combine)
     }

@@ -7,6 +7,9 @@ struct SearchField: View {
     private enum Layout {
         static let spacing: CGFloat = 10
         static let glyph: CGFloat = 16
+        static let tapTarget: CGFloat = 44
+        static let tapVerticalOverflow: CGFloat = 12
+        static let tapTrailingOverflow: CGFloat = 14
     }
 
     var body: some View {
@@ -33,8 +36,12 @@ struct SearchField: View {
             Image(systemName: "xmark.circle.fill")
                 .font(.elmsSans(.regular, Layout.glyph))
                 .foregroundStyle(Color.textSecondary)
+                .frame(width: Layout.tapTarget, height: Layout.tapTarget)
+                .contentShape(.rect)
         }
         .buttonStyle(.plain)
+        .padding(.vertical, -Layout.tapVerticalOverflow)
+        .padding(.trailing, -Layout.tapTrailingOverflow)
         .accessibilityLabel(Text("common.action.clear"))
     }
 
