@@ -3,6 +3,7 @@ import SwiftUI
 struct AuthView: View {
     @State private var viewModel = AuthViewModel()
     @FocusState private var focusedField: AuthFocusField?
+    @State private var isShowingReset = false
     var onAuthenticated: () async -> Void
 
     var body: some View {
@@ -42,6 +43,10 @@ struct AuthView: View {
                     )
                 }
 
+                if viewModel.mode == .signIn {
+                    forgotPasswordLink
+                }
+
                 if let errorMessage = viewModel.errorMessage {
                     errorText(errorMessage)
                 }
@@ -60,6 +65,13 @@ struct AuthView: View {
         .onAppear {
             focusedField = .email
         }
+        .fullScreenCover(isPresented: $isShowingReset) {
+            ResetPasswordPopup(
+                viewModel: ResetPasswordViewModel(email: viewModel.email),
+                onDismiss: hideReset
+            )
+            .presentationBackground(.clear)
+        }
     }
 
     private func errorText(_ message: String) -> some View {
@@ -67,6 +79,32 @@ struct AuthView: View {
             .font(.elmsSans(.regular, AuthMetrics.FontSize.error))
             .foregroundStyle(.red)
             .padding(.top, AuthMetrics.Spacing.errorTop)
+    }
+
+    private var forgotPasswordLink: some View {
+        Button(action: showReset) {
+            Text("auth.action.forgotPassword")
+                .font(.elmsSans(.semiBold, AuthMetrics.FontSize.swap))
+                .foregroundStyle(Color.wine)
+                .frame(minHeight: AuthMetrics.swapTapHeight)
+                .contentShape(.rect)
+        }
+        .buttonStyle(.plain)
+        .frame(maxWidth: .infinity, alignment: .trailing)
+    }
+
+    private func showReset() {
+        focusedField = nil
+
+        withoutPresentationAnimation {
+            isShowingReset = true
+        }
+    }
+
+    private func hideReset() {
+        withoutPresentationAnimation {
+            isShowingReset = false
+        }
     }
 
     @ViewBuilder

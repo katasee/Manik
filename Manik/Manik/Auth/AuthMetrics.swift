@@ -9,6 +9,8 @@ enum AuthMetrics {
         static let error: CGFloat = 13
         static let swap: CGFloat = 14
         static let labelTracking: CGFloat = 0.5
+        static let verifyTitle: CGFloat = 32
+        static let verifyBody: CGFloat = 15
     }
 
     enum Spacing {
@@ -22,6 +24,10 @@ enum AuthMetrics {
         static let submitVerticalPadding: CGFloat = 15
         static let swapTop: CGFloat = 8
         static let swapSpacing: CGFloat = 4
+        static let verifyIconBottom: CGFloat = 20
+        static let verifyMessageTop: CGFloat = 10
+        static let verifyButtonsTop: CGFloat = 28
+        static let verifyButtons: CGFloat = 12
     }
 
     enum AnimationStyle {
@@ -29,5 +35,6 @@ enum AuthMetrics {
     }
 
     static let disabledOpacity: Double = 0.5
+    static let successIcon: CGFloat = 44
     static let swapTapHeight: CGFloat = 44
 }

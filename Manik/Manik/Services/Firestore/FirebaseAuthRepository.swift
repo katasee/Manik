@@ -6,6 +6,10 @@ final class FirebaseAuthRepository: AuthRepository {
 
     var currentUserId: String? { Auth.auth().currentUser?.uid }
 
+    var currentEmail: String? { Auth.auth().currentUser?.email }
+
+    var isEmailVerified: Bool { Auth.auth().currentUser?.isEmailVerified ?? false }
+
     func signUp(
         email: String,
         password: String,
@@ -21,6 +25,9 @@ final class FirebaseAuthRepository: AuthRepository {
         try await db.collection("users")
             .document(result.user.uid)
             .setData(encoded)
+
+        Auth.auth().useAppLanguage()
+        try? await result.user.sendEmailVerification()
     }
 
     func signIn(email: String, password: String) async throws {
@@ -39,5 +46,112 @@ final class FirebaseAuthRepository: AuthRepository {
         guard snapshot.exists else { throw AccountError.profileNotFound }
 
         return try snapshot.data(as: UserProfile.self)
+    }
+
+    func reloadUser() async throws {
+        let user = try currentUser()
+
+        do {
+            try await user.reload()
+        } catch {
+            throw Self.accountError(from: error)
+        }
+    }
+
+    func refreshIdToken() async throws {
+        let user = try currentUser()
+
+        do {
+            _ = try await user.getIDTokenResult(forcingRefresh: true)
+        } catch {
+            throw Self.accountError(from: error)
+        }
+    }
+
+    func sendEmailVerification() async throws {
+        let user = try currentUser()
+        Auth.auth().useAppLanguage()
+
+        do {
+            try await user.sendEmailVerification()
+        } catch {
+            throw Self.accountError(from: error)
+        }
+    }
+
+    func sendPasswordReset(email: String) async throws {
+        Auth.auth().useAppLanguage()
+
+        do {
+            try await Auth.auth().sendPasswordReset(withEmail: email)
+        } catch let error as NSError where error.domain == AuthErrors.domain
+            && error.code == AuthErrorCode.userNotFound.rawValue {
+        } catch {
+            throw Self.accountError(from: error)
+        }
+    }
+
+    func reauthenticate(password: String) async throws {
+        let user = try currentUser()
+
+        guard let email = user.email else { throw AccountError.generic }
+
+        let credential = EmailAuthProvider.credential(withEmail: email, password: password)
+
+        do {
+            _ = try await user.reauthenticate(with: credential)
+        } catch {
+            throw Self.accountError(from: error)
+        }
+    }
+
+    func updatePassword(to newPassword: String) async throws {
+        let user = try currentUser()
+
+        do {
+            try await user.updatePassword(to: newPassword)
+        } catch {
+            throw Self.accountError(from: error)
+        }
+    }
+
+    func deleteAccount() async throws {
+        let user = try currentUser()
+
+        do {
+            try await user.delete()
+        } catch {
+            throw Self.accountError(from: error)
+        }
+    }
+
+    private func currentUser() throws -> User {
+        guard let user = Auth.auth().currentUser else { throw AccountError.requiresRecentLogin }
+
+        return user
+    }
+
+    private static func accountError(from error: Error) -> AccountError {
+        let error = error as NSError
+
+        guard error.domain == AuthErrors.domain,
+              let code = AuthErrorCode(rawValue: error.code) else { return .generic }
+
+        switch code {
+        case .wrongPassword, .invalidCredential, .userMismatch:
+            return .wrongPassword
+        case .weakPassword:
+            return .weakPassword
+        case .requiresRecentLogin:
+            return .requiresRecentLogin
+        case .invalidEmail:
+            return .invalidEmail
+        case .tooManyRequests:
+            return .tooManyRequests
+        case .networkError:
+            return .network
+        default:
+            return .generic
+        }
     }
 }

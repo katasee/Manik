@@ -135,6 +135,22 @@
         }
       }
     },
+    "auth.action.forgotPassword" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Forgot password?"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Забули пароль?"
+          }
+        }
+      }
+    },
     "auth.action.signUp" : {
       "localizations" : {
         "en" : {
@@ -147,6 +163,70 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Зареєструватися"
+          }
+        }
+      }
+    },
+    "auth.error.generic" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Something went wrong. Please try again."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Щось пішло не так. Спробуйте ще раз."
+          }
+        }
+      }
+    },
+    "auth.error.invalidEmail" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "That email address isn't valid."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Неправильний формат email."
+          }
+        }
+      }
+    },
+    "auth.error.network" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No internet connection."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Немає з'єднання з інтернетом."
+          }
+        }
+      }
+    },
+    "auth.error.tooManyRequests" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Too many attempts. Try again in a few minutes."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Забагато спроб. Спробуйте за кілька хвилин."
           }
         }
       }
@@ -215,6 +295,86 @@
         }
       }
     },
+    "auth.reset.note" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enter your email and we'll send a link to set a new password."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Введіть email — ми надішлемо посилання, щоб задати новий пароль."
+          }
+        }
+      }
+    },
+    "auth.reset.sentMessage" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "If an account with this address exists, we've sent a password reset link."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Якщо акаунт із цією адресою існує, ми надіслали посилання для скидання пароля."
+          }
+        }
+      }
+    },
+    "auth.reset.sentTitle" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check your email"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Перевірте пошту"
+          }
+        }
+      }
+    },
+    "auth.reset.submit" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Send email"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Надіслати лист"
+          }
+        }
+      }
+    },
+    "auth.reset.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reset password"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Скидання пароля"
+          }
+        }
+      }
+    },
     "auth.swap.haveAccount" : {
       "localizations" : {
         "en" : {
@@ -259,6 +419,118 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Запис на манікюр"
+          }
+        }
+      }
+    },
+    "auth.verify.check" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I've verified"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Я підтвердила"
+          }
+        }
+      }
+    },
+    "auth.verify.message %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "We sent an email to %@. Follow the link in it, then come back here."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ми надіслали лист на %@. Перейдіть за посиланням у листі й поверніться сюди."
+          }
+        }
+      }
+    },
+    "auth.verify.notVerified" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your email isn't verified yet. Check the email, including the spam folder."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Пошту ще не підтверджено. Перевірте лист, зокрема папку «Спам»."
+          }
+        }
+      }
+    },
+    "auth.verify.resend" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Send again"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Надіслати ще раз"
+          }
+        }
+      }
+    },
+    "auth.verify.resendIn %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Send again (%lld)"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Надіслати ще раз (%lld)"
+          }
+        }
+      }
+    },
+    "auth.verify.sent" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Email sent again."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Лист надіслано ще раз."
+          }
+        }
+      }
+    },
+    "auth.verify.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verify your email"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Підтвердіть пошту"
           }
         }
       }
