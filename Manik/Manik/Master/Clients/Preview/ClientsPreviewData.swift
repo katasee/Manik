@@ -11,10 +11,6 @@ enum ClientsPreviewData {
         Client(id: "client-legacy", name: "Ірина", phone: "600 12 34", createdAt: daysAgo(35))
     ]
 
-    static let manyClients: [Client] = (1...14).map { index in
-        Client(id: "client-many-\(index)", name: "Клієнтка \(index)", instagram: "client.\(index)", createdAt: daysAgo(index))
-    }
-
     private static func daysAgo(_ days: Int) -> Date {
         Date(timeIntervalSinceNow: -Double(days) * 86_400)
     }

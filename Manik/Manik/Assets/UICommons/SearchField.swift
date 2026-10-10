@@ -1,8 +1,8 @@
 import SwiftUI
 
 struct SearchField: View {
-    let placeholderKey: LocalizedStringKey
     @Binding var text: String
+    let placeholderKey: LocalizedStringKey
 
     private enum Layout {
         static let spacing: CGFloat = 10
@@ -48,8 +48,8 @@ struct SearchField: View {
     @Previewable @State var typed = "olya"
 
     VStack(spacing: 16) {
-        SearchField(placeholderKey: "clients.search.placeholder", text: $empty)
-        SearchField(placeholderKey: "clients.search.placeholder", text: $typed)
+        SearchField(text: $empty, placeholderKey: "clients.search.placeholder")
+        SearchField(text: $typed, placeholderKey: "clients.search.placeholder")
     }
     .padding()
     .frame(maxHeight: .infinity)
