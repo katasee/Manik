@@ -15,7 +15,7 @@ enum PasswordFailure {
             self = .weak
         case .requiresRecentLogin:
             self = .requiresRecentLogin
-        case .profileNotFound, .invalidEmail, .tooManyRequests, .network, .generic:
+        case .profileNotFound, .invalidEmail, .emailAlreadyInUse, .tooManyRequests, .network, .generic:
             self = .generic
         }
     }

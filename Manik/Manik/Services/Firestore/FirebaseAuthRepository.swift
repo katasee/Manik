@@ -15,7 +15,14 @@ final class FirebaseAuthRepository: AuthRepository {
         password: String,
         name: String
     ) async throws {
-        let result = try await Auth.auth().createUser(withEmail: email, password: password)
+        let result: AuthDataResult
+
+        do {
+            result = try await Auth.auth().createUser(withEmail: email, password: password)
+        } catch {
+            throw Self.accountError(from: error)
+        }
+
         let profile = UserProfile(
             uid: result.user.uid,
             name: name,
@@ -31,7 +38,11 @@ final class FirebaseAuthRepository: AuthRepository {
     }
 
     func signIn(email: String, password: String) async throws {
-        _ = try await Auth.auth().signIn(withEmail: email, password: password)
+        do {
+            _ = try await Auth.auth().signIn(withEmail: email, password: password)
+        } catch {
+            throw Self.accountError(from: error)
+        }
     }
 
     func signOut() throws {
@@ -146,6 +157,8 @@ final class FirebaseAuthRepository: AuthRepository {
             return .requiresRecentLogin
         case .invalidEmail:
             return .invalidEmail
+        case .emailAlreadyInUse:
+            return .emailAlreadyInUse
         case .tooManyRequests:
             return .tooManyRequests
         case .networkError:

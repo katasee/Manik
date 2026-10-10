@@ -4,6 +4,7 @@ enum AccountError: Error {
     case weakPassword
     case requiresRecentLogin
     case invalidEmail
+    case emailAlreadyInUse
     case tooManyRequests
     case network
     case generic

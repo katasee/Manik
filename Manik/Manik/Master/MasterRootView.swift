@@ -1,7 +1,9 @@
 import SwiftUI
 
 struct MasterRootView: View {
+    let profile: UserProfile
     let onSignOut: () -> Void
+    let onAccountDeleted: () -> Void
 
     @State private var selectedTab: MasterTab = .schedule
     @State private var scheduleViewModel = ScheduleViewModel()
@@ -20,7 +22,12 @@ struct MasterRootView: View {
                         case .schedule:
                             ScheduleView(viewModel: scheduleViewModel)
                         case .stats:
-                            StatsView(viewModel: statsViewModel, onSignOut: onSignOut)
+                            StatsView(
+                                viewModel: statsViewModel,
+                                profile: profile,
+                                onSignOut: onSignOut,
+                                onAccountDeleted: onAccountDeleted
+                            )
                         }
                     }
                     .tint(Color.accentColor)
@@ -31,6 +38,12 @@ struct MasterRootView: View {
     }
 }
 
+#if DEBUG
 #Preview {
-    MasterRootView(onSignOut: {})
+    MasterRootView(
+        profile: ProfilePreviewData.profile,
+        onSignOut: {},
+        onAccountDeleted: {}
+    )
 }
+#endif

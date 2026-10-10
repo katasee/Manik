@@ -47,8 +47,8 @@ struct AuthView: View {
                     forgotPasswordLink
                 }
 
-                if let errorMessage = viewModel.errorMessage {
-                    errorText(errorMessage)
+                if let failure = viewModel.failure {
+                    errorText(failure.messageKey)
                 }
 
                 submitButton
@@ -74,7 +74,7 @@ struct AuthView: View {
         }
     }
 
-    private func errorText(_ message: String) -> some View {
+    private func errorText(_ message: LocalizedStringKey) -> some View {
         Text(message)
             .font(.elmsSans(.regular, AuthMetrics.FontSize.error))
             .foregroundStyle(.red)

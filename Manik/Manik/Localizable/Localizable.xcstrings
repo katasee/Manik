@@ -326,22 +326,6 @@
         }
       }
     },
-    "appearance.action.open" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Appearance"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Оформлення"
-          }
-        }
-      }
-    },
     "appearance.option.dark" : {
       "localizations" : {
         "en" : {
@@ -386,22 +370,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Системна"
-          }
-        }
-      }
-    },
-    "appearance.title" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Appearance"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Оформлення"
           }
         }
       }
@@ -451,6 +419,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Зареєструватися"
+          }
+        }
+      }
+    },
+    "auth.error.emailAlreadyInUse" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "An account with this email already exists. Sign in or reset your password."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Акаунт із цією поштою вже існує. Увійдіть або відновіть пароль."
           }
         }
       }
@@ -515,6 +499,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Забагато спроб. Спробуйте за кілька хвилин."
+          }
+        }
+      }
+    },
+    "auth.error.wrongCredentials" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wrong email or password."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Неправильна пошта або пароль."
           }
         }
       }
@@ -981,6 +981,70 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Мої записи"
+          }
+        }
+      }
+    },
+    "profile.action.open" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Profile"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Профіль"
+          }
+        }
+      }
+    },
+    "profile.section.account" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Account"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Акаунт"
+          }
+        }
+      }
+    },
+    "profile.section.theme" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Theme"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Тема"
+          }
+        }
+      }
+    },
+    "profile.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Profile"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Профіль"
           }
         }
       }

@@ -1525,6 +1525,23 @@ something nearby is already being touched. **No numbers on purpose** — cite th
 numbering drifts every time an item is added or closed (it already did once: PR9's entry pointed at
 "step 9" for what was item 10).
 
+- **Verification emails don't reach ukr.net — own sender before release** (found 2026-10-10 during
+  M-31's manual pass). With Firebase's default sender (`noreply@<project>.firebaseapp.com`) the
+  verification email arrives at Gmail within a minute but never at `@ukr.net` — not in Inbox, Spam
+  or search, after waiting and after "Надіслати ще раз" reported success (Firebase accepted the
+  send; delivery fails afterwards). Not a code problem, and not a blanket ukr.net block of
+  `firebaseapp.com`: the same mailbox did receive another product's Firebase verification email in
+  Dec 2024. The app cannot detect delivery — Firebase only confirms the send. Fix in the Console,
+  not in code, **before release** (Polish/Ukrainian masters use ukr.net, i.ua, meta.ua):
+  - quick: Authentication → Templates → **SMTP settings** through a dedicated Gmail
+    (`smtp.gmail.com:587`, STARTTLS, an app password; ~500 emails/day) — also the cheapest test of
+    whether the sender is the cause;
+  - proper: a domain we own — **Customize domain** with the DNS records (SPF/DKIM) Firebase shows,
+    or an email service (Brevo, SendGrid) on that domain. The domain must be ours; an arbitrary
+    name such as `manik.app` cannot be verified.
+  - In the app, worth adding regardless: a "Не прийшов лист? Перевірте «Спам» або спробуйте іншу
+    пошту" hint on the verify-email screen, and surfacing a failed first send (sign-up sends it
+    with `try?`, so a rejected send is invisible).
 - ~~**Three accessibility items left open on the account screen**~~ — **superseded by the pivot** (the client account is removed in M-30). (two from M-23's review, one from
   M-24's). None blocks a PR, all are one line each: the contact rows' SF Symbols are announced by
   VoiceOver ("phone. Телефон. +48 600 123 456") and want `.accessibilityHidden(true)`, since the

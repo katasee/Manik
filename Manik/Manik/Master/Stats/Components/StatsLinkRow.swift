@@ -2,6 +2,7 @@ import SwiftUI
 
 enum StatsRoute: Hashable {
     case services
+    case profile
 }
 
 struct StatsLinkRow: View {
