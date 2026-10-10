@@ -34,6 +34,10 @@ final class FailingAuthRepository: AuthRepository {
         throw error
     }
 
+    func createProfile(name: String) async throws {
+        throw error
+    }
+
     func reloadUser() async throws {
         throw error
     }

@@ -78,7 +78,7 @@ the system font; don't try to force ElmsSans onto them through `UITabBarAppearan
 
 **Colour scheme and roles.** The app has a light and a dark theme ("Темне вино", the canvas page
 "Темний + темне вино"); every colorset carries both appearances. The user picks System / Light /
-Dark in a popup (`Appearance/`); the choice is `AppAppearance` in `@AppStorage("appearance")`,
+Dark on the Profile screen (`AppearancePicker` in `Appearance/`); the choice is `AppAppearance` in `@AppStorage("appearance")`,
 applied once with `.preferredColorScheme` on `RootView`. There is no light lock any more — don't
 reintroduce `INFOPLIST_KEY_UIUserInterfaceStyle`, and don't branch on `colorScheme` in views: a
 colour that differs between themes is a colorset, not an `if`.

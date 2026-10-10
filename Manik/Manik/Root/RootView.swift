@@ -11,8 +11,8 @@ struct RootView: View {
                 ProgressView()
             case .signedOut:
                 VStack(spacing: 0) {
-                    if let errorMessage = viewModel.errorMessage {
-                        Text(errorMessage)
+                    if let failure = viewModel.failure {
+                        Text(failure.messageKey)
                             .font(.elmsSans(.regular, 13))
                             .foregroundStyle(.red)
                             .padding()

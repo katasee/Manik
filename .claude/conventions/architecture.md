@@ -133,11 +133,11 @@
   yourself). `UserProfile.id` is `uid`, since that collection is keyed by the Firebase Auth uid
   rather than an auto-generated document ID.
 - `Manik/Manik/Services/Repositories/` — protocols only (`AuthRepository`, `ServiceRepository`,
-  `BlockRepository`). These files must **not** import Firebase — that's the whole point: ViewModels
+  `BlockRepository`, `UserDataRepository`). These files must **not** import Firebase — that's the whole point: ViewModels
   depend on these contracts, not on Firestore/Auth directly, so a fake implementation can stand in
   for SwiftUI previews or tests without touching the network.
 - `Manik/Manik/Services/Firestore/` — concrete implementations (`FirebaseAuthRepository`,
-  `FirestoreServiceRepository`, `FirestoreBlockRepository`). `Firestore.firestore()`/`Auth.auth()`
+  `FirestoreServiceRepository`, `FirestoreBlockRepository`, `FirestoreUserDataRepository`). `Firestore.firestore()`/`Auth.auth()`
   are singletons managed by the Firebase SDK itself; that's fine and expected — what we avoid is
   wrapping *our own* repository classes in `.shared` singletons. ViewModels take a repository
   protocol as an init parameter, defaulting to the real Firestore-backed implementation.
@@ -146,10 +146,10 @@
   top-level `collection(...)`, so protocols and view models never see the uid.
 - **App-wide settings get a top-level feature folder**, like `Auth/` and
   `Root/`: `Appearance/` holds `AppAppearance` (System / Light / Dark, stored in
-  `@AppStorage("appearance")` and applied by `RootView`) and `AppearancePopup`, which
-  "Статистика" presents. It has no view model — the popup only reads and writes
-  `@AppStorage`. `LargeTitleHeader` takes an optional trailing view for the round button that opens
-  it.
+  `@AppStorage("appearance")` and applied by `RootView`) and `AppearancePicker`, the rows shown in
+  the Profile screen (`Master/Profile/`). It has no view model — the picker only reads and writes
+  `@AppStorage`. `LargeTitleHeader` takes an optional trailing view: Статистика puts the round
+  person button there, which opens Profile.
 - Two `PBXFileSystemSynchronizedRootGroup`s feed the `Manik` target: `Manik/Manik/` (app source) and
   `Manik/Assets/` (build resources that aren't Swift source living next to feature code — currently
   just `Manik/Assets/Font/`). Both are auto-picked-up like the `GoogleService-Info.plist` case (see

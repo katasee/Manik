@@ -1372,6 +1372,50 @@ this file is just "what's done, what's next," not a design doc.
     both tabs, adding a service and a slot, and a second master signing up into an empty cabinet that
     doesn't see the first one's data.
 
+- **M-31 — Master account** (branch `feature/pr-31-Master-account`; item 9.2). Required by the App
+  Store once sign-up exists (5.1.1(v)).
+  - **Email verification gate**: after sign-up `RootViewModel` shows "Підтвердіть пошту"
+    (`Auth/VerifyEmail/`) until `isEmailVerified`; "Я підтвердила" reloads the user, "Надіслати ще
+    раз" resends with a 60 s countdown. After verification the ID token is force-refreshed
+    (`VerifyEmailViewModel.check()`, or `RootViewModel.refresh()` at launch), because the rules read
+    `email_verified` from the token, not from the Auth record.
+  - **"Забули пароль?"** (`Auth/ResetPassword/`): Firebase's reset email. `sendPasswordReset`
+    swallows `.userNotFound`, so an unknown address gets the same success message — no account
+    enumeration.
+  - **Profile screen** (`Master/Profile/`), opened by the person button in Статистика's header (it
+    replaced the theme button): name and email, theme rows (`Appearance/AppearancePicker`,
+    `AppearancePopup` deleted), "Змінити пароль", "Вийти" (moved off the bottom of Статистика),
+    "Видалити акаунт".
+  - **Change password / delete account** restored from the client cabinet (`5cffda7^`) and rebuilt.
+    Delete order in `DeleteAccountViewModel.delete()`: re-authenticate first (a typo deletes
+    nothing), then `UserDataRepository.deleteAllData()`, then the Auth user last (once it is gone
+    the rules no longer let the app reach the data); each step is idempotent, so a retry finishes a
+    partial run. The popup can't be dismissed while deleting (`PopupContainer.isDismissDisabled`).
+    If the data is wiped but `user.delete()` fails, the Auth user remains without a profile; on the
+    next sign-in `RootViewModel` recreates `users/{uid}` (name = the email's local part), so she
+    lands in an empty cabinet and can delete again — the same path covers a sign-up whose profile
+    write failed. (Found in the final review: before this, a missing profile signed her out silently
+    on every sign-in, and sign-up said the email was taken — a permanent lockout. Verified on the
+    simulator 2026-10-10: deleting `users/{uid}` in the Console, then signing in, recreated it and
+    opened the cabinet.)
+  - **`FirestoreUserDataRepository.collections` is the registry of per-master collections**
+    (`services`, `blocks` today). Account deletion wipes only what is listed — every PR that adds a
+    collection under `users/{uid}/` must add it here (M-32 `clients`, M-33 `slots`, M-37 `events`,
+    `eventTemplates`).
+  - **Rules**: `isVerifiedOwner(uid)` (owner + `request.auth.token.email_verified`) on everything,
+    except `create` of `users/{uid}`, which happens at sign-up before the email is verified.
+    Deployed by hand 2026-10-09.
+  - **Friendly auth errors**: sign-in and sign-up map Firebase errors through `AccountError` to
+    `Auth/AuthFailure` ("Неправильна пошта або пароль.", "Акаунт із цією поштою вже існує…"),
+    reusing the reset/verify keys where the wording already existed. Found while testing: a
+    "malformed credential" sign-in was a password typed in a non-English keyboard layout — Firebase
+    deliberately doesn't say whether the email or the password is wrong. `RootView`'s error line
+    (profile load failures) also shows an `AuthFailure` now, never `localizedDescription`.
+  - Swift is written without comments (user rule); the reasoning above lives here instead.
+  - Verified on the simulator: the full manual pass (sign-up → verify → cabinet, resend, forgot
+    password, change password, delete with the data gone from Firestore and Auth). Open: emails to
+    ukr.net don't arrive — see the backlog item; the sign-in tagline is still "Book a manicure".
+
 ## Screens (in order)
 
 This is the actual work queue, and the only numbered list here. The ordering follows the **data
@@ -1501,21 +1545,20 @@ those items are referred to by name, so the list can grow without renumbering an
       sign-up creates a master; `services`/`blocks` move under `users/{uid}/`; owner-only rules;
       tab bar Розклад / Статистика for one PR. Removal goes first so Клієнтки lands in the final
       tab bar instead of a throwaway fourth tab.
-   2. **M-31 Master account** — forgot password, change password, delete account (wipes all her
-      data); required by the App Store once sign-up exists. The client cabinet's
-      `ChangePassword`/`DeleteAccount` popups are deleted in M-30 and restored from git history
-      here (`git show <M-30 parent>:Manik/Manik/Client/Account/…`), rebuilt for the master.
+   2. ~~**M-31 Master account**~~ — **done** (under "Done"): email verification, forgot/change
+      password, delete account with a full data wipe, Profile screen.
    3. **M-32 Клієнтки** — `clients`, tab (Розклад / Клієнтки / Статистика), search,
-      add/edit/delete, client card with Instagram DM (`ig.me/m/`) or call/SMS.
+      add/edit/delete, client card with Instagram DM (`ig.me/m/`) or call/SMS. Add `clients` to
+      `FirestoreUserDataRepository.collections`.
    4. **M-33 Windows** — `slots` (date + start time), new Розклад day list, Заповнити місяць;
-      `Block`/`blocks` removed.
+      `Block`/`blocks` removed. Swap `blocks` for `slots` in `FirestoreUserDataRepository.collections`.
    5. **M-34 Booking** — book a client into a window (search + inline add), booking actions,
       history on the client card.
    6. **M-35 Publishing** — free windows as a 9:16 image (layout A) and as text, Надіслати прайс,
       favourite services, "Надіслати @нік".
    7. **M-36 Reschedule**.
    8. **M-37 Personal plans** — `events` + `eventTemplates` (Мої справи), weekly repeat, conflict
-      warnings.
+      warnings. Add both to `FirestoreUserDataRepository.collections`.
    9. **M-38 Statistics on slots**.
 
 ## Backlog and tech debt (unordered)

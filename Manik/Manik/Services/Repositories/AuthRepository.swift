@@ -6,6 +6,7 @@ protocol AuthRepository {
     func signIn(email: String, password: String) async throws
     func signOut() throws
     func fetchProfile() async throws -> UserProfile
+    func createProfile(name: String) async throws
     func reloadUser() async throws
     func refreshIdToken() async throws
     func sendEmailVerification() async throws

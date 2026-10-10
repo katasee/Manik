@@ -6,8 +6,8 @@ service cloud.firestore {
       return request.auth != null && request.auth.uid == uid;
     }
 
-    // The claim lives in the ID token; the app force-refreshes the token in
-    // RootViewModel.refresh(), so it is current right after verification.
+    // The claim lives in the ID token; the app force-refreshes the token right after
+    // verification (VerifyEmailViewModel.check(), or RootViewModel.refresh() at launch).
     function isVerifiedOwner(uid) {
       return isOwner(uid) && request.auth.token.email_verified == true;
     }

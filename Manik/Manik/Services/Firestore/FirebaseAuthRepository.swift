@@ -23,15 +23,11 @@ final class FirebaseAuthRepository: AuthRepository {
             throw Self.accountError(from: error)
         }
 
-        let profile = UserProfile(
+        try await writeProfile(
             uid: result.user.uid,
             name: name,
             email: email
         )
-        let encoded = try Firestore.Encoder().encode(profile)
-        try await db.collection("users")
-            .document(result.user.uid)
-            .setData(encoded)
 
         Auth.auth().useAppLanguage()
         try? await result.user.sendEmailVerification()
@@ -57,6 +53,16 @@ final class FirebaseAuthRepository: AuthRepository {
         guard snapshot.exists else { throw AccountError.profileNotFound }
 
         return try snapshot.data(as: UserProfile.self)
+    }
+
+    func createProfile(name: String) async throws {
+        guard let user = Auth.auth().currentUser else { throw AccountError.profileNotFound }
+
+        try await writeProfile(
+            uid: user.uid,
+            name: name,
+            email: user.email ?? ""
+        )
     }
 
     func reloadUser() async throws {
@@ -140,6 +146,22 @@ final class FirebaseAuthRepository: AuthRepository {
         guard let user = Auth.auth().currentUser else { throw AccountError.requiresRecentLogin }
 
         return user
+    }
+
+    private func writeProfile(
+        uid: String,
+        name: String,
+        email: String
+    ) async throws {
+        let profile = UserProfile(
+            uid: uid,
+            name: name,
+            email: email
+        )
+        let encoded = try Firestore.Encoder().encode(profile)
+        try await db.collection("users")
+            .document(uid)
+            .setData(encoded)
     }
 
     private static func accountError(from error: Error) -> AccountError {

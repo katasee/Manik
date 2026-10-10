@@ -78,5 +78,16 @@
   `users/{uid}` (`name`, `email`), and all her data lives under it: `users/{uid}/services`,
   `users/{uid}/blocks`, and every later collection. The Firestore repositories resolve the path with
   `Firestore.userCollection(_:)` from the signed-in user. `firestore.rules` has one gate,
-  `isOwner(uid)`, on the user document and everything below it — no `get()` lookups, no role field
-  (old documents may still carry `role`; `UserProfile` ignores it).
+  `isVerifiedOwner(uid)` (owner and `request.auth.token.email_verified`), on the user document and
+  everything below it — no `get()` lookups, no role field (old documents may still carry `role`;
+  `UserProfile` ignores it). The one exception is `create` of `users/{uid}`, which only needs the
+  owner: sign-up writes it before the email is verified. Because the rules read the claim from the
+  ID token, the token is force-refreshed right after verification — in `VerifyEmailViewModel.check()`
+  on the usual path, or in `RootViewModel.refresh()` when it first sees the flag flip at launch.
+  A signed-in user with no `users/{uid}` document gets one recreated by `RootViewModel` (name = the
+  email's local part) instead of being signed out, so a half-finished sign-up or account deletion
+  never locks the email out.
+- **Every collection under `users/{uid}/` is listed in `FirestoreUserDataRepository.collections`.**
+  Account deletion wipes only what is listed, so a collection added without it silently survives
+  "Видалити акаунт" — an App Store 5.1.1(v) problem with no visible failure. Add the name in the
+  same PR that adds the collection.

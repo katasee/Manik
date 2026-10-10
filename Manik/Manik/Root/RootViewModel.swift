@@ -10,59 +10,74 @@ final class RootViewModel {
         case awaitingVerification(email: String)
         case signedIn(UserProfile)
     }
-    
+
     var state: State = .loading
-    var errorMessage: String?
-    
+    private(set) var failure: AuthFailure?
+
     private let repository: AuthRepository
-    
+
     init(repository: AuthRepository = FirebaseAuthRepository()) {
         self.repository = repository
     }
-    
+
     func refresh() async {
         guard repository.currentUserId != nil else {
             state = .signedOut
             return
         }
-        
+
         if repository.isEmailVerified == false {
             try? await repository.reloadUser()
-            
+
             guard repository.isEmailVerified else {
-                errorMessage = nil
+                failure = nil
                 state = .awaitingVerification(email: repository.currentEmail ?? "")
                 return
             }
-            
+
             try? await repository.refreshIdToken()
         }
-        
+
         do {
-            let profile = try await repository.fetchProfile()
-            errorMessage = nil
+            let profile = try await loadProfile()
+            failure = nil
             state = .signedIn(profile)
-        } catch AccountError.profileNotFound {
-            reset()
+        } catch let error as AccountError {
+            failure = AuthFailure(error)
+            state = .signedOut
         } catch {
-            errorMessage = error.localizedDescription
+            failure = .generic
             state = .signedOut
         }
     }
-    
+
     func reset() {
         try? repository.signOut()
-        errorMessage = nil
+        failure = nil
         state = .signedOut
     }
-    
+
     func signOut() {
         do {
             try repository.signOut()
-            errorMessage = nil
+            failure = nil
             state = .signedOut
         } catch {
-            errorMessage = error.localizedDescription
+            failure = .generic
         }
+    }
+
+    private func loadProfile() async throws -> UserProfile {
+        do {
+            return try await repository.fetchProfile()
+        } catch AccountError.profileNotFound {
+            try await repository.createProfile(name: defaultName)
+            return try await repository.fetchProfile()
+        }
+    }
+
+    private var defaultName: String {
+        let email = repository.currentEmail ?? ""
+        return email.split(separator: "@").first.map(String.init) ?? email
     }
 }
