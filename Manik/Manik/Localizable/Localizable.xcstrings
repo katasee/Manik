@@ -4,6 +4,294 @@
     "" : {
 
     },
+    "account.action.changePassword" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Change password"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Змінити пароль"
+          }
+        }
+      }
+    },
+    "account.action.delete" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete account"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Видалити акаунт"
+          }
+        }
+      }
+    },
+    "account.delete.confirm" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete forever"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Видалити назавжди"
+          }
+        }
+      }
+    },
+    "account.delete.note" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All your data — services, schedule, bookings — will be deleted. This can't be undone."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Буде видалено всі ваші дані: послуги, розклад, записи. Це не можна скасувати."
+          }
+        }
+      }
+    },
+    "account.delete.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete account?"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Видалити акаунт?"
+          }
+        }
+      }
+    },
+    "account.error.generic" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't save. Please try again."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не вдалося зберегти. Спробуйте ще раз."
+          }
+        }
+      }
+    },
+    "account.error.passwordMismatch" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passwords don't match."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Паролі не збігаються."
+          }
+        }
+      }
+    },
+    "account.error.requiresRecentLogin" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign in again to continue."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Увійдіть знову, щоб продовжити."
+          }
+        }
+      }
+    },
+    "account.error.weakPassword" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Password must be at least 6 characters."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Пароль має містити щонайменше 6 символів."
+          }
+        }
+      }
+    },
+    "account.error.wrongPassword" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wrong current password."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Неправильний поточний пароль."
+          }
+        }
+      }
+    },
+    "account.form.submit" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Зберегти"
+          }
+        }
+      }
+    },
+    "account.password.current" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Current password"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Поточний пароль"
+          }
+        }
+      }
+    },
+    "account.password.new" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New password"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Новий пароль"
+          }
+        }
+      }
+    },
+    "account.password.placeholder" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "password"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "пароль"
+          }
+        }
+      }
+    },
+    "account.password.repeat" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Repeat password"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Повторіть пароль"
+          }
+        }
+      }
+    },
+    "account.password.successMessage" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Use your new password the next time you sign in."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Наступного разу входьте з новим паролем."
+          }
+        }
+      }
+    },
+    "account.password.successTitle" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Password changed"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Пароль змінено"
+          }
+        }
+      }
+    },
+    "account.password.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Change password"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Зміна пароля"
+          }
+        }
+      }
+    },
     "account.stats.favorite" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -34,22 +322,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Акаунт"
-          }
-        }
-      }
-    },
-    "appearance.action.open" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Appearance"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Оформлення"
           }
         }
       }
@@ -102,22 +374,6 @@
         }
       }
     },
-    "appearance.title" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Appearance"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Оформлення"
-          }
-        }
-      }
-    },
     "appTitle" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -163,6 +419,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Зареєструватися"
+          }
+        }
+      }
+    },
+    "auth.error.emailAlreadyInUse" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "An account with this email already exists. Sign in or reset your password."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Акаунт із цією поштою вже існує. Увійдіть або відновіть пароль."
           }
         }
       }
@@ -227,6 +499,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Забагато спроб. Спробуйте за кілька хвилин."
+          }
+        }
+      }
+    },
+    "auth.error.wrongCredentials" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wrong email or password."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Неправильна пошта або пароль."
           }
         }
       }
@@ -693,6 +981,70 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Мої записи"
+          }
+        }
+      }
+    },
+    "profile.action.open" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Profile"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Профіль"
+          }
+        }
+      }
+    },
+    "profile.section.account" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Account"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Акаунт"
+          }
+        }
+      }
+    },
+    "profile.section.theme" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Theme"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Тема"
+          }
+        }
+      }
+    },
+    "profile.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Profile"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Профіль"
           }
         }
       }

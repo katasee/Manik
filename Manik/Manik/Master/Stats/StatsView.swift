@@ -2,23 +2,32 @@ import SwiftUI
 
 struct StatsView: View {
     @State private var viewModel: StatsViewModel
-    @State private var isShowingAppearance = false
+    @State private var path: [StatsRoute] = []
 
+    private let profile: UserProfile
     private let onSignOut: () -> Void
+    private let onAccountDeleted: () -> Void
 
-    init(viewModel: StatsViewModel, onSignOut: @escaping () -> Void) {
+    init(
+        viewModel: StatsViewModel,
+        profile: UserProfile,
+        onSignOut: @escaping () -> Void,
+        onAccountDeleted: @escaping () -> Void
+    ) {
         _viewModel = State(initialValue: viewModel)
+        self.profile = profile
         self.onSignOut = onSignOut
+        self.onAccountDeleted = onAccountDeleted
     }
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $path) {
             VStack(spacing: 0) {
                 LargeTitleHeader(titleKey: "stats.title") {
                     RoundIconButton(
-                        systemImage: "circle.lefthalf.filled",
-                        accessibilityLabel: "appearance.action.open",
-                        action: showAppearance
+                        systemImage: "person.crop.circle",
+                        accessibilityLabel: "profile.action.open",
+                        action: showProfile
                     )
                 }
 
@@ -29,8 +38,17 @@ struct StatsView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(Color.background)
             .toolbar(.hidden, for: .navigationBar)
-            .navigationDestination(for: StatsRoute.self) { _ in
-                MyServicesView(viewModel: MyServicesViewModel())
+            .navigationDestination(for: StatsRoute.self) { route in
+                switch route {
+                case .services:
+                    MyServicesView(viewModel: MyServicesViewModel())
+                case .profile:
+                    ProfileView(
+                        profile: profile,
+                        onSignOut: onSignOut,
+                        onAccountDeleted: onAccountDeleted
+                    )
+                }
             }
             .task {
                 await viewModel.observeBlocks()
@@ -39,22 +57,10 @@ struct StatsView: View {
                 await viewModel.refreshStats()
             }
         }
-        .fullScreenCover(isPresented: $isShowingAppearance) {
-            AppearancePopup(onDismiss: hideAppearance)
-                .presentationBackground(.clear)
-        }
     }
 
-    private func showAppearance() {
-        withoutPresentationAnimation {
-            isShowingAppearance = true
-        }
-    }
-
-    private func hideAppearance() {
-        withoutPresentationAnimation {
-            isShowingAppearance = false
-        }
+    private func showProfile() {
+        path.append(.profile)
     }
 
     private var monthRow: some View {
@@ -90,8 +96,6 @@ struct StatsView: View {
                 }
 
                 servicesLink
-
-                signOutButton
             }
             .padding(.horizontal, StatsMetrics.Spacing.horizontalPadding)
             .padding(.top, StatsMetrics.Spacing.contentTopPadding)
@@ -149,13 +153,6 @@ struct StatsView: View {
             route: .services
         )
     }
-
-    private var signOutButton: some View {
-        Button("common.action.signOut", action: onSignOut)
-            .font(.elmsSans(.medium, 14.5))
-            .foregroundStyle(Color.textSecondary)
-            .padding(.top, StatsMetrics.Spacing.signOutTopPadding)
-    }
 }
 
 #if DEBUG
@@ -164,7 +161,9 @@ struct StatsView: View {
         viewModel: StatsViewModel(
             blockRepository: FakeBlockRepository(blocks: StatsPreviewData.blocks)
         ),
-        onSignOut: {}
+        profile: ProfilePreviewData.profile,
+        onSignOut: {},
+        onAccountDeleted: {}
     )
 }
 
@@ -173,7 +172,9 @@ struct StatsView: View {
         viewModel: StatsViewModel(
             blockRepository: FakeBlockRepository(blocks: StatsPreviewData.emptyMonth)
         ),
-        onSignOut: {}
+        profile: ProfilePreviewData.profile,
+        onSignOut: {},
+        onAccountDeleted: {}
     )
 }
 #endif

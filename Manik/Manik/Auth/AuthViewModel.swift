@@ -11,15 +11,15 @@ final class AuthViewModel {
 
     var mode: Mode = .signIn
     var email = "" {
-        didSet { errorMessage = nil }
+        didSet { failure = nil }
     }
     var password = "" {
-        didSet { errorMessage = nil }
+        didSet { failure = nil }
     }
     var name = "" {
-        didSet { errorMessage = nil }
+        didSet { failure = nil }
     }
-    var errorMessage: String?
+    private(set) var failure: AuthFailure?
     var isLoading = false
 
     private let repository: AuthRepository
@@ -41,7 +41,7 @@ final class AuthViewModel {
 
     func submit() async -> Bool {
         isLoading = true
-        errorMessage = nil
+        failure = nil
         defer { isLoading = false }
 
         do {
@@ -56,8 +56,11 @@ final class AuthViewModel {
                 )
             }
             return true
+        } catch let error as AccountError {
+            failure = AuthFailure(error)
+            return false
         } catch {
-            errorMessage = error.localizedDescription
+            failure = .generic
             return false
         }
     }

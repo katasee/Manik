@@ -23,7 +23,6 @@ enum StatsMetrics {
         static let cardContentSpacing: CGFloat = 8
         static let trendSpacing: CGFloat = 4
         static let linkSpacing: CGFloat = 12
-        static let signOutTopPadding: CGFloat = 24
     }
 
     enum Opacity {

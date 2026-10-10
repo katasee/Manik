@@ -61,10 +61,10 @@ extension LargeTitleHeader where Trailing == EmptyView {
     VStack(spacing: 32) {
         LargeTitleHeader(titleKey: "requests.title", subtitle: "2 нові заявки")
         LargeTitleHeader(titleKey: "myBookings.title")
-        LargeTitleHeader(titleKey: "account.title") {
+        LargeTitleHeader(titleKey: "stats.title") {
             RoundIconButton(
-                systemImage: "circle.lefthalf.filled",
-                accessibilityLabel: "appearance.action.open",
+                systemImage: "person.crop.circle",
+                accessibilityLabel: "profile.action.open",
                 action: {}
             )
         }

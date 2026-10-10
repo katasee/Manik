@@ -16,14 +16,16 @@ the master books them herself.
 
 ## Scope
 
-- One SwiftUI app; every user is a master. Sign-up and sign-in (email + password), forgot password,
-  change password, delete account (App Store requires in-app deletion). No roles, no salons.
+- One SwiftUI app; every user is a master. Sign-up and sign-in (email + password) with email
+  verification before the cabinet opens, forgot password, change password, delete account with all
+  her data (App Store requires in-app deletion) — the last two on a Profile screen. No roles, no
+  salons.
 - Firebase Auth + Cloud Firestore; all of a master's data lives under `users/{uid}/`, readable and
   writable only by her.
   Kept behind repository protocols so it can be swapped for SwiftData + CloudKit later.
 - No push notifications, no reminders, no payments, nothing sent automatically to Instagram.
-- Light and dark themes (System / Light / Dark, per device, from a round button next to the
-  "Статистика" title).
+- Light and dark themes (System / Light / Dark, per device), chosen on the Profile screen, which
+  the round person button next to the "Статистика" title opens.
 
 ## Data model (Firestore)
 

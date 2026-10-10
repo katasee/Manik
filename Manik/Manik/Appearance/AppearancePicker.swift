@@ -42,47 +42,27 @@ private struct AppearanceOptionRow: View {
     }
 }
 
-struct AppearancePopup: View {
-    let onDismiss: () -> Void
-
+struct AppearancePicker: View {
     @AppStorage(AppAppearance.storageKey) private var appearance: AppAppearance = .system
 
     var body: some View {
-        PopupContainer(
-            dismissLabel: "common.action.done",
-            onDismiss: onDismiss
-        ) { dismiss in
-            HStack {
-                Text("appearance.title")
-                    .font(.elmsSans(.bold, 18))
-                    .foregroundStyle(Color.ink)
-                    .accessibilityAddTraits(.isHeader)
+        VStack(spacing: 0) {
+            ForEach(AppAppearance.allCases) { option in
+                if option != AppAppearance.allCases.first {
+                    Color.hairline
+                        .frame(height: 1)
+                }
 
-                Spacer()
-
-                PopupDismissButton(titleKey: "common.action.done", action: dismiss)
-            }
-
-            VStack(spacing: 0) {
-                ForEach(AppAppearance.allCases) { option in
-                    if option != AppAppearance.allCases.first {
-                        Color.hairline
-                            .frame(height: 1)
-                    }
-
-                    AppearanceOptionRow(option: option, isSelected: option == appearance) {
-                        select(option)
-                    }
+                AppearanceOptionRow(option: option, isSelected: option == appearance) {
+                    appearance = option
                 }
             }
         }
     }
-
-    private func select(_ option: AppAppearance) {
-        appearance = option
-    }
 }
 
 #Preview {
-    AppearancePopup(onDismiss: {})
+    AppearancePicker()
+        .padding()
+        .background(Color.background)
 }

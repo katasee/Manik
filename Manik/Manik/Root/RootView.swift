@@ -11,8 +11,8 @@ struct RootView: View {
                 ProgressView()
             case .signedOut:
                 VStack(spacing: 0) {
-                    if let errorMessage = viewModel.errorMessage {
-                        Text(errorMessage)
+                    if let failure = viewModel.failure {
+                        Text(failure.messageKey)
                             .font(.elmsSans(.regular, 13))
                             .foregroundStyle(.red)
                             .padding()
@@ -29,8 +29,12 @@ struct RootView: View {
                 )
                 .id(email)
             case .signedIn(let profile):
-                MasterRootView(onSignOut: viewModel.signOut)
-                    .id(profile.uid)
+                MasterRootView(
+                    profile: profile,
+                    onSignOut: viewModel.signOut,
+                    onAccountDeleted: viewModel.reset
+                )
+                .id(profile.uid)
             }
         }
         .preferredColorScheme(appearance.colorScheme)

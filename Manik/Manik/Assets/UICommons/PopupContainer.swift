@@ -13,6 +13,7 @@ enum PopupContainerLayout {
 
 struct PopupContainer<Content: View>: View {
     let dismissLabel: LocalizedStringKey
+    var isDismissDisabled = false
     let onDismiss: () -> Void
     @ViewBuilder let content: (_ dismiss: @escaping () -> Void) -> Content
 
@@ -37,6 +38,7 @@ struct PopupContainer<Content: View>: View {
                 .fill(Color.backdrop)
         }
         .buttonStyle(.plain)
+        .disabled(isDismissDisabled)
         .ignoresSafeArea()
         .accessibilityLabel(Text(dismissLabel))
     }

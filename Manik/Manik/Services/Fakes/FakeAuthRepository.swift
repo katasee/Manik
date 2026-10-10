@@ -38,6 +38,10 @@ final class FakeAuthRepository: AuthRepository {
         return profile
     }
 
+    func createProfile(name: String) async throws {
+        isDeleted = false
+    }
+
     func reloadUser() async throws {}
 
     func refreshIdToken() async throws {}

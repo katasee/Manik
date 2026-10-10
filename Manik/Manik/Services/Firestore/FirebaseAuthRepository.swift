@@ -15,23 +15,30 @@ final class FirebaseAuthRepository: AuthRepository {
         password: String,
         name: String
     ) async throws {
-        let result = try await Auth.auth().createUser(withEmail: email, password: password)
-        let profile = UserProfile(
+        let result: AuthDataResult
+
+        do {
+            result = try await Auth.auth().createUser(withEmail: email, password: password)
+        } catch {
+            throw Self.accountError(from: error)
+        }
+
+        try await writeProfile(
             uid: result.user.uid,
             name: name,
             email: email
         )
-        let encoded = try Firestore.Encoder().encode(profile)
-        try await db.collection("users")
-            .document(result.user.uid)
-            .setData(encoded)
 
         Auth.auth().useAppLanguage()
         try? await result.user.sendEmailVerification()
     }
 
     func signIn(email: String, password: String) async throws {
-        _ = try await Auth.auth().signIn(withEmail: email, password: password)
+        do {
+            _ = try await Auth.auth().signIn(withEmail: email, password: password)
+        } catch {
+            throw Self.accountError(from: error)
+        }
     }
 
     func signOut() throws {
@@ -46,6 +53,16 @@ final class FirebaseAuthRepository: AuthRepository {
         guard snapshot.exists else { throw AccountError.profileNotFound }
 
         return try snapshot.data(as: UserProfile.self)
+    }
+
+    func createProfile(name: String) async throws {
+        guard let user = Auth.auth().currentUser else { throw AccountError.profileNotFound }
+
+        try await writeProfile(
+            uid: user.uid,
+            name: name,
+            email: user.email ?? ""
+        )
     }
 
     func reloadUser() async throws {
@@ -131,6 +148,22 @@ final class FirebaseAuthRepository: AuthRepository {
         return user
     }
 
+    private func writeProfile(
+        uid: String,
+        name: String,
+        email: String
+    ) async throws {
+        let profile = UserProfile(
+            uid: uid,
+            name: name,
+            email: email
+        )
+        let encoded = try Firestore.Encoder().encode(profile)
+        try await db.collection("users")
+            .document(uid)
+            .setData(encoded)
+    }
+
     private static func accountError(from error: Error) -> AccountError {
         let error = error as NSError
 
@@ -146,6 +179,8 @@ final class FirebaseAuthRepository: AuthRepository {
             return .requiresRecentLogin
         case .invalidEmail:
             return .invalidEmail
+        case .emailAlreadyInUse:
+            return .emailAlreadyInUse
         case .tooManyRequests:
             return .tooManyRequests
         case .networkError:
