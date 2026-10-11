@@ -75,10 +75,7 @@ struct ClientCardView: View {
                 .font(.elmsSans(.regular, ClientsMetrics.Size.cardDetails))
                 .foregroundStyle(Color.textSecondary)
                 .frame(maxWidth: .infinity)
-                .cardSurface(
-                    padding: ClientsMetrics.Spacing.noContactsPadding,
-                    cornerRadius: ClientsMetrics.Size.noContactsCornerRadius
-                )
+                .cardSurface(padding: ClientsMetrics.Spacing.noContactsPadding, cornerRadius: ClientsMetrics.Size.noContactsCornerRadius)
         } else {
             ClientContactMenu(contacts: card.contacts) {
                 contactLabel

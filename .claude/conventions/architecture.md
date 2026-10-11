@@ -29,7 +29,12 @@
   is why `View+Shadow.swift` and `Extension+ElmsSans.swift` sit in `Assets/UICommons/` next to the
   components that consume them, and not in some `Extensions/` folder. A folder grouping files by
   the `extension` keyword would organize by language construct, exactly the layer-first mistake this
-  section rejects. A type gets its own subfolder (`Models/Block/`) once it spans more than one file;
+  section rejects. One exception: an extension of a **domain** type that only adds **presentation**
+  (a title key, an SF Symbol) for a single view is a `private extension` in that view's file —
+  `ClientContact`'s menu titles and icons live in `ClientContactMenu.swift`, not in `Models/`,
+  which stays free of UI, and `private` keeps every other screen from depending on them. Once a
+  second screen needs the same look, promote it to a presentation model (`ClientItem`-style), not
+  to an `internal` extension. A type gets its own subfolder (`Models/Block/`) once it spans more than one file;
   single-file types stay flat. **A type that exists only to serve one neighbour lives in that
   neighbour's file, not in its own** — `BlockActionConfirmation` sits with `BlockAction`,
   `StatsRoute` with `StatsLinkRow`, `MonthlyTotals` with `StatsCalculator`. Order inside such a file
@@ -103,6 +108,15 @@
   (the client `ServiceOfferCard`, removed in M-30, did this — each hour chip pushed that slot, the
   round chevron pushed the whole offer). Accept that the card body then stops being tappable, and give any icon-only control
   an `accessibilityLabel`, since it is otherwise silent to VoiceOver.
+  The same holds for **any control inside any other** — a `Menu` or `Button` inside a
+  `NavigationLink` row: put them side by side in an `HStack` and let one `.cardSurface` cover both
+  (`ClientRow`: the link wraps avatar and name, the contact `Menu` sits beside it).
+- **A `Menu` label cannot be a `Button`.** `Menu` is itself the button; a `Button` inside its
+  label fights it for the tap. When a menu must look like one of our buttons, draw the button's
+  *look* without the `Button`: `RoundIconLabel` is `RoundIconButton`'s look, extracted in M-32.2b
+  so the row's contact menu and every round button share one drawing. `CapsuleButton`'s look was
+  not extracted (it is tangled with loading/disabled states and three roles); the client card draws
+  its one capsule menu label privately — extract it when a second one appears.
 - **Input masking uses `.onChange`, never `Binding(get:set:)`.** The obvious way to cap or reformat
   what a `TextField` accepts — a computed binding whose `set` filters the incoming string — **does
   not work**: when the filtered result equals the value the property already held, nothing

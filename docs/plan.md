@@ -1545,7 +1545,16 @@ this file is just "what's done, what's next," not a design doc.
     `.alert` became `ClientDeleteButton`; `delete(then:)` stays in the popup because `dismiss`
     (the fade) is the popup's. The card copies `editFields` into a `@State draft` on each pencil
     tap. "Зберегти" and a confirmed "Видалити" only close the popup until M-32.5.
-  - Verified: `xcodebuild` and a simulator pass by the user.
+  - Verified: `xcodebuild` and a simulator pass by the user. Final whole-branch review (fresh
+    reviewer): no Critical/Important, all five focus scenarios hold; two style minors fixed after
+    it (a 2-argument `.cardSurface` call split over lines, trailing whitespace).
+  - Deferred minors from the final review: `ClientCard` keeps an empty `phone: ""` as blank
+    details (Console-only data); the card shows the raw `instagram` while the menu opens the
+    normalized handle (legacy data); the row's outer padding is a dead tap zone outside both the
+    link and the menu.
+  - Found by the user on the simulator, moved to the backlog ("System navigation bar and Liquid
+    Glass for our buttons"): no swipe back on pushed screens, and our round buttons lack Liquid
+    Glass on iOS 26.
 
 ## Screens (in order)
 
@@ -1688,6 +1697,10 @@ those items are referred to by name, so the list can grow without renumbering an
       4. ~~**M-32.4 Logic: list and add**~~ — **done** (under "Done").
       5. ~~**M-32.2b UI: card**~~ — **done** (under "Done").
       6. **M-32.5 Logic: card, edit, delete** — `ClientCardViewModel`, `observeClient(id:)`.
+         Settle first (M-32.2b review): `ClientFormFields(client:)` regroups a phone it cannot
+         parse — a legacy "600 12 34" becomes "600 123 4", "+380501234567" is cut to 9 digits — so
+         "Зберегти" on an untouched client would fail with "Номер має 9 цифр" or store a wrong
+         number. Prefill unparseable phones verbatim, or decide otherwise on purpose.
    4. **M-33 Windows** — `slots` (date + start time), new Розклад day list, Заповнити місяць;
       `Block`/`blocks` removed. Swap `blocks` for `slots` in `FirestoreUserDataRepository.collections`.
    5. **M-34 Booking** — book a client into a window (search + inline add), booking actions,
@@ -1706,17 +1719,28 @@ something nearby is already being touched. **No numbers on purpose** — cite th
 numbering drifts every time an item is added or closed (it already did once: PR9's entry pointed at
 "step 9" for what was item 10).
 
-- **Liquid Glass on our own round buttons** (requested 2026-10-12 after M-32.2b's simulator
-  pass). The system `TabView` and `Menu` popups get Liquid Glass on iOS 26, but every round button
-  we draw — back arrows and pencils in `ScreenHeader`, "+" in `LargeTitleHeader`s, the contact
-  button in client rows — is `.raisedSurface(.circle)`, so on iOS 26 they read as a different
-  material next to the glass bar. Replace them everywhere: since M-32.2b they all draw through
-  `RoundIconLabel`, so the change is one place — `.glassEffect(.regular.interactive(), in:
-  .circle)` under `if #available(iOS 26, *)`, `.raisedSurface(.circle)` otherwise (deployment
-  target is 18.1). Decide in the same PR whether `CapsuleButton` (and the card's private
-  "Зв'язатися" capsule) follow; check light and dark on a device (wine-on-glass contrast already
-  failed once on the tab bar) and record the rule in `code-style.md`, including the first
-  `#available` in a view. Own small PR, not mixed into a feature.
+- **System navigation bar and Liquid Glass for our buttons** (requested 2026-10-12 after
+  M-32.2b's simulator pass; one PR, one root cause: we draw our own header instead of the system
+  one).
+  - **No swipe back on pushed screens.** `ClientCardView`, `MyServicesView` and `ProfileView` hide
+    the system bar with `.toolbar(.hidden, for: .navigationBar)` to draw `ScreenHeader`, and iOS
+    disables the interactive pop gesture together with the bar. Fix: drop `.toolbar(.hidden)` and
+    `ScreenHeader` on pushed screens, keep the system back button, and put trailing actions (the
+    card's pencil) in `.toolbar { ToolbarItem(placement: .topBarTrailing) }`. The swipe comes
+    back, and on iOS 26 the back button and toolbar items get Liquid Glass with no `#available`,
+    like the `TabView`. Check the iOS 18 look of the system back button (default tint and "Назад"
+    text) and decide whether it needs tinting. `ScreenHeader` may become unused — delete it then.
+    Rejected alternative: a `UINavigationController` extension that re-enables the gesture with the
+    bar hidden — a UIKit hack over system behaviour that keeps the non-glass buttons.
+  - **Round buttons we still draw** — "+" in `LargeTitleHeader`s, the contact button in client
+    rows — are `.raisedSurface(.circle)` and read as a different material next to the glass bar
+    on iOS 26. They all draw through `RoundIconLabel`, so the change is one place:
+    `.glassEffect(.regular.interactive(), in: .circle)` under `if #available(iOS 26, *)`,
+    `.raisedSurface(.circle)` otherwise (deployment target is 18.1). Decide in the same PR whether
+    `CapsuleButton` (and the card's private "Зв'язатися" capsule) follow.
+  - Check light and dark on a device (wine-on-glass contrast already failed once on the tab bar)
+    and record the rules in `architecture.md`/`code-style.md`, including the first `#available` in
+    a view. Own PR, not mixed into a feature.
 
 - **Verification emails don't reach ukr.net — own sender before release** (found 2026-10-10 during
   M-31's manual pass). With Firebase's default sender (`noreply@<project>.firebaseapp.com`) the

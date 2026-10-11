@@ -2,7 +2,7 @@ import SwiftUI
 
 struct ClientContactMenu<Label: View>: View {
     @Environment(\.openURL) private var openURL
-    
+
     let contacts: [ClientContact]
     @ViewBuilder let label: Label
 
