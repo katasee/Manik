@@ -10,6 +10,10 @@ Build (must succeed before considering any change done):
 cd Manik && xcodebuild -scheme Manik -destination 'generic/platform=iOS Simulator' build
 ```
 
+When Xcode is open on the project, add `-derivedDataPath <a scratch folder>` to that command:
+sharing Xcode's DerivedData makes both builds fail ("database is locked", then Xcode's "invalid
+reuse after initialization failure" until Clean Build Folder).
+
 There is no test target, linter, or formatter configured yet.
 
 ## Project

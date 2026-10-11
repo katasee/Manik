@@ -1416,6 +1416,27 @@ this file is just "what's done, what's next," not a design doc.
     password, change password, delete with the data gone from Firestore and Auth). Open: emails to
     ukr.net don't arrive — see the backlog item; the sign-in tagline is still "Book a manicure".
 
+- **M-32.1 — Clients list UI** (branch `feature/pr-32-Clients-Tab`; first of five M-32 PRs, built
+  UI-first against preview data).
+  - Third tab Клієнтки (`person.2`; `person.crop.circle` is already Статистика's Profile button).
+  - `Models/Client/` — `Client` (`name?`, `instagram?`, `phone?`, `createdAt`, `lastBookedAt?`) and
+    `Client+Display` with the domain rules only: `displayName` (name, else `@nickname`) and
+    `instagramNickname`.
+  - `Master/Clients/` — `ClientItem`, a presentation model (`id`, `title`, `initial`) built with
+    `init(client:)` like `MonthlyStats`, so views never see `Client`; `ClientsView`, `ClientRow`
+    (avatar + title only — nickname and phone are not shown in the list, user decision),
+    `ClientAvatar` (size parameter, glyph scales with it), `ClientsMetrics`, preview data.
+  - `Assets/UICommons/SearchField` — `SearchField(text:placeholderKey:)` on `.inputFieldStyle()`;
+    the clear ✕ has a 44×44 tap area, negative padding keeps the field height.
+  - `ClientsView(query:items:totalCount:hasLoaded:onAdd:)` takes plain values so M-32.4 plugs the
+    view model in without reshaping it. `totalCount` is the whole base: it drives "N у базі" and
+    tells an empty base ("Ще немає клієнток") from an empty search ("Нікого не знайдено").
+    Property wrappers come first in a view's stored properties.
+  - In the app the tab gets `items: []` and "+" does nothing until M-32.2 — no fake data ships.
+  - Found while building: `xcodebuild` and an open Xcode sharing one DerivedData break each other
+    ("database is locked", then Xcode's "invalid reuse after initialization failure" until ⇧⌘K).
+    Command-line builds from an agent should pass their own `-derivedDataPath`.
+
 ## Screens (in order)
 
 This is the actual work queue, and the only numbered list here. The ordering follows the **data
@@ -1547,9 +1568,18 @@ those items are referred to by name, so the list can grow without renumbering an
       tab bar instead of a throwaway fourth tab.
    2. ~~**M-31 Master account**~~ — **done** (under "Done"): email verification, forgot/change
       password, delete account with a full data wipe, Profile screen.
-   3. **M-32 Клієнтки** — `clients`, tab (Розклад / Клієнтки / Статистика), search,
-      add/edit/delete, client card with Instagram DM (`ig.me/m/`) or call/SMS. Add `clients` to
-      `FirestoreUserDataRepository.collections`.
+   3. **M-32 Клієнтки** — split into five UI-first PRs (user decision 2026-10-10, ~300–500 lines
+      each; spec `docs/superpowers/specs/2026-10-10-m32-clients-design.md`):
+      1. ~~**M-32.1 UI: list**~~ — **done** (under "Done").
+      2. **M-32.2 UI: form and card** — `ClientFormPopup` (`.add`/`.edit`, delete), `ClientCardView`
+         with contacts, one "Зв'язатися" button opening a `Menu` (Instagram DM/profile, call, SMS —
+         whatever she has), `ScreenHeader` trailing slot for the pencil.
+      3. **M-32.3 Data** — `Client+Instagram`, `Client+Contact`, `ClientRepository` + Firestore +
+         Fake, `firestore.rules` (`hasValidClientFormat()`); add `clients` to
+         `FirestoreUserDataRepository.collections`.
+      4. **M-32.4 Logic: list and add** — `ClientListViewModel` (recency order, search over name,
+         nickname and phone digits), `ClientFormViewModel` `.add` (masks, duplicate nickname blocked).
+      5. **M-32.5 Logic: card, edit, delete** — `ClientCardViewModel`, `observeClient(id:)`.
    4. **M-33 Windows** — `slots` (date + start time), new Розклад day list, Заповнити місяць;
       `Block`/`blocks` removed. Swap `blocks` for `slots` in `FirestoreUserDataRepository.collections`.
    5. **M-34 Booking** — book a client into a window (search + inline add), booking actions,
