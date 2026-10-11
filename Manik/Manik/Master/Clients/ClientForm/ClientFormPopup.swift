@@ -98,6 +98,7 @@ struct ClientFormPopup: View {
     private func actions(dismiss: @escaping () -> Void) -> some View {
         HStack {
             PopupDismissButton(titleKey: "common.action.cancel", action: dismiss)
+                .disabled(isSaving)
 
             Spacer()
 
