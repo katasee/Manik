@@ -39,6 +39,7 @@ struct ClientFormPopup: View {
             instagramInput
             nameInput
             phoneInput
+            saveError
             actions(dismiss: dismiss)
         }
         .toolbar {
@@ -95,6 +96,13 @@ struct ClientFormPopup: View {
         }
     }
 
+    @ViewBuilder
+    private var saveError: some View {
+        if let error = errors.save {
+            errorLine(error)
+        }
+    }
+
     private func actions(dismiss: @escaping () -> Void) -> some View {
         HStack {
             PopupDismissButton(titleKey: "common.action.cancel", action: dismiss)
@@ -148,13 +156,17 @@ struct ClientFormPopup: View {
             .inputFieldStyle()
 
             if let error {
-                Text(error.messageKey)
-                    .font(.elmsSans(.regular, 13))
-                    .foregroundStyle(Color.destructive)
-                    .fixedSize(horizontal: false, vertical: true)
+                errorLine(error)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func errorLine(_ error: ClientFormError) -> some View {
+        Text(error.messageKey)
+            .font(.elmsSans(.regular, 13))
+            .foregroundStyle(Color.destructive)
+            .fixedSize(horizontal: false, vertical: true)
     }
 }
 

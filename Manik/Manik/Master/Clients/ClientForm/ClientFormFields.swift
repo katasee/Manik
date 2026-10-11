@@ -1,4 +1,4 @@
-struct ClientFormFields {
+struct ClientFormFields: Equatable {
     var instagram = ""
     var name = ""
     var phone = ""

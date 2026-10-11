@@ -8,7 +8,7 @@ struct MasterRootView: View {
     @State private var selectedTab: MasterTab = .schedule
     @State private var scheduleViewModel = ScheduleViewModel()
     @State private var statsViewModel = StatsViewModel()
-    @State private var clientsQuery = ""
+    @State private var clientListViewModel = ClientListViewModel()
 
     var body: some View {
         TabView(selection: $selectedTab) {
@@ -23,12 +23,7 @@ struct MasterRootView: View {
                         case .schedule:
                             ScheduleView(viewModel: scheduleViewModel)
                         case .clients:
-                            ClientsView(
-                                query: $clientsQuery,
-                                items: [],
-                                totalCount: 0,
-                                hasLoaded: true
-                            )
+                            ClientsView(viewModel: clientListViewModel)
                         case .stats:
                             StatsView(
                                 viewModel: statsViewModel,
