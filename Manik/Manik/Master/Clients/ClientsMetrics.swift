@@ -17,5 +17,7 @@ enum ClientsMetrics {
         static let rowContentSpacing: CGFloat = 14
         static let rowHorizontalPadding: CGFloat = 16
         static let rowVerticalPadding: CGFloat = 12
+        static let fieldLabelSpacing: CGFloat = 8
+        static let fieldPrefixSpacing: CGFloat = 4
     }
 }

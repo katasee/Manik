@@ -1437,6 +1437,24 @@ this file is just "what's done, what's next," not a design doc.
     ("database is locked", then Xcode's "invalid reuse after initialization failure" until ⇧⌘K).
     Command-line builds from an agent should pass their own `-derivedDataPath`.
 
+- **M-32.2a — Client add form UI** (branch `feature/pr-32.2-Client-Form-Card-UI`).
+  - "+" on Клієнтки opens "Нова клієнтка" (`Master/Clients/ClientForm/`): handle (`@`), name,
+    phone (`+48`), each a `SectionLabel` above a raised field; "Додати" only closes it until M-32.4.
+    The canvas's add popup has no phone field; it was added (user decision).
+  - `ClientFormPopup(fields:errors:isSaving:onSubmit:onDismiss:)` takes plain values;
+    `onSubmit: () async -> Bool` closes the popup only on `true`, like `ServiceFormPopup.submit()`,
+    so M-32.4 passes `viewModel.submit` unchanged. `ClientFormFields` is its own file because
+    `ClientsView` and the future view model both hold it.
+  - `ClientFormErrors` has a slot per field that can fail (handle, phone); "Вкажіть нік або ім'я"
+    sits under the handle — it cannot coincide with the duplicate-handle error.
+  - Fields reuse the existing form pattern (`ChangePasswordPopup.secureRow`): a private
+    `inputRow(_:prefix:error:field:)` on `SectionLabel` + `.inputFieldStyle()`, taking the field as a
+    `@ViewBuilder` so each keeps its own keyboard/focus modifiers (user decision over a separate
+    `ClientFormInput` view; `AuthFieldView` is Auth-bound and has no prefix or error).
+  - `ClientsView` presents the popup itself (`.fullScreenCover` + `withoutPresentationAnimation`)
+    and lost `onAdd`; "+" resets the fields first.
+  - One `#Preview` (filled + both errors), user decision.
+
 ## Screens (in order)
 
 This is the actual work queue, and the only numbered list here. The ordering follows the **data
@@ -1568,18 +1586,23 @@ those items are referred to by name, so the list can grow without renumbering an
       tab bar instead of a throwaway fourth tab.
    2. ~~**M-31 Master account**~~ — **done** (under "Done"): email verification, forgot/change
       password, delete account with a full data wipe, Profile screen.
-   3. **M-32 Клієнтки** — split into five UI-first PRs (user decision 2026-10-10, ~300–500 lines
-      each; spec `docs/superpowers/specs/2026-10-10-m32-clients-design.md`):
+   3. **M-32 Клієнтки** — split into six UI-first PRs (user decision 2026-10-10, ~300–500 lines
+      each; spec `docs/superpowers/specs/2026-10-10-m32-clients-design.md`). M-32.2 was split
+      2026-10-11 so adding a client works end to end before the card; M-32.3 stays before M-32.4
+      because saving needs the repository:
       1. ~~**M-32.1 UI: list**~~ — **done** (under "Done").
-      2. **M-32.2 UI: form and card** — `ClientFormPopup` (`.add`/`.edit`, delete), `ClientCardView`
-         with contacts, one "Зв'язатися" button opening a `Menu` (Instagram DM/profile, call, SMS —
-         whatever she has), `ScreenHeader` trailing slot for the pencil.
+      2. ~~**M-32.2a UI: add form**~~ — **done** (under "Done").
       3. **M-32.3 Data** — `Client+Instagram`, `Client+Contact`, `ClientRepository` + Firestore +
          Fake, `firestore.rules` (`hasValidClientFormat()`); add `clients` to
          `FirestoreUserDataRepository.collections`.
       4. **M-32.4 Logic: list and add** — `ClientListViewModel` (recency order, search over name,
-         nickname and phone digits), `ClientFormViewModel` `.add` (masks, duplicate nickname blocked).
-      5. **M-32.5 Logic: card, edit, delete** — `ClientCardViewModel`, `observeClient(id:)`.
+         nickname and phone digits), `ClientFormViewModel` `.add` (masks, duplicate nickname
+         blocked; phones are not checked — a number can be shared, reconfirmed 2026-10-11).
+      5. **M-32.2b UI: card** — `ClientCardView` with contacts, one "Зв'язатися" button opening a
+         `Menu` (Instagram DM/profile, call, SMS — whatever she has), the contact button in the row,
+         `ScreenHeader` trailing slot for the pencil, the form's `.edit` look with "Видалити
+         клієнтку".
+      6. **M-32.5 Logic: card, edit, delete** — `ClientCardViewModel`, `observeClient(id:)`.
    4. **M-33 Windows** — `slots` (date + start time), new Розклад day list, Заповнити місяць;
       `Block`/`blocks` removed. Swap `blocks` for `slots` in `FirestoreUserDataRepository.collections`.
    5. **M-34 Booking** — book a client into a window (search + inline add), booking actions,

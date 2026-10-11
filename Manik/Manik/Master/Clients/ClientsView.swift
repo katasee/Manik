@@ -2,10 +2,12 @@ import SwiftUI
 
 struct ClientsView: View {
     @Binding var query: String
+    @State private var isAddingClient = false
+    @State private var newClient = ClientFormFields()
+
     let items: [ClientItem]
     let totalCount: Int
     let hasLoaded: Bool
-    let onAdd: () -> Void
 
     var body: some View {
         NavigationStack {
@@ -14,7 +16,7 @@ struct ClientsView: View {
                     RoundIconButton(
                         systemImage: "plus",
                         accessibilityLabel: "clients.action.add",
-                        action: onAdd
+                        action: addClient
                     )
                 }
 
@@ -27,6 +29,16 @@ struct ClientsView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(Color.background)
             .toolbar(.hidden, for: .navigationBar)
+            .fullScreenCover(isPresented: $isAddingClient) {
+                ClientFormPopup(
+                    fields: $newClient,
+                    errors: ClientFormErrors(),
+                    isSaving: false,
+                    onSubmit: { true },
+                    onDismiss: dismissForm
+                )
+                .presentationBackground(.clear)
+            }
         }
     }
 
@@ -73,6 +85,20 @@ struct ClientsView: View {
         .scrollIndicators(.hidden)
         .scrollDismissesKeyboard(.interactively)
     }
+
+    private func addClient() {
+        newClient = ClientFormFields()
+
+        withoutPresentationAnimation {
+            isAddingClient = true
+        }
+    }
+
+    private func dismissForm() {
+        withoutPresentationAnimation {
+            isAddingClient = false
+        }
+    }
 }
 
 #if DEBUG
@@ -83,8 +109,7 @@ struct ClientsView: View {
         query: $query,
         items: ClientsPreviewData.clients.map(ClientItem.init),
         totalCount: ClientsPreviewData.clients.count,
-        hasLoaded: true,
-        onAdd: {}
+        hasLoaded: true
     )
 }
 #endif

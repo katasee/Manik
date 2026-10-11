@@ -871,6 +871,38 @@
         }
       }
     },
+    "clients.add.submit" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Додати"
+          }
+        }
+      }
+    },
+    "clients.add.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New client"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Нова клієнтка"
+          }
+        }
+      }
+    },
     "clients.count %lld" : {
       "localizations" : {
         "en" : {
@@ -927,6 +959,150 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ще немає клієнток"
+          }
+        }
+      }
+    },
+    "clients.form.error.duplicateHandle" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A client with this handle already exists"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Клієнтка з цим ніком уже є"
+          }
+        }
+      }
+    },
+    "clients.form.error.incompletePhone" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The number must have 9 digits"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Номер має 9 цифр"
+          }
+        }
+      }
+    },
+    "clients.form.error.missingNameOrHandle" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enter a handle or a name"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вкажіть нік або ім'я"
+          }
+        }
+      }
+    },
+    "clients.form.instagram.label" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Instagram handle"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Нік в Instagram"
+          }
+        }
+      }
+    },
+    "clients.form.instagram.placeholder" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "handle"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "нік"
+          }
+        }
+      }
+    },
+    "clients.form.name.label" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Name · optional"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ім'я · необов'язково"
+          }
+        }
+      }
+    },
+    "clients.form.name.placeholder" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Name"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ім'я"
+          }
+        }
+      }
+    },
+    "clients.form.phone.label" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Phone · optional"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Телефон · необов'язково"
+          }
+        }
+      }
+    },
+    "clients.form.phone.placeholder" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "600 123 456"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "600 123 456"
           }
         }
       }
