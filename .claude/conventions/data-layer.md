@@ -42,6 +42,14 @@
   themselves once indexing catches up (verify those against an actual `xcodebuild` run, not at
   face value) — the async-operations warning is a genuine compiler diagnostic about the code as
   written and won't go away on its own.
+- **The one deliberate fire-and-forget write is `FirestoreClientRepository.add`** (M-32.4, user
+  decision). Awaiting `addDocument` waits for the *server* acknowledgement, so offline the add
+  popup spun forever with Cancel disabled, although the client was already in the local cache and
+  on the list. It now calls `addDocument(data:completion: nil)`: the write lands locally at once and
+  Firestore syncs it later. The cost is that a server rejection goes unseen — acceptable because
+  `hasValidClientFormat()` checks what `ClientFormViewModel` already enforces. Encoding and
+  "not signed in" errors still throw. Every other write still awaits; don't copy this without the
+  same reasoning (services have the same offline spinner, not yet changed).
 - Realtime data uses **async/await + `AsyncStream`** (`observeBlocks()`, `observeServices()`), not
   Combine. Each Firestore `addSnapshotListener` callback yields the full current array for that
   query; `continuation.onTermination` removes the listener. Listener errors are currently swallowed

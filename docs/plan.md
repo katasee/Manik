@@ -1486,6 +1486,40 @@ this file is just "what's done, what's next," not a design doc.
   - Workflow: `CLAUDE.md` now says every feature goes brainstorming → writing-plans → `swiftui-pro`
     review of the plan; this plan was the first reviewed that way.
 
+- **M-32.4 — Clients list and add logic** (branch `feature/pr-32.4-Clients-List-Add-Logic`).
+  - `Models/Client/Client+Search` — `matches(_:)`, domain because M-34's booking search reuses it:
+    `localizedStandardContains` over name and handle (a leading `@` is dropped; a bare `@` lists
+    everyone with a handle); phone by digits, but only when the query is digits, spaces, `+`, `-`,
+    `(`, `)`, so "Оля 1" does not list every client whose number has a 1.
+  - `ClientFormViewModel` (`.add`): `applyMasks()` (handle normalized, phone grouped) is called
+    from `.onChange(of: form.fields)` in `ClientsView`; `handle`/`nationalPhone` normalize again on
+    save, so the view model never trusts the screen. `errors` is computed: the duplicate handle
+    shows **live**, "Вкажіть нік або ім'я" and "Номер має 9 цифр" only after the first "Додати".
+    "Додати" is not greyed out — `submit()` returns `false` while an error stands. A failed save
+    shows "Не вдалося зберегти. Спробуйте ще раз." (new `ClientFormErrors.save` slot);
+    `guard isSaving == false` keeps a double tap to one client.
+  - `ClientListViewModel`: newest first, search, `hasFailed` — a listener error shows "Не вдалося
+    завантажити клієнток" (count hidden) instead of an empty base; coming back to the tab restarts
+    the `.task`, which is the retry. Each "+" creates a fresh form view model, so nothing is reset by
+    hand. Section label is now "Нещодавно додані".
+  - **`ClientsView` takes `ClientListViewModel`** (`@State` + `init`, like `ScheduleView`) — user
+    decision: the plan's `ClientsScreen` wrapper that fed plain values was dropped as indirection
+    MVVM does not need. The spec's "plain values" rule now holds only until a view's logic PR.
+  - **`FirestoreClientRepository.add` no longer awaits the server** (user decision after the final
+    review): offline, the popup spun forever with "Скасувати" disabled. The write lands in the local
+    cache at once and syncs later; a server rejection goes unseen (the rules check what the form
+    already enforces). Recorded as the one exception in `data-layer.md`. `ServiceFormPopup` still
+    has the offline spinner.
+  - Known limitation: the form copies the taken handles when "+" is tapped, so a duplicate added
+    from another device while the form is open — or before the first snapshot arrives — is not
+    caught.
+  - Deferred minors from the final review: "48"/"+48" in search matches every phone (stored digits
+    include the country code); a brief "Ще немає клієнток" flash when the tab retries after a
+    failed first load; "0048 …" pasted into the phone keeps the `00 48`; backspace over a group
+    space is regrouped back by the mask.
+  - Verified: throwaway `swiftc` scripts (search 12/12, form 21/21) and a simulator pass by the
+    user — including the first real `create` through `hasValidClientFormat()`.
+
 ## Screens (in order)
 
 This is the actual work queue, and the only numbered list here. The ordering follows the **data
@@ -1624,10 +1658,7 @@ those items are referred to by name, so the list can grow without renumbering an
       1. ~~**M-32.1 UI: list**~~ — **done** (under "Done").
       2. ~~**M-32.2a UI: add form**~~ — **done** (under "Done").
       3. ~~**M-32.3 Data**~~ — **done** (under "Done").
-      4. **M-32.4 Logic: list and add** — `ClientListViewModel` (newest-first order, section label
-         "Нещодавно додані", search over name,
-         nickname and phone digits), `ClientFormViewModel` `.add` (masks, duplicate nickname
-         blocked; phones are not checked — a number can be shared, reconfirmed 2026-10-11).
+      4. ~~**M-32.4 Logic: list and add**~~ — **done** (under "Done").
       5. **M-32.2b UI: card** — `ClientCardView` with contacts, one "Зв'язатися" button opening a
          `Menu` (Instagram DM/profile, call, SMS — whatever she has), the contact button in the row,
          `ScreenHeader` trailing slot for the pencil, the form's `.edit` look with "Видалити

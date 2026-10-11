@@ -1,15 +1,16 @@
 import SwiftUI
 
 struct ClientsView: View {
-    @Binding var query: String
-    @State private var isAddingClient = false
-    @State private var newClient = ClientFormFields()
+    @State private var viewModel: ClientListViewModel
+    @State private var addForm: ClientFormViewModel?
 
-    let items: [ClientItem]
-    let totalCount: Int
-    let hasLoaded: Bool
+    init(viewModel: ClientListViewModel) {
+        _viewModel = State(initialValue: viewModel)
+    }
 
     var body: some View {
+        let items = viewModel.items
+
         NavigationStack {
             VStack(spacing: 0) {
                 LargeTitleHeader(titleKey: "clients.title", subtitle: subtitle) {
@@ -20,56 +21,86 @@ struct ClientsView: View {
                     )
                 }
 
-                SearchField(text: $query, placeholderKey: "clients.search.placeholder")
+                SearchField(text: $viewModel.query, placeholderKey: "clients.search.placeholder")
                     .padding(.horizontal, ClientsMetrics.Spacing.horizontalPadding)
                     .padding(.top, ClientsMetrics.Spacing.searchTopPadding)
 
-                content
+                content(items)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(Color.background)
             .toolbar(.hidden, for: .navigationBar)
-            .fullScreenCover(isPresented: $isAddingClient) {
+            .task {
+                await viewModel.observeClients()
+            }
+            .fullScreenCover(item: $addForm) { form in
+                @Bindable var form = form
+
                 ClientFormPopup(
-                    fields: $newClient,
-                    errors: ClientFormErrors(),
-                    isSaving: false,
-                    onSubmit: { true },
+                    fields: $form.fields,
+                    errors: form.errors,
+                    isSaving: form.isSaving,
+                    onSubmit: form.submit,
                     onDismiss: dismissForm
                 )
+                .onChange(of: form.fields) {
+                    form.applyMasks()
+                }
                 .presentationBackground(.clear)
             }
         }
     }
 
     private var subtitle: String? {
-        hasLoaded ? String(localized: "clients.count \(totalCount)") : nil
+        guard viewModel.hasLoaded, viewModel.hasFailed == false else { return nil }
+
+        return String(localized: "clients.count \(viewModel.totalCount)")
     }
 
     private var isBaseEmpty: Bool {
-        totalCount == 0
+        viewModel.totalCount == 0
     }
 
-    private var content: some View {
+    private func content(_ items: [ClientItem]) -> some View {
         ZStack {
             if items.isEmpty == false {
-                list
+                list(items)
             }
 
             ListStatusOverlay(
-                hasLoaded: hasLoaded,
+                hasLoaded: viewModel.hasLoaded,
                 isEmpty: items.isEmpty,
-                titleKey: isBaseEmpty ? "clients.empty.title" : "clients.search.empty.title",
-                messageKey: isBaseEmpty ? "clients.empty.message" : "clients.search.empty.message"
+                titleKey: emptyTitleKey,
+                messageKey: emptyMessageKey
             )
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
-    private var list: some View {
+    private var emptyTitleKey: LocalizedStringKey {
+        if viewModel.hasFailed {
+            "clients.loadFailed.title"
+        } else if isBaseEmpty {
+            "clients.empty.title"
+        } else {
+            "clients.search.empty.title"
+        }
+    }
+
+    private var emptyMessageKey: LocalizedStringKey {
+        if viewModel.hasFailed {
+            "clients.loadFailed.message"
+        } else if isBaseEmpty {
+            "clients.empty.message"
+        } else {
+            "clients.search.empty.message"
+        }
+    }
+
+    private func list(_ items: [ClientItem]) -> some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: ClientsMetrics.Spacing.rowSpacing) {
-                if query.isEmpty {
+                if viewModel.query.isEmpty {
                     SectionLabel(titleKey: "clients.section.recent")
                         .padding(.horizontal, ClientsMetrics.Spacing.sectionLabelInset)
                 }
@@ -87,29 +118,24 @@ struct ClientsView: View {
     }
 
     private func addClient() {
-        newClient = ClientFormFields()
-
         withoutPresentationAnimation {
-            isAddingClient = true
+            addForm = viewModel.makeAddFormViewModel()
         }
     }
 
     private func dismissForm() {
         withoutPresentationAnimation {
-            isAddingClient = false
+            addForm = nil
         }
     }
 }
 
 #if DEBUG
 #Preview {
-    @Previewable @State var query = ""
-
     ClientsView(
-        query: $query,
-        items: ClientsPreviewData.clients.map(ClientItem.init),
-        totalCount: ClientsPreviewData.clients.count,
-        hasLoaded: true
+        viewModel: ClientListViewModel(
+            clientRepository: FakeClientRepository(clients: ClientsPreviewData.clients)
+        )
     )
 }
 #endif

@@ -29,7 +29,7 @@ final class FirestoreClientRepository: ClientRepository {
 
     func add(_ client: Client) async throws {
         let encoded = try Firestore.Encoder().encode(client)
-        _ = try await db.userCollection("clients").addDocument(data: encoded)
+        _ = try db.userCollection("clients").addDocument(data: encoded, completion: nil)
     }
 
     func update(_ client: Client) async throws {

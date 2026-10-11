@@ -1123,6 +1123,38 @@
         }
       }
     },
+    "clients.loadFailed.message" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check your connection and come back to this tab."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Перевірте з'єднання й поверніться на цю вкладку."
+          }
+        }
+      }
+    },
+    "clients.loadFailed.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't load clients"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не вдалося завантажити клієнток"
+          }
+        }
+      }
+    },
     "clients.search.empty.message" : {
       "localizations" : {
         "en" : {
@@ -1176,13 +1208,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Recent"
+            "value" : "Recently added"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Нещодавні"
+            "value" : "Нещодавно додані"
           }
         }
       }
