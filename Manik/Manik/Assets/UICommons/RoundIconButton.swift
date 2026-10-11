@@ -34,11 +34,7 @@ struct RoundIconButton: View {
 
     var body: some View {
         Button(action: action) {
-            Image(systemName: systemImage)
-                .font(.elmsSans(.medium, size.glyph))
-                .foregroundStyle(Color.accentColor)
-                .frame(width: size.diameter, height: size.diameter)
-                .raisedSurface(.circle)
+            RoundIconLabel(systemImage: systemImage, size: size)
                 .frame(width: Layout.tapTarget, height: Layout.tapTarget)
                 .contentShape(.circle)
         }
