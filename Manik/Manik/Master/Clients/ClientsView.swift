@@ -30,6 +30,14 @@ struct ClientsView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(Color.background)
             .toolbar(.hidden, for: .navigationBar)
+            .navigationDestination(for: ClientRoute.self) { route in
+                if let client = viewModel.client(id: route.id) {
+                    ClientCardView(
+                        card: ClientCard(client: client),
+                        editFields: ClientFormFields(client: client)
+                    )
+                }
+            }
             .task {
                 await viewModel.observeClients()
             }

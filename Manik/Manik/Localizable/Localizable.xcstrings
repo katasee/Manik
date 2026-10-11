@@ -871,6 +871,22 @@
         }
       }
     },
+    "clients.action.edit" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Змінити"
+          }
+        }
+      }
+    },
     "clients.add.submit" : {
       "localizations" : {
         "en" : {
@@ -899,6 +915,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Нова клієнтка"
+          }
+        }
+      }
+    },
+    "clients.card.noContacts" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add a handle or phone"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Додайте нік або телефон"
           }
         }
       }
