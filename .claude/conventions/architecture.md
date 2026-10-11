@@ -12,8 +12,8 @@
   genuinely private to that feature; anything referenced from more than one feature belongs in
   `Manik/Manik/Models/` instead — that's where `Service` and `Block` live, since each is read
   by more than one feature (`Service` by Мої послуги and the Schedule's slot popup; `Block` by the
-  Schedule and Статистика), not just by the screen that created it — and `UserProfile`, the
-  account model `Root/` reads. `Models/` is the **domain
+  Schedule and Статистика), not just by the screen that created it — `Client` (Клієнтки now, the
+  booking flow in M-34), and `UserProfile`, the account model `Root/` reads. `Models/` is the **domain
   layer** — the M of MVVM — not "files that contain a struct": it also holds derived properties of
   domain types (`Block/Block+Minutes.swift`, `Block/Block+StartDate.swift`) and domain
   configuration with no fields at all (`WorkHours.swift`). **A domain rule that two features must
@@ -133,11 +133,12 @@
   yourself). `UserProfile.id` is `uid`, since that collection is keyed by the Firebase Auth uid
   rather than an auto-generated document ID.
 - `Manik/Manik/Services/Repositories/` — protocols only (`AuthRepository`, `ServiceRepository`,
-  `BlockRepository`, `UserDataRepository`). These files must **not** import Firebase — that's the whole point: ViewModels
+  `BlockRepository`, `ClientRepository`, `UserDataRepository`). These files must **not** import Firebase — that's the whole point: ViewModels
   depend on these contracts, not on Firestore/Auth directly, so a fake implementation can stand in
   for SwiftUI previews or tests without touching the network.
 - `Manik/Manik/Services/Firestore/` — concrete implementations (`FirebaseAuthRepository`,
-  `FirestoreServiceRepository`, `FirestoreBlockRepository`, `FirestoreUserDataRepository`). `Firestore.firestore()`/`Auth.auth()`
+  `FirestoreServiceRepository`, `FirestoreBlockRepository`, `FirestoreClientRepository`,
+  `FirestoreUserDataRepository`). `Firestore.firestore()`/`Auth.auth()`
   are singletons managed by the Firebase SDK itself; that's fine and expected — what we avoid is
   wrapping *our own* repository classes in `.shared` singletons. ViewModels take a repository
   protocol as an init parameter, defaulting to the real Firestore-backed implementation.

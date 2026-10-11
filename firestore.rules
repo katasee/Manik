@@ -30,6 +30,18 @@ service cloud.firestore {
         request.resource.data.price >= 0;
     }
 
+    // A client needs a handle or a name; an absent field is left out, never stored empty.
+    // Phone is not validated (data-layer.md).
+    function hasValidClientFormat() {
+      let data = request.resource.data;
+      let hasInstagram = 'instagram' in data;
+      let hasName = 'name' in data;
+      return (hasInstagram || hasName) &&
+        (!hasInstagram || (data.instagram is string && data.instagram.matches('^[a-z0-9._]{1,30}$'))) &&
+        (!hasName || (data.name is string && data.name.size() > 0)) &&
+        data.createdAt is timestamp;
+    }
+
     // Every master's data lives under her own document; only she can touch it, and only once
     // her email is verified. The one exception is creating the profile at sign-up, which
     // happens before the verification email is even sent.
@@ -46,6 +58,11 @@ service cloud.firestore {
       match /blocks/{blockId} {
         allow read, delete: if isVerifiedOwner(uid);
         allow create, update: if isVerifiedOwner(uid) && hasValidBlockFormat();
+      }
+
+      match /clients/{clientId} {
+        allow read, delete: if isVerifiedOwner(uid);
+        allow create, update: if isVerifiedOwner(uid) && hasValidClientFormat();
       }
     }
   }

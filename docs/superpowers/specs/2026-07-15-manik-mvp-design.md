@@ -53,8 +53,8 @@ Three tabs: **Розклад / Клієнтки / Статистика**. "Мо�
 ## Flows
 
 1. **Clients** — add a client by Instagram handle and/or name (+ optional phone). Search by name,
-   handle or phone. The card opens the Instagram DM (`https://ig.me/m/<handle>`) or, without a
-   handle, calls / texts the phone.
+   handle or phone. The card opens the client's Instagram profile (`https://instagram.com/<handle>`)
+   and/or calls / texts the phone.
 2. **Free windows** — "+" → "Вільні вікна на місяць": select several days on a month grid, pick
    hours, add them all at once. Repeat for days with other hours.
 3. **Publish** — "Надіслати графік": the free windows from today as a 9:16 image for stories

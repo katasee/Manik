@@ -46,7 +46,11 @@
   Combine. Each Firestore `addSnapshotListener` callback yields the full current array for that
   query; `continuation.onTermination` removes the listener. Listener errors are currently swallowed
   (`{ snapshot, _ in ... }`) — if that needs to surface to the UI, switch to `AsyncThrowingStream`
-  rather than bolting an error side-channel onto `AsyncStream`.
+  rather than bolting an error side-channel onto `AsyncStream`. `observeClients()` already has:
+  a swallowed error yields `[]`, and an empty client base after a failed listener reads as lost
+  data. It builds the stream with `makeStream(of:bufferingPolicy: .bufferingNewest(1))` — every
+  snapshot is the full list, so only the latest one matters — and `FakeClientRepository` keeps its
+  state in a `Mutex` so `onTermination` can drop a finished continuation without a data race.
 - **A new field added to a model whose collection already has documents must be optional.** Swift's
   synthesized `init(from:)` does **not** fall back to a property's default value — a missing key
   throws `keyNotFound`, so `var isActive = true` would break decoding for every pre-existing
@@ -66,7 +70,8 @@
 - In `firestore.rules`, **`write` means create + update + delete**, and on a delete
   `request.resource` is `null`. Any rule that validates incoming fields must therefore be attached
   to `create, update` with `delete` allowed separately — `allow write: if isOwner(uid) &&
-  hasValidServiceFormat()` silently breaks deletion. Both `services` and `blocks` are split this way.
+  hasValidServiceFormat()` silently breaks deletion. `services`, `blocks` and `clients` are all split
+  this way.
 - Block state machine: `available → pending → confirmed`, with cancel/decline both returning to
   `available`. A block carries `offeredServiceIds: [String]` (services the master allows for that
   time slot) and `bookedServiceId: String?` (the one the client actually picked at booking time).

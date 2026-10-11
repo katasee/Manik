@@ -3,19 +3,28 @@ import FirebaseFirestore
 final class FirestoreClientRepository: ClientRepository {
     private let db = Firestore.firestore()
 
-    func observeClients() -> AsyncStream<[Client]> {
-        AsyncStream { continuation in
-            guard let clients = try? db.userCollection("clients") else {
-                continuation.finish()
-                return
-            }
+    func observeClients() -> AsyncThrowingStream<[Client], Error> {
+        let (stream, continuation) = AsyncThrowingStream.makeStream(
+            of: [Client].self,
+            bufferingPolicy: .bufferingNewest(1)
+        )
 
-            let listener = clients.addSnapshotListener { snapshot, _ in
+        do {
+            let listener = try db.userCollection("clients").addSnapshotListener { snapshot, error in
+                if let error {
+                    continuation.finish(throwing: error)
+                    return
+                }
+
                 let clients = snapshot?.documents.compactMap { try? $0.data(as: Client.self) } ?? []
                 continuation.yield(clients)
             }
             continuation.onTermination = { _ in listener.remove() }
+        } catch {
+            continuation.finish(throwing: error)
         }
+
+        return stream
     }
 
     func add(_ client: Client) async throws {
