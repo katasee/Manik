@@ -10,22 +10,28 @@ struct ClientFormPopup: View {
     @Binding var fields: ClientFormFields
     @FocusState private var focusedField: Field?
 
+    let mode: ClientFormMode
     let errors: ClientFormErrors
     let isSaving: Bool
     let onSubmit: () async -> Bool
+    let onDelete: (() async -> Bool)?
     let onDismiss: () -> Void
 
     init(
         fields: Binding<ClientFormFields>,
+        mode: ClientFormMode = .add,
         errors: ClientFormErrors,
         isSaving: Bool,
         onSubmit: @escaping () async -> Bool,
+        onDelete: (() async -> Bool)? = nil,
         onDismiss: @escaping () -> Void
     ) {
         _fields = fields
+        self.mode = mode
         self.errors = errors
         self.isSaving = isSaving
         self.onSubmit = onSubmit
+        self.onDelete = onDelete
         self.onDismiss = onDismiss
     }
 
@@ -41,6 +47,15 @@ struct ClientFormPopup: View {
             phoneInput
             saveError
             actions(dismiss: dismiss)
+
+            if onDelete != nil {
+                Color.hairline
+                    .frame(height: ClientsMetrics.Size.dividerHeight)
+
+                ClientDeleteButton(isDisabled: isSaving) {
+                    delete(then: dismiss)
+                }
+            }
         }
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
@@ -52,7 +67,7 @@ struct ClientFormPopup: View {
     }
 
     private var title: some View {
-        Text("clients.add.title")
+        Text(mode.titleKey)
             .font(.elmsSans(.bold, 18))
             .foregroundStyle(Color.ink)
             .accessibilityAddTraits(.isHeader)
@@ -111,7 +126,7 @@ struct ClientFormPopup: View {
             Spacer()
 
             CapsuleButton(
-                titleKey: "clients.add.submit",
+                titleKey: mode.submitKey,
                 role: .primary,
                 isLoading: isSaving,
                 action: { save(then: dismiss) }
@@ -124,6 +139,16 @@ struct ClientFormPopup: View {
 
         Task { @MainActor in
             if await onSubmit() {
+                dismiss()
+            }
+        }
+    }
+
+    private func delete(then dismiss: @escaping () -> Void) {
+        guard let onDelete else { return }
+
+        Task { @MainActor in
+            if await onDelete() {
                 dismiss()
             }
         }
@@ -182,12 +207,14 @@ struct ClientFormPopup: View {
         .overlay {
             ClientFormPopup(
                 fields: $fields,
+                mode: .edit,
                 errors: ClientFormErrors(
                     instagram: .duplicateHandle,
                     phone: .incompletePhone
                 ),
                 isSaving: false,
                 onSubmit: { false },
+                onDelete: { true },
                 onDismiss: {}
             )
         }
