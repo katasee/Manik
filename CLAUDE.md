@@ -58,6 +58,16 @@ truth and these files are just stale duplication. Two files are the exception an
 `docs/superpowers/specs/2026-07-15-manik-mvp-design.md` (the product-wide MVP spec, referenced
 above) and `docs/plan.md` (the living status checklist, which is not a superpowers artifact).
 
+## Feature workflow
+
+Every new feature (or PR from `docs/plan.md`) goes through the same pipeline without the user
+having to ask for it:
+
+1. `superpowers:brainstorming` — agree on the design, unless the feature's spec already settles it.
+2. `superpowers:writing-plans` — write the plan to `docs/superpowers/plans/`.
+3. `swiftui-pro` — review the Swift code in the plan, and fold the accepted fixes into the plan
+   before any implementation starts.
+
 ## Git
 
 **The user creates branches, commits and pushes themselves.** Don't run `git switch -c`/`git branch`,

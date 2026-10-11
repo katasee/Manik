@@ -1455,6 +1455,37 @@ this file is just "what's done, what's next," not a design doc.
     and lost `onAdd`; "+" resets the fields first.
   - One `#Preview` (filled + both errors), user decision.
 
+- **M-32.3 — Clients data** (branch `feature/pr-32.3-Clients-Data`).
+  - `Models/Client/` — `Client+Instagram` (`normalizedInstagram(_:)`: lowercased, only
+    `a-z 0-9 . _`, at most 30; a pasted `instagram.com/<handle>` profile link keeps just the
+    handle; diacritics are dropped, not folded, and non-profile links (`/direct/`, `/p/`, `/reel/`)
+    are not handled — user decisions: the master copies the link from the profile).
+    `ClientContact` (its own file — the contact menu uses it without a `Client`): profile, call,
+    SMS. **No "Написати в Instagram"** (`ig.me/m/`) — user decision: the profile opens in
+    Instagram, where she picks what she needs. `Client+Contact` (`contacts` lists only what the
+    client has; the handle is normalized again on read, since `URL(string:)` percent-encodes on
+    iOS 17+ instead of failing and a hand-edited `@Olya` would otherwise open a wrong profile; a
+    legacy phone dials its digits, a digit-free one gives no call/SMS). `Client+Order`
+    (`sortedNewestFirst()`, `createdAt` descending) — **user decision, replacing
+    `max(lastBookedAt, createdAt)`**: a booking must not reshuffle the list; `lastBookedAt` stays
+    for the card in M-34; the "Нещодавні" label becomes "Нещодавно додані" in M-32.4.
+  - Domain files import only Foundation and were checked with a throwaway `swiftc` script that
+    compiles them against a stub `Client` (no test target).
+  - `ClientRepository` + `FirestoreClientRepository` + `FakeClientRepository`;
+    `observeClient(id:)` waits for M-32.5. After a `swift-concurrency-pro` review (user request)
+    `observeClients()` returns `AsyncThrowingStream` (a listener error ends the stream instead of
+    showing an empty base) with `.bufferingNewest(1)`, and the fake keeps its state in a `Mutex`
+    and removes finished continuations. The service and block repositories still use the old
+    shape. `"clients"` added to
+    `FirestoreUserDataRepository.collections`.
+  - `firestore.rules`: `hasValidClientFormat()` — handle or name required, handle
+    `^[a-z0-9._]{1,30}$`, name non-empty, `createdAt` a timestamp; phone unchecked. Published by
+    hand in the Console. The Rules Playground cannot check `create`: its document builder sends a
+    timestamp as a `{type, seconds, nanoseconds}` map, so `createdAt is timestamp` is false there —
+    the allow path is verified with the first client saved from the app in M-32.4.
+  - Workflow: `CLAUDE.md` now says every feature goes brainstorming → writing-plans → `swiftui-pro`
+    review of the plan; this plan was the first reviewed that way.
+
 ## Screens (in order)
 
 This is the actual work queue, and the only numbered list here. The ordering follows the **data
@@ -1592,10 +1623,9 @@ those items are referred to by name, so the list can grow without renumbering an
       because saving needs the repository:
       1. ~~**M-32.1 UI: list**~~ — **done** (under "Done").
       2. ~~**M-32.2a UI: add form**~~ — **done** (under "Done").
-      3. **M-32.3 Data** — `Client+Instagram`, `Client+Contact`, `ClientRepository` + Firestore +
-         Fake, `firestore.rules` (`hasValidClientFormat()`); add `clients` to
-         `FirestoreUserDataRepository.collections`.
-      4. **M-32.4 Logic: list and add** — `ClientListViewModel` (recency order, search over name,
+      3. ~~**M-32.3 Data**~~ — **done** (under "Done").
+      4. **M-32.4 Logic: list and add** — `ClientListViewModel` (newest-first order, section label
+         "Нещодавно додані", search over name,
          nickname and phone digits), `ClientFormViewModel` `.add` (masks, duplicate nickname
          blocked; phones are not checked — a number can be shared, reconfirmed 2026-10-11).
       5. **M-32.2b UI: card** — `ClientCardView` with contacts, one "Зв'язатися" button opening a
