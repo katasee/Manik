@@ -27,8 +27,7 @@ struct MasterRootView: View {
                                 query: $clientsQuery,
                                 items: [],
                                 totalCount: 0,
-                                hasLoaded: true,
-                                onAdd: {}
+                                hasLoaded: true
                             )
                         case .stats:
                             StatsView(
