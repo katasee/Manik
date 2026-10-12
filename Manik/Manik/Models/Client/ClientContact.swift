@@ -1,9 +1,11 @@
 import Foundation
 
-enum ClientContact: Hashable {
+enum ClientContact: Hashable, Identifiable {
     case instagramProfile(handle: String)
     case call(phone: String)
     case sms(phone: String)
+
+    var id: Self { self }
 
     var url: URL? {
         switch self {

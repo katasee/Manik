@@ -4,11 +4,13 @@ struct ClientItem: Identifiable {
     let id: String
     let title: String
     let initial: String
+    let contacts: [ClientContact]
 
     init(client: Client) {
         id = client.id ?? client.createdAt.formatted(.iso8601)
         title = client.displayName
         initial = Self.makeInitial(from: client.displayName)
+        contacts = client.contacts
     }
 
     private static func makeInitial(from title: String) -> String {

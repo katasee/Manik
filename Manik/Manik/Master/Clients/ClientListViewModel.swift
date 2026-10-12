@@ -26,6 +26,10 @@ final class ClientListViewModel {
         clients.count
     }
 
+    func client(id: String) -> Client? {
+        clients.first { $0.id == id }
+    }
+
     func observeClients() async {
         hasFailed = false
 
