@@ -48,6 +48,14 @@ final class ClientListViewModel {
         ClientFormViewModel(takenHandles: takenHandles, clientRepository: clientRepository)
     }
 
+    func makeCardViewModel(id: String) -> ClientCardViewModel {
+        ClientCardViewModel(
+            clientId: id,
+            takenHandles: takenHandles,
+            clientRepository: clientRepository
+        )
+    }
+
     private var takenHandles: Set<String> {
         Set(clients.compactMap { $0.instagram.map(Client.normalizedInstagram) })
     }
