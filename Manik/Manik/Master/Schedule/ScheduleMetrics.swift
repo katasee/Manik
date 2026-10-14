@@ -2,43 +2,22 @@ import CoreGraphics
 
 enum ScheduleMetrics {
     enum Size {
-        static let hourLabelWidth: CGFloat = 48
-        static let hourLabelCentering: CGFloat = 10
-        static let hourHeight: CGFloat = 84
+        static let rowHeight: CGFloat = 52
+        static let rowCornerRadius: CGFloat = 18
+        static let rowBorderWidth: CGFloat = 1.5
+        static let rowDash: [CGFloat] = [5, 4]
+        static let rowTime: CGFloat = 16
+        static let rowLabel: CGFloat = 13
+        static let rowLabelTracking: CGFloat = 0.8
+        static let pastOpacity: Double = 0.45
     }
 
     enum Spacing {
-        static let rowSpacing: CGFloat = 16
-        static let timelineHorizontalPadding: CGFloat = 16
-        static let timelineBottomSlack: CGFloat = 64
-        static let contentLeadingPadding: CGFloat = timelineHorizontalPadding + Size.hourLabelWidth
-    }
-
-    enum Card {
-        static let cornerRadius: CGFloat = 18
-        static let leadingPadding: CGFloat = 24
-        static let trailingPadding: CGFloat = 16
-        static let verticalPadding: CGFloat = 12
-        static let contentSpacing: CGFloat = 4
-        static let accentWidth: CGFloat = 4
-        static let accentInset: CGFloat = 10
-        static let overlapIndent: CGFloat = 16
-        static let verticalInset: CGFloat = 6
-        static let minHeight: CGFloat = 64
-    }
-
-    enum Detail {
-        static let rowSpacing: CGFloat = 4
-        static let headerSpacing: CGFloat = 6
-        static let actionsSpacing: CGFloat = 10
-        static let closeIconSize: CGFloat = 13
-        static let closeHitSize: CGFloat = 44
-        static let closeEdgeCompensation: CGFloat = 12
-    }
-
-    enum CreatePopup {
-        static let wheelHeight: CGFloat = 150
-        static let timeHorizontalPadding: CGFloat = 12
-        static let timeVerticalPadding: CGFloat = 6
+        static let horizontalPadding: CGFloat = 16
+        static let stripVerticalPadding: CGFloat = 12
+        static let listTopPadding: CGFloat = 8
+        static let rowSpacing: CGFloat = 10
+        static let rowHorizontalPadding: CGFloat = 18
+        static let contentBottomPadding: CGFloat = 24
     }
 }

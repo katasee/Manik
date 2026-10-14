@@ -21,7 +21,7 @@ struct PopupDismissButton: View {
 }
 
 #Preview {
-    PopupDismissButton(titleKey: "schedule.createSlot.cancel", action: {})
+    PopupDismissButton(titleKey: "common.action.cancel", action: {})
         .padding()
         .background(Color.background)
 }

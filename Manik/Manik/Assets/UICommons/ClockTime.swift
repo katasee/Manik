@@ -1,9 +1,5 @@
 struct ClockTime: Equatable {
-    var hour: Int {
-        didSet {
-            if hour == WorkHours.working.upperBound { minute = 0 }
-        }
-    }
+    var hour: Int
     var minute: Int
 
     init(minutesOfDay: Int) {

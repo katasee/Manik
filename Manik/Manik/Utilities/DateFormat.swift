@@ -19,20 +19,6 @@ enum DateFormat {
         return calendar
     }()
 
-    static func hourLabel(for hour: Int) -> String {
-        let components = DateComponents(
-            year: 2000,
-            month: 1,
-            day: 1,
-            hour: hour,
-            minute: 0
-        )
-
-        guard let date = salonCalendar.date(from: components) else { return "" }
-
-        return clockTime.string(from: date)
-    }
-
     static func storageTime(minutesOfDay: Int) -> String {
         let components = DateComponents(
             year: 2000,
