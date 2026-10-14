@@ -115,8 +115,9 @@
   label fights it for the tap. When a menu must look like one of our buttons, draw the button's
   *look* without the `Button`: `RoundIconLabel` is `RoundIconButton`'s look, extracted in M-32.2b
   so the row's contact menu and every round button share one drawing. `CapsuleButton`'s look was
-  not extracted (it is tangled with loading/disabled states and three roles); the client card draws
-  its one capsule menu label privately — extract it when a second one appears.
+  not extracted (it is tangled with loading/disabled states and three roles); the client card's
+  "Зв'язатися" menu label is drawn privately as a `.cardSurface` row (M-32.5, user decision: it
+  matches the list rows instead of the primary capsule) — extract it when a second one appears.
 - **Input masking uses `.onChange`, never `Binding(get:set:)`.** The obvious way to cap or reformat
   what a `TextField` accepts — a computed binding whose `set` filters the incoming string — **does
   not work**: when the filtered result equals the value the property already held, nothing

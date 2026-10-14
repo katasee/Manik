@@ -111,14 +111,10 @@ struct ClientCardView: View {
                 .font(.elmsSans(.semiBold, ClientsMetrics.Size.contactTitle))
                 .lineLimit(1)
         }
-        .foregroundStyle(Color.onPrimary)
+        .foregroundStyle(Color.ink)
         .frame(maxWidth: .infinity, minHeight: ClientsMetrics.Size.contactMinHeight)
-        .background {
-            Capsule()
-                .fill(Color.primaryFill)
-                .brandShadow()
-        }
-        .contentShape(.capsule)
+        .cardSurface(padding: 0, cornerRadius: ClientsMetrics.Size.rowCornerRadius)
+        .contentShape(.rect(cornerRadius: ClientsMetrics.Size.rowCornerRadius))
     }
 
     private func goBack() {

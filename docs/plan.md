@@ -1556,6 +1556,38 @@ this file is just "what's done, what's next," not a design doc.
     Glass for our buttons"): no swipe back on pushed screens, and our round buttons lack Liquid
     Glass on iOS 26.
 
+- **M-32.5 — Client card, edit, delete logic** (branch `feature/pr-32.5-Client-Card-Logic`; last
+  M-32 PR — Клієнтки is complete).
+  - `ClientRepository.observeClient(id:)` — one document, `nil` when it does not exist. Both client
+    streams share a private generic `listen(_:read:)` (`SnapshotHandler<Snapshot>` typealias) in
+    `FirestoreClientRepository` and `observe(_:)` in the fake (user decision after "two 80% equal
+    functions"; the protocol keeps two narrow methods). Move it to `Services/Firestore/` when
+    `slots` needs it in M-33.
+  - `update`/`delete` are fire-and-forget like `add` (user decision: offline spinner) and declared
+    `throws` without `async`; `data-layer.md` records the whole client repository as the exception.
+  - `ClientFormViewModel`: `init(editing:takenHandles:clientRepository:)` drops the client's own
+    handle from `takenHandles`; `mode` is derived from `original`; `makeClient()` starts from
+    `original`, so `id`, `createdAt`, `lastBookedAt` survive an edit; `delete()` shares
+    `isSaving`/the save error line with `submit()`.
+  - `ClientCardViewModel` (`Master/Clients/ClientCard/`): `card`, `isDeleted` (only after the client
+    was seen — a first `nil` does not close the card), keeps the last client while the card pops,
+    a listener error leaves the card as is; `makeEditFormViewModel()`.
+    `ClientListViewModel.makeCardViewModel(id:)` passes the list's taken handles (user decision
+    over the card listening to the whole collection); `client(id:)` removed.
+  - `ClientCardView(viewModel:)`: `.task` observes, the pencil presents an edit form view model with
+    `.fullScreenCover(item:)`. `closeIfDeleted()` closes an open edit popup first and pops the card
+    from the cover's `onDismiss`, so no cover is left over the list (also after a delete from the
+    Console).
+  - "Зв'язатися" restyled as a `.cardSurface` row with `Ink` text in both themes (user decision:
+    the wine capsule looked wrong on the dark card).
+  - Known limitations (user decisions): an unparseable legacy phone is regrouped by the edit form
+    (only a Console edit can produce one); a handle added on another device while the card is open
+    is not caught as a duplicate; a server rejection of `update`/`delete` is not shown.
+  - Workflow change from Task 2 on: the user writes the logic against a throwaway `swiftc` check
+    script (28/28) and Claude reviews with dosed hints.
+  - Verified: `xcodebuild`, check script, and a simulator pass by the user (edit, duplicate handle,
+    cleared phone, delete, delete from the Console with the popup open, offline, dark theme).
+
 ## Screens (in order)
 
 This is the actual work queue, and the only numbered list here. The ordering follows the **data
@@ -1687,24 +1719,12 @@ those items are referred to by name, so the list can grow without renumbering an
       tab bar instead of a throwaway fourth tab.
    2. ~~**M-31 Master account**~~ — **done** (under "Done"): email verification, forgot/change
       password, delete account with a full data wipe, Profile screen.
-   3. **M-32 Клієнтки** — split into six UI-first PRs (user decision 2026-10-10, ~300–500 lines
-      each; spec `docs/superpowers/specs/2026-10-10-m32-clients-design.md`). M-32.2 was split
-      2026-10-11 so adding a client works end to end before the card; M-32.3 stays before M-32.4
-      because saving needs the repository:
-      1. ~~**M-32.1 UI: list**~~ — **done** (under "Done").
-      2. ~~**M-32.2a UI: add form**~~ — **done** (under "Done").
-      3. ~~**M-32.3 Data**~~ — **done** (under "Done").
-      4. ~~**M-32.4 Logic: list and add**~~ — **done** (under "Done").
-      5. ~~**M-32.2b UI: card**~~ — **done** (under "Done").
-      6. **M-32.5 Logic: card, edit, delete** — `ClientCardViewModel`, `observeClient(id:)`.
-         Settle first (M-32.2b review): `ClientFormFields(client:)` regroups a phone it cannot
-         parse — a legacy "600 12 34" becomes "600 123 4", "+380501234567" is cut to 9 digits — so
-         "Зберегти" on an untouched client would fail with "Номер має 9 цифр" or store a wrong
-         number. Prefill unparseable phones verbatim, or decide otherwise on purpose.
+   3. ~~**M-32 Клієнтки**~~ — **done** (under "Done"): six UI-first PRs, M-32.1 … M-32.5.
    4. **M-33 Windows** — `slots` (date + start time), new Розклад day list, Заповнити місяць;
       `Block`/`blocks` removed. Swap `blocks` for `slots` in `FirestoreUserDataRepository.collections`.
    5. **M-34 Booking** — book a client into a window (search + inline add), booking actions,
-      history on the client card.
+      history on the client card. Open question from M-32.5: show the last visit in the list row
+      too (today the row is avatar + name only)?
    6. **M-35 Publishing** — free windows as a 9:16 image (layout A) and as text, Надіслати прайс,
       favourite services, "Надіслати @нік".
    7. **M-36 Reschedule**.
