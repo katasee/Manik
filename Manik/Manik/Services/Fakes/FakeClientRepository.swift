@@ -5,7 +5,7 @@ import Synchronization
 final class FakeClientRepository: ClientRepository {
     private struct State {
         var clients: [Client]
-        var continuations: [UUID: AsyncThrowingStream<[Client], Error>.Continuation] = [:]
+        var observers: [UUID: ([Client]) -> Void] = [:]
     }
 
     private let state: Mutex<State>
@@ -15,22 +15,11 @@ final class FakeClientRepository: ClientRepository {
     }
 
     func observeClients() -> AsyncThrowingStream<[Client], Error> {
-        let id = UUID()
-        let (stream, continuation) = AsyncThrowingStream.makeStream(
-            of: [Client].self,
-            bufferingPolicy: .bufferingNewest(1)
-        )
+        observe { $0 }
+    }
 
-        continuation.onTermination = { [weak self] _ in
-            self?.state.withLock { $0.continuations[id] = nil }
-        }
-
-        state.withLock { state in
-            state.continuations[id] = continuation
-            continuation.yield(state.clients)
-        }
-
-        return stream
+    func observeClient(id: String) -> AsyncThrowingStream<Client?, Error> {
+        observe { clients in clients.first { $0.id == id } }
     }
 
     func add(_ client: Client) async throws {
@@ -54,12 +43,31 @@ final class FakeClientRepository: ClientRepository {
         change { $0.removeAll { $0.id == id } }
     }
 
+    private func observe<Value>(_ read: @escaping ([Client]) -> Value) -> AsyncThrowingStream<Value, Error> {
+        let key = UUID()
+        let (stream, continuation) = AsyncThrowingStream.makeStream(
+            of: Value.self,
+            bufferingPolicy: .bufferingNewest(1)
+        )
+
+        continuation.onTermination = { [weak self] _ in
+            self?.state.withLock { $0.observers[key] = nil }
+        }
+
+        state.withLock { state in
+            state.observers[key] = { continuation.yield(read($0)) }
+            continuation.yield(read(state.clients))
+        }
+
+        return stream
+    }
+
     private func change(_ apply: (inout [Client]) -> Void) {
         state.withLock { state in
             apply(&state.clients)
 
-            for continuation in state.continuations.values {
-                continuation.yield(state.clients)
+            for observer in state.observers.values {
+                observer(state.clients)
             }
         }
     }

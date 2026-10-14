@@ -3,11 +3,12 @@ import SwiftUI
 struct ClientCardView: View {
     @Environment(\.dismiss) private var dismiss
 
-    @State private var isEditing = false
-    @State private var draft = ClientFormFields()
+    @State private var viewModel: ClientCardViewModel
+    @State private var editForm: ClientFormViewModel?
 
-    let card: ClientCard
-    let editFields: ClientFormFields
+    init(viewModel: ClientCardViewModel) {
+        _viewModel = State(initialValue: viewModel)
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -20,35 +21,52 @@ struct ClientCardView: View {
                 )
             }
 
-            ScrollView {
-                VStack(spacing: ClientsMetrics.Spacing.cardSectionSpacing) {
-                    profile
-                    contact
-                }
-                .padding(.horizontal, ClientsMetrics.Spacing.horizontalPadding)
-                .padding(.top, ClientsMetrics.Spacing.cardTopPadding)
-                .padding(.bottom, ClientsMetrics.Spacing.listBottomPadding)
+            if let card = viewModel.card {
+                content(card)
             }
-            .scrollIndicators(.hidden)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .background(Color.background)
         .toolbar(.hidden, for: .navigationBar)
-        .fullScreenCover(isPresented: $isEditing) {
+        .task {
+            await viewModel.observeClient()
+        }
+        .onChange(of: viewModel.isDeleted) {
+            closeIfDeleted()
+        }
+        .fullScreenCover(item: $editForm, onDismiss: closeIfDeleted) { form in
+            @Bindable var form = form
+
             ClientFormPopup(
-                fields: $draft,
-                mode: .edit,
-                errors: ClientFormErrors(),
-                isSaving: false,
-                onSubmit: { true },
-                onDelete: { true },
+                fields: $form.fields,
+                mode: form.mode,
+                errors: form.errors,
+                isSaving: form.isSaving,
+                onSubmit: form.submit,
+                onDelete: form.delete,
                 onDismiss: dismissForm
             )
+            .onChange(of: form.fields) {
+                form.applyMasks()
+            }
             .presentationBackground(.clear)
         }
     }
 
-    private var profile: some View {
+    private func content(_ card: ClientCard) -> some View {
+        ScrollView {
+            VStack(spacing: ClientsMetrics.Spacing.cardSectionSpacing) {
+                profile(card)
+                contact(card)
+            }
+            .padding(.horizontal, ClientsMetrics.Spacing.horizontalPadding)
+            .padding(.top, ClientsMetrics.Spacing.cardTopPadding)
+            .padding(.bottom, ClientsMetrics.Spacing.listBottomPadding)
+        }
+        .scrollIndicators(.hidden)
+    }
+
+    private func profile(_ card: ClientCard) -> some View {
         VStack(spacing: ClientsMetrics.Spacing.cardProfileSpacing) {
             ClientAvatar(initial: card.initial, size: ClientsMetrics.Size.cardAvatar)
 
@@ -69,7 +87,7 @@ struct ClientCardView: View {
     }
 
     @ViewBuilder
-    private var contact: some View {
+    private func contact(_ card: ClientCard) -> some View {
         if card.contacts.isEmpty {
             Text("clients.card.noContacts")
                 .font(.elmsSans(.regular, ClientsMetrics.Size.cardDetails))
@@ -93,14 +111,10 @@ struct ClientCardView: View {
                 .font(.elmsSans(.semiBold, ClientsMetrics.Size.contactTitle))
                 .lineLimit(1)
         }
-        .foregroundStyle(Color.onPrimary)
+        .foregroundStyle(Color.ink)
         .frame(maxWidth: .infinity, minHeight: ClientsMetrics.Size.contactMinHeight)
-        .background {
-            Capsule()
-                .fill(Color.primaryFill)
-                .brandShadow()
-        }
-        .contentShape(.capsule)
+        .cardSurface(padding: 0, cornerRadius: ClientsMetrics.Size.rowCornerRadius)
+        .contentShape(.rect(cornerRadius: ClientsMetrics.Size.rowCornerRadius))
     }
 
     private func goBack() {
@@ -108,28 +122,37 @@ struct ClientCardView: View {
     }
 
     private func edit() {
-        draft = editFields
-
         withoutPresentationAnimation {
-            isEditing = true
+            editForm = viewModel.makeEditFormViewModel()
         }
     }
 
     private func dismissForm() {
         withoutPresentationAnimation {
-            isEditing = false
+            editForm = nil
+        }
+    }
+
+    private func closeIfDeleted() {
+        guard viewModel.isDeleted else { return }
+
+        if editForm != nil {
+            dismissForm()
+        } else {
+            dismiss()
         }
     }
 }
 
 #if DEBUG
 #Preview {
-    let client = ClientsPreviewData.clients[0]
-
     NavigationStack {
         ClientCardView(
-            card: ClientCard(client: client),
-            editFields: ClientFormFields(client: client)
+            viewModel: ClientCardViewModel(
+                clientId: ClientsPreviewData.clients[0].id ?? "",
+                takenHandles: [],
+                clientRepository: FakeClientRepository(clients: ClientsPreviewData.clients)
+            )
         )
     }
 }

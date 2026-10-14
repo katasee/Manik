@@ -42,14 +42,18 @@
   themselves once indexing catches up (verify those against an actual `xcodebuild` run, not at
   face value) — the async-operations warning is a genuine compiler diagnostic about the code as
   written and won't go away on its own.
-- **The one deliberate fire-and-forget write is `FirestoreClientRepository.add`** (M-32.4, user
-  decision). Awaiting `addDocument` waits for the *server* acknowledgement, so offline the add
-  popup spun forever with Cancel disabled, although the client was already in the local cache and
-  on the list. It now calls `addDocument(data:completion: nil)`: the write lands locally at once and
-  Firestore syncs it later. The cost is that a server rejection goes unseen — acceptable because
-  `hasValidClientFormat()` checks what `ClientFormViewModel` already enforces. Encoding and
-  "not signed in" errors still throw. Every other write still awaits; don't copy this without the
-  same reasoning (services have the same offline spinner, not yet changed).
+- **The deliberate fire-and-forget writes are `FirestoreClientRepository`'s `add`, `update` and
+  `delete`** (user decisions: `add` in M-32.4, `update`/`delete` in M-32.5). Awaiting a write waits
+  for the *server* acknowledgement, so offline the client popups spun forever with Cancel disabled,
+  although the change was already in the local cache and on screen. They now pass
+  `completion: nil`: the write lands locally at once and Firestore syncs it later. The cost is that a
+  server rejection goes unseen — acceptable because `hasValidClientFormat()` checks what
+  `ClientFormViewModel` already enforces, and a delete validates nothing. Encoding and
+  "not signed in" errors still throw. `update` and `delete` are declared `throws` without `async`
+  (a sync method satisfies the protocol's `async throws`): calling a completion-handler API inside
+  an `async` function raises "consider using asynchronous alternative function". Every other
+  write still awaits; don't copy this without the same reasoning (services have the same offline
+  spinner, not yet changed).
 - Realtime data uses **async/await + `AsyncStream`** (`observeBlocks()`, `observeServices()`), not
   Combine. Each Firestore `addSnapshotListener` callback yields the full current array for that
   query; `continuation.onTermination` removes the listener. Listener errors are currently swallowed
@@ -59,6 +63,13 @@
   data. It builds the stream with `makeStream(of:bufferingPolicy: .bufferingNewest(1))` — every
   snapshot is the full list, so only the latest one matters — and `FakeClientRepository` keeps its
   state in a `Mutex` so `onTermination` can drop a finished continuation without a data race.
+  `observeClient(id:)` (M-32.5) listens to one document and yields `nil` when it does not exist
+  (`try? snapshot.data(as:)`). Both client streams go through one private generic
+  `listen(_:read:)` in `FirestoreClientRepository` (and `observe(_:)` in the fake, which keeps one
+  dictionary of observer closures): the caller says what to listen to and how to read a snapshot,
+  the helper owns the stream, the error and `onTermination`. When a second repository needs it
+  (`slots`, M-33), move it out of the class into `Services/Firestore/` and port
+  `observeServices`/`observeBlocks` to it.
 - **A new field added to a model whose collection already has documents must be optional.** Swift's
   synthesized `init(from:)` does **not** fall back to a property's default value — a missing key
   throws `keyNotFound`, so `var isActive = true` would break decoding for every pre-existing

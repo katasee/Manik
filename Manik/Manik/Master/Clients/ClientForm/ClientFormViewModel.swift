@@ -10,12 +10,35 @@ final class ClientFormViewModel: Identifiable {
     private var hasSubmitted = false
     private var hasSaveFailed = false
 
+    private let original: Client?
     private let takenHandles: Set<String>
     private let clientRepository: ClientRepository
 
     init(takenHandles: Set<String>, clientRepository: ClientRepository) {
+        original = nil
         self.takenHandles = takenHandles
         self.clientRepository = clientRepository
+    }
+
+    init(
+        editing client: Client,
+        takenHandles: Set<String>,
+        clientRepository: ClientRepository
+    ) {
+        var otherHandles = takenHandles
+
+        if let instagram = client.instagram {
+            otherHandles.remove(Client.normalizedInstagram(instagram))
+        }
+
+        original = client
+        fields = ClientFormFields(client: client)
+        self.takenHandles = otherHandles
+        self.clientRepository = clientRepository
+    }
+
+    var mode: ClientFormMode {
+        original == nil ? .add : .edit
     }
 
     var errors: ClientFormErrors {
@@ -51,7 +74,27 @@ final class ClientFormViewModel: Identifiable {
         defer { isSaving = false }
 
         do {
-            try await clientRepository.add(client)
+            if original == nil {
+                try await clientRepository.add(client)
+            } else {
+                try await clientRepository.update(client)
+            }
+            return true
+        } catch {
+            hasSaveFailed = true
+            return false
+        }
+    }
+
+    func delete() async -> Bool {
+        guard isSaving == false, let id = original?.id else { return false }
+
+        hasSaveFailed = false
+        isSaving = true
+        defer { isSaving = false }
+
+        do {
+            try await clientRepository.delete(id: id)
             return true
         } catch {
             hasSaveFailed = true
@@ -88,13 +131,18 @@ final class ClientFormViewModel: Identifiable {
     private func makeClient() -> Client? {
         guard instagramError == nil, phoneError == nil else { return nil }
 
-        return Client(
+        var client = original ?? Client(
             id: nil,
-            name: name,
-            instagram: handle,
-            phone: PhoneFormat.stored(national: nationalPhone),
+            name: nil,
+            instagram: nil,
+            phone: nil,
             createdAt: .now
         )
+        client.name = name
+        client.instagram = handle
+        client.phone = PhoneFormat.stored(national: nationalPhone)
+
+        return client
     }
 
     private static func nonEmpty(_ text: String) -> String? {

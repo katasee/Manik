@@ -26,10 +26,6 @@ final class ClientListViewModel {
         clients.count
     }
 
-    func client(id: String) -> Client? {
-        clients.first { $0.id == id }
-    }
-
     func observeClients() async {
         hasFailed = false
 
@@ -46,6 +42,14 @@ final class ClientListViewModel {
 
     func makeAddFormViewModel() -> ClientFormViewModel {
         ClientFormViewModel(takenHandles: takenHandles, clientRepository: clientRepository)
+    }
+
+    func makeCardViewModel(id: String) -> ClientCardViewModel {
+        ClientCardViewModel(
+            clientId: id,
+            takenHandles: takenHandles,
+            clientRepository: clientRepository
+        )
     }
 
     private var takenHandles: Set<String> {
