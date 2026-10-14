@@ -1720,8 +1720,20 @@ those items are referred to by name, so the list can grow without renumbering an
    2. ~~**M-31 Master account**~~ — **done** (under "Done"): email verification, forgot/change
       password, delete account with a full data wipe, Profile screen.
    3. ~~**M-32 Клієнтки**~~ — **done** (under "Done"): six UI-first PRs, M-32.1 … M-32.5.
-   4. **M-33 Windows** — `slots` (date + start time), new Розклад day list, Заповнити місяць;
+   4. **M-33 Free slots** — `slots` (date + start time), new Розклад day list, Заповнити місяць;
       `Block`/`blocks` removed. Swap `blocks` for `slots` in `FirestoreUserDataRepository.collections`.
+      Agreed before the brainstorm (user, 2026-10-14):
+      - Branch `feature/pr-33-Free-Slots` ("Windows" was ambiguous; the model is `slots`); likely
+        split into M-33.1… PRs like M-32.
+      - Scope: the Розклад day list with free slots and "+" → Заповнити місяць. Bookings in the list
+        are M-34, the send button M-35, personal plans M-37.
+      - A free slot row: dashed outline (`Stroke`, like `DashedSlot`), time on the left, "ВІЛЬНО"
+        uppercase centred, nothing else — no "Записати" label (the whole row is the tap target for
+        booking in M-34) and no conflict tag (M-37 decides how to show a clash with a personal
+        plan). Drawn on the canvas artboard "Розклад" (page "Тільки майстриня").
+      - The hourly timeline with dashed empty hours (`Master/Schedule/Timeline/`) is removed.
+      - Before starting: the final whole-branch review of M-32.5 was skipped (merged first) —
+        offered to run it on `main`.
    5. **M-34 Booking** — book a client into a window (search + inline add), booking actions,
       history on the client card. Open question from M-32.5: show the last visit in the list row
       too (today the row is avatar + name only)?
