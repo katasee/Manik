@@ -23,7 +23,8 @@ Manik is an iOS calendar for nail masters: each master signs up and gets an inde
 clients never use the app (they write to her in Instagram and she books them). SwiftUI + Firebase
 (Auth + Firestore). It was a two-cabinet booking app (one master / clients) until the 2026-10-09
 pivot; the code moves over PRs M-30…M-38 (`docs/plan.md`, item 9) — since M-30 the client cabinet
-is gone, and the Schedule still runs on the old `blocks` model until M-33. Full product spec —
+is gone; since M-33.1 the Schedule is a day list of `slots`, and only Статистика still reads the
+old `blocks` model, until M-38. Full product spec —
 data model, screen flows, out-of-scope list — lives in
 `docs/superpowers/specs/2026-07-15-manik-mvp-design.md`; keep it in sync with any product decision
 that changes scope, not just this file.
@@ -67,6 +68,12 @@ having to ask for it:
 2. `superpowers:writing-plans` — write the plan to `docs/superpowers/plans/`.
 3. `swiftui-pro` — review the Swift code in the plan, and fold the accepted fixes into the plan
    before any implementation starts.
+4. Implementation — **Claude writes the code, the user reads** (user decision, M-33.1, replacing
+   M-32.5's "the user writes, Claude coaches": writing every gap with dosed hints was slow and
+   still did not stick). Claude implements the plan task by task and runs its check (a throwaway
+   `swiftc` script in the scratchpad, or the build). After each task Claude explains the one or two
+   decisions in it worth remembering — briefly, not a lesson — then asks 2–3 questions about it and
+   waits for all the answers before the next task.
 
 ## Git
 

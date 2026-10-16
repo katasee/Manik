@@ -1,123 +1,67 @@
 import SwiftUI
 
 struct ScheduleView: View {
-    @State private var viewModel: ScheduleViewModel
-    @State private var popup: SchedulePopup?
+    @State private var selectedDate = Date.now
 
-    init(viewModel: ScheduleViewModel) {
-        _viewModel = State(initialValue: viewModel)
-    }
+    let items: [SlotItem]
+    let hasLoaded: Bool
 
     var body: some View {
         VStack(spacing: 0) {
-            VStack(alignment: .leading, spacing: 2) {
-                title
-                date
+            LargeTitleHeader(titleKey: "schedule.title", subtitle: monthTitle) {
+                RoundIconButton(
+                    systemImage: "plus",
+                    accessibilityLabel: "schedule.action.addSlots",
+                    action: {}
+                )
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal, ScheduleMetrics.Spacing.timelineHorizontalPadding)
 
-            WeekDayStrip(selectedDate: $viewModel.selectedDate)
-                .padding(.vertical, 12)
+            WeekDayStrip(selectedDate: $selectedDate)
+                .padding(.vertical, ScheduleMetrics.Spacing.stripVerticalPadding)
 
-            Color.hairline
-                .frame(height: 1)
-
-            HourlyTimelineView(
-                blocks: viewModel.scheduledBlocks,
-                freeHours: viewModel.freeHours,
-                onTapHour: requestSlotCreation,
-                onTapBlock: showBlockDetail,
-                onDeleteBlock: deleteBlock
-            )
+            content
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color.background)
-        .task {
-            await viewModel.observeBlocks()
-        }
-        .task {
-            await viewModel.observeServices()
-        }
-        .alert(
-            "schedule.alert.deleteFailed",
-            isPresented: $viewModel.deletionFailed
-        ) {
-            Button("common.action.ok", role: .cancel) {}
-        }
-        .alert(
-            "schedule.confirm.deleteBooked.title",
-            isPresented: $viewModel.isConfirmingDeletion
-        ) {
-            Button("common.action.cancel", role: .cancel) {}
-            Button("schedule.action.delete", role: .destructive) {
-                viewModel.confirmPendingDeletion()
+    }
+
+    private var monthTitle: String {
+        DateFormat.monthYear.string(from: selectedDate).capitalized
+    }
+
+    private var content: some View {
+        ZStack {
+            if items.isEmpty == false {
+                list
             }
-        } message: {
-            Text("schedule.confirm.deleteBooked.message")
-        }
-        .fullScreenCover(item: $popup) { popup in
-            switch popup {
-            case .createSlot(let context):
-                AddNewSlotBlock(context: context, onDismiss: dismissPopup)
-                    .presentationBackground(.clear)
 
-            case .blockDetail(let context):
-                BlockDetailPopup(context: context, onDismiss: dismissPopup)
-                    .presentationBackground(.clear)
-            }
-        }
-    }
-
-    private var title: some View {
-        Text("schedule.title")
-            .font(.elmsSans(.bold, 28))
-            .foregroundStyle(Color.ink)
-    }
-
-    private var date: some View {
-        Text(DateFormat.monthYear.string(from: viewModel.selectedDate).capitalized)
-            .font(.elmsSans(.medium, 16))
-            .foregroundStyle(Color.textSecondary)
-    }
-
-    private func deleteBlock(_ block: Block) {
-        viewModel.requestDeletion(of: block)
-    }
-
-    private func requestSlotCreation(at hour: Int) {
-        withoutPresentationAnimation {
-            popup = .createSlot(
-                CreateBlockContext(
-                    date: viewModel.selectedDate,
-                    startHour: hour,
-                    services: viewModel.offeredServices,
-                    blocks: viewModel.blocks
-                )
+            ListStatusOverlay(
+                hasLoaded: hasLoaded,
+                isEmpty: items.isEmpty,
+                titleKey: "schedule.empty.title",
+                messageKey: "schedule.empty.message"
             )
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
-    private func showBlockDetail(for scheduled: ScheduledBlock) {
-        withoutPresentationAnimation {
-            popup = .blockDetail(BlockDetailContext(scheduled))
+    private var list: some View {
+        ScrollView {
+            LazyVStack(spacing: ScheduleMetrics.Spacing.rowSpacing) {
+                ForEach(items) { item in
+                    FreeSlotRow(item: item)
+                }
+            }
+            .padding(.horizontal, ScheduleMetrics.Spacing.horizontalPadding)
+            .padding(.top, ScheduleMetrics.Spacing.listTopPadding)
+            .padding(.bottom, ScheduleMetrics.Spacing.contentBottomPadding)
         }
-    }
-
-    private func dismissPopup() {
-        withoutPresentationAnimation {
-            popup = nil
-        }
+        .scrollIndicators(.hidden)
     }
 }
 
 #if DEBUG
 #Preview {
-    ScheduleView(
-        viewModel: ScheduleViewModel(
-            blockRepository: FakeBlockRepository(blocks: SchedulePreviewData.blocks),
-            serviceRepository: FakeServiceRepository(services: SchedulePreviewData.services)
-        )
-    )
+    ScheduleView(items: SchedulePreviewData.items, hasLoaded: true)
 }
 #endif

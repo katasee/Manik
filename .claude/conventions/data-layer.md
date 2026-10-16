@@ -1,7 +1,8 @@
 # Data layer
 
-- `Block.date`/`startTime`/`endTime` are plain `String` (`yyyy-MM-dd`/`HH:mm`) but must never be
-  produced by an inline `DateFormatter` — always go through `Manik/Manik/Utilities/DateFormat.swift`.
+- `Slot.date`/`time` (and the legacy `Block.date`/`startTime`/`endTime`) are plain `String`
+  (`yyyy-MM-dd`/`HH:mm`) but must never be produced by an inline `DateFormatter` — always go
+  through `Manik/Manik/Utilities/DateFormat.swift`.
   That file splits into two kinds: **storage** formatters (`DateFormat.date`/`DateFormat.time`) pin
   `en_US_POSIX` locale so the string written to Firestore can't be corrupted by device
   locale/calendar; **display** formatters (`DateFormat.dayNumber`/`weekdayLetter`/`monthYear`) use
@@ -9,9 +10,9 @@
   String Catalog, so display formatters must never hardcode a locale. Both keep the salon's fixed
   `TimeZone`. `firestore.rules` regex-validates the storage format server-side
   (`hasValidBlockFormat()`) as defense in depth. Times shown on screen must go through
-  `DateFormat.hourLabel(for:)`/`displayTime(_:)` rather than printing the stored `HH:mm` string —
-  those use `setLocalizedDateFormatFromTemplate("jmm")`, so an English device gets "9:00 AM". Use
-  the `"jmm"` template, not `"j"`: the latter silently drops minutes.
+  `DateFormat.displayTime(_:)` rather than printing the stored `HH:mm` string (`SlotItem.timeText`
+  does) — it uses `setLocalizedDateFormatFromTemplate("jmm")`, so an English device gets
+  "9:00 AM". Use the `"jmm"` template, not `"j"`: the latter silently drops minutes.
   **Any display formatter that combines more than one field must go through
   `templateFormatter(_:)`, never a fixed `dateFormat` string.** A fixed pattern pins the *order* of
   the fields and lets the locale change only the words: `"d MMMM"` gives the correct "12 серпня" in
@@ -68,8 +69,8 @@
   `listen(_:read:)` in `FirestoreClientRepository` (and `observe(_:)` in the fake, which keeps one
   dictionary of observer closures): the caller says what to listen to and how to read a snapshot,
   the helper owns the stream, the error and `onTermination`. When a second repository needs it
-  (`slots`, M-33), move it out of the class into `Services/Firestore/` and port
-  `observeServices`/`observeBlocks` to it.
+  (`slots`, M-33.2), move it out of the class into `Services/Firestore/`; `observeServices` stays
+  as it is and `observeBlocks` goes with `Block` in M-38.
 - **A new field added to a model whose collection already has documents must be optional.** Swift's
   synthesized `init(from:)` does **not** fall back to a property's default value — a missing key
   throws `keyNotFound`, so `var isActive = true` would break decoding for every pre-existing
@@ -96,8 +97,10 @@
   time slot) and `bookedServiceId: String?` (the one the client actually picked at booking time).
   Since M-30 nobody but the owning master writes a block (client booking is gone), so
   `firestore.rules` (deployed manually via Firebase Console — no CLI/CI hookup) only checks the
-  `date`/`startTime`/`endTime` format server-side with `hasValidBlockFormat()`. The whole block
-  model is replaced by `slots` in M-33.
+  `date`/`startTime`/`endTime` format server-side with `hasValidBlockFormat()`. The block model is
+  being replaced by `slots` (`Models/Slot/`: `date`, `time`, `clientId?` — no end time, no
+  status): since M-33.1 Розклад has no block code left, and only Статистика still reads `blocks`
+  (with `Block+Minutes`/`+StartDate`/`+EndDate`/`+Completed`) until M-38 recomputes it from slots.
 - **Independent cabinets, no roles** (since M-30). Every account is a master; sign-up creates
   `users/{uid}` (`name`, `email`), and all her data lives under it: `users/{uid}/services`,
   `users/{uid}/blocks`, and every later collection. The Firestore repositories resolve the path with

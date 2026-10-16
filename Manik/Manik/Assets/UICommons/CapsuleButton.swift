@@ -111,17 +111,17 @@ private struct PressableButtonStyle: ButtonStyle {
 
 #Preview {
     VStack(spacing: 12) {
-        CapsuleButton(titleKey: "schedule.createSlot.create", role: .primary, action: {})
+        CapsuleButton(titleKey: "common.action.done", role: .primary, action: {})
 
         CapsuleButton(
-            titleKey: "schedule.createSlot.create",
+            titleKey: "common.action.done",
             role: .primary,
             isEnabled: false,
             action: {}
         )
 
         CapsuleButton(
-            titleKey: "myBookings.cancel.confirm",
+            titleKey: "common.action.signOut",
             role: .destructive,
             isLoading: true,
             action: {}
@@ -129,14 +129,14 @@ private struct PressableButtonStyle: ButtonStyle {
 
         HStack(spacing: 10) {
             CapsuleButton(
-                titleKey: "schedule.action.decline",
+                titleKey: "common.action.cancel",
                 role: .secondary,
                 fillsWidth: true,
                 action: {}
             )
 
             CapsuleButton(
-                titleKey: "schedule.action.confirm",
+                titleKey: "common.action.ok",
                 role: .primary,
                 systemImage: "checkmark",
                 fillsWidth: true,
@@ -146,7 +146,7 @@ private struct PressableButtonStyle: ButtonStyle {
 
         HStack(spacing: 10) {
             CapsuleButton(
-                titleKey: "schedule.action.cancelBooking",
+                titleKey: "common.action.cancel",
                 role: .secondary,
                 isLoading: true,
                 fillsWidth: true,
@@ -154,7 +154,7 @@ private struct PressableButtonStyle: ButtonStyle {
             )
 
             CapsuleButton(
-                titleKey: "schedule.action.confirm",
+                titleKey: "common.action.ok",
                 role: .primary,
                 isEnabled: false,
                 fillsWidth: true,
