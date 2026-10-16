@@ -67,15 +67,12 @@ having to ask for it:
 2. `superpowers:writing-plans` — write the plan to `docs/superpowers/plans/`.
 3. `swiftui-pro` — review the Swift code in the plan, and fold the accepted fixes into the plan
    before any implementation starts.
-4. Implementation — **the user writes the code, Claude coaches** (user decision, M-32.5). The user
-   is learning, so for each task Claude prepares a failing check (a throwaway `swiftc` script in
-   the scratchpad, or the build) and a skeleton, states the goal of each gap in one or two
-   sentences, and lets the user fill it in. Hints are dosed: a nudge, then a concrete one, the
-   answer only on the third attempt. Claude reviews what the user wrote (logic, then project
-   style), runs the check, and tidies only whitespace. **Each task leaves the user more to do than
-   the last** — smaller skeletons, fewer hints, eventually whole files. Claude still writes docs
-   and pure plumbing unless the user wants to. After each task Claude asks 2–3 questions about it
-   and waits for all the answers before the next one.
+4. Implementation — **Claude writes the code, the user reads** (user decision, M-33.1, replacing
+   M-32.5's "the user writes, Claude coaches": writing every gap with dosed hints was slow and
+   still did not stick). Claude implements the plan task by task and runs its check (a throwaway
+   `swiftc` script in the scratchpad, or the build). After each task Claude explains the one or two
+   decisions in it worth remembering — briefly, not a lesson — then asks 2–3 questions about it and
+   waits for all the answers before the next task.
 
 ## Git
 
