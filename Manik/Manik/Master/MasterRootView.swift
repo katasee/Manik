@@ -6,6 +6,7 @@ struct MasterRootView: View {
     let onAccountDeleted: () -> Void
 
     @State private var selectedTab: MasterTab = .schedule
+    @State private var scheduleViewModel = ScheduleViewModel()
     @State private var statsViewModel = StatsViewModel()
     @State private var clientListViewModel = ClientListViewModel()
 
@@ -20,7 +21,7 @@ struct MasterRootView: View {
                     Group {
                         switch tab {
                         case .schedule:
-                            ScheduleView(items: [], hasLoaded: true)
+                            ScheduleView(viewModel: scheduleViewModel)
                         case .clients:
                             ClientsView(viewModel: clientListViewModel)
                         case .stats:

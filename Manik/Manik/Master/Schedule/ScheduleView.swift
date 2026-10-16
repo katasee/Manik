@@ -1,10 +1,12 @@
 import SwiftUI
 
 struct ScheduleView: View {
-    @State private var selectedDate = Date.now
+    @State private var viewModel: ScheduleViewModel
+    @State private var openRowId: String?
 
-    let items: [SlotItem]
-    let hasLoaded: Bool
+    init(viewModel: ScheduleViewModel) {
+        _viewModel = State(initialValue: viewModel)
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -16,40 +18,65 @@ struct ScheduleView: View {
                 )
             }
 
-            WeekDayStrip(selectedDate: $selectedDate)
+            WeekDayStrip(selectedDate: $viewModel.selectedDate)
                 .padding(.vertical, ScheduleMetrics.Spacing.stripVerticalPadding)
 
-            content
+            TimelineView(.everyMinute) { context in
+                content(viewModel.items(now: context.date))
+            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color.background)
+        .simultaneousGesture(TapGesture().onEnded(closeOpenRow))
+        .task {
+            await viewModel.observeSlots()
+        }
+        .onChange(of: viewModel.selectedDate, closeOpenRow)
     }
 
     private var monthTitle: String {
-        DateFormat.monthYear.string(from: selectedDate).capitalized
+        DateFormat.monthYear.string(from: viewModel.selectedDate).capitalized
     }
 
-    private var content: some View {
+    private func content(_ items: [SlotItem]) -> some View {
         ZStack {
             if items.isEmpty == false {
-                list
+                list(items)
             }
 
             ListStatusOverlay(
-                hasLoaded: hasLoaded,
+                hasLoaded: viewModel.hasLoaded,
                 isEmpty: items.isEmpty,
-                titleKey: "schedule.empty.title",
-                messageKey: "schedule.empty.message"
+                titleKey: emptyTitleKey,
+                messageKey: emptyMessageKey
             )
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
-    private var list: some View {
+    private var emptyTitleKey: LocalizedStringKey {
+        viewModel.hasFailed ? "schedule.loadFailed.title" : "schedule.empty.title"
+    }
+
+    private var emptyMessageKey: LocalizedStringKey {
+        viewModel.hasFailed ? "schedule.loadFailed.message" : "schedule.empty.message"
+    }
+
+    private func list(_ items: [SlotItem]) -> some View {
         ScrollView {
             LazyVStack(spacing: ScheduleMetrics.Spacing.rowSpacing) {
                 ForEach(items) { item in
-                    FreeSlotRow(item: item)
+                    SwipeToDelete(
+                        id: item.id,
+                        openId: $openRowId,
+                        cornerRadius: ScheduleMetrics.Size.rowCornerRadius,
+                        onDelete: { delete(item) }
+                    ) {
+                        FreeSlotRow(item: item)
+                            .accessibilityAction(named: Text("schedule.action.deleteSlot")) {
+                                delete(item)
+                            }
+                    }
                 }
             }
             .padding(.horizontal, ScheduleMetrics.Spacing.horizontalPadding)
@@ -58,10 +85,22 @@ struct ScheduleView: View {
         }
         .scrollIndicators(.hidden)
     }
+
+    private func closeOpenRow() {
+        openRowId = nil
+    }
+
+    private func delete(_ item: SlotItem) {
+        viewModel.delete(id: item.id)
+    }
 }
 
 #if DEBUG
 #Preview {
-    ScheduleView(items: SchedulePreviewData.items, hasLoaded: true)
+    ScheduleView(
+        viewModel: ScheduleViewModel(
+            slotRepository: FakeSlotRepository(slots: SchedulePreviewData.slots)
+        )
+    )
 }
 #endif

@@ -1655,6 +1655,22 @@
         }
       }
     },
+    "schedule.action.deleteSlot" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete window"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Видалити вікно"
+          }
+        }
+      }
+    },
     "schedule.empty.message" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1685,6 +1701,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Немає вікон"
+          }
+        }
+      }
+    },
+    "schedule.loadFailed.message" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check your connection and come back to this tab."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Перевірте з'єднання й поверніться на цю вкладку."
+          }
+        }
+      }
+    },
+    "schedule.loadFailed.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't load windows"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не вдалося завантажити вікна"
           }
         }
       }

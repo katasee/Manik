@@ -21,6 +21,7 @@ struct FreeSlotRow: View {
                 )
         }
         .opacity(item.isPast ? ScheduleMetrics.Size.pastOpacity : 1)
+        .background(Color.background, in: .rect(cornerRadius: ScheduleMetrics.Size.rowCornerRadius))
         .accessibilityElement(children: .combine)
     }
 
