@@ -1621,6 +1621,42 @@ this file is just "what's done, what's next," not a design doc.
   - Verified: `xcodebuild`, a throwaway `swiftc` check script (15/15), `swiftui-pro` review (no
     findings beyond accepted project conventions).
 
+- **M-33.2 — Slots from Firestore** (branch `feature/pr-33.2-Free-Slots-Data`; second of three
+  M-33 PRs).
+  - `Slot.documentId(date:time:)` (`Slot+DocumentID`) — `2026-10-20_1300`; the one place the id is
+    built. `SlotItem.id` falls back to it, so an unsynced row has the same id as its document.
+  - `listen(_:read:)` moved out of `FirestoreClientRepository` as
+    `AsyncThrowingStream.listening(_:read:)` (`Services/Firestore/AsyncThrowingStream+Listener.swift`,
+    an extension of a foreign type beside its users); clients and slots both use it.
+  - `SlotRepository`: `observeSlots()`, `add(_:)`, `delete(id:)` — `add`/`delete` are plain
+    `throws` in the protocol itself: both are fire-and-forget (`completion: nil`), so no caller
+    needs a `Task`. `add` is one `WriteBatch` of `setData(["date", "time"], merge: true)` at the
+    rule id; it ignores `slot.id`, never touches `clientId`, and cannot duplicate a window.
+    `FakeSlotRepository` mirrors the merge (an existing id is skipped).
+  - **Only the last 3 months are read** (user decision, 2026-10-16, "we plan for many masters"):
+    `observeSlots()` queries `date >= Slot.historyStart(now:)` (`Slot+History`,
+    `historyMonths = 3`). A listener re-reads its whole result after 30 minutes away, and the free
+    tier is 50k reads/day for the whole project, so an unbounded collection would cost more every
+    year for windows nobody looks at. Days older than that are empty in the week strip; M-34's
+    client history and M-38's Статистика need their own queries.
+  - `ScheduleViewModel`: `selectedDate`, `hasLoaded`, `hasFailed`, private `slots`, filtered on
+    device. `items(now:)` is a function, fed by `TimelineView(.everyMinute)` in `ScheduleView`, so a
+    window dims at its start minute with no data change. A failed listener clears `slots`, so the
+    error never sits next to stale rows. `delete(id:)` uses `try?` — the only error left is "not
+    signed in". The view model lives in `MasterRootView`, like clients.
+  - `ScheduleView(viewModel:)`: `SwipeToDelete` rows without confirmation, a VoiceOver
+    "Видалити вікно" action on `FreeSlotRow`, "Не вдалося завантажити вікна" on failure. **A tap
+    anywhere on the screen closes an open swipe** (user, after a device pass: Apple's behaviour) —
+    `.simultaneousGesture(TapGesture())` after `.background`, so buttons and the delete action
+    still fire; switching day closes it too. `FreeSlotRow` got an opaque `Background` fill
+    *after* its `opacity`, otherwise the swipe's red shows through a dashed (and a dimmed) row.
+  - `firestore.rules`: `hasValidSlotFormat(slotId)` — date/time format and
+    `slotId == date + '_' + time.replace(':', '')`; deployed and checked in the Rules Playground
+    2026-10-16. `slots` added to `FirestoreUserDataRepository.collections`.
+  - Verified: `xcodebuild`, a throwaway `swiftc` check script (20/20, including the fake's merge,
+    month-end clamping of the history start and the view model with a failing repository),
+    `swiftui-pro` and `swift-concurrency-pro` reviews of the plan, and a device pass by the user.
+
 ## Screens (in order)
 
 This is the actual work queue, and the only numbered list here. The ordering follows the **data
@@ -1756,7 +1792,7 @@ those items are referred to by name, so the list can grow without renumbering an
    4. **M-33 Free slots** — design in `docs/superpowers/specs/2026-10-14-free-slots-design.md`
       (user decisions, 2026-10-14). Three PRs:
       1. ~~**M-33.1 Day list (UI)**~~ — **done** (under "Done").
-      2. **M-33.2 Slots from Firestore** — `SlotRepository` + Firestore/fake, the document-id rule,
+      2. ~~**M-33.2 Slots from Firestore**~~ — **done** (under "Done"). Was: `SlotRepository` + Firestore/fake, the document-id rule,
          `listen(_:read:)` moved to `Services/Firestore/`, `ScheduleViewModel` (selected day,
          `items`, load error), delete by swipe without confirmation, `hasValidSlotFormat()` in
          `firestore.rules`, `slots` added to `FirestoreUserDataRepository.collections`.
