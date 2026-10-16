@@ -20,7 +20,7 @@ struct MasterRootView: View {
                     Group {
                         switch tab {
                         case .schedule:
-                            ScheduleView()
+                            ScheduleView(items: [], hasLoaded: true)
                         case .clients:
                             ClientsView(viewModel: clientListViewModel)
                         case .stats:
