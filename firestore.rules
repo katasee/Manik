@@ -42,6 +42,13 @@ service cloud.firestore {
         data.createdAt is timestamp;
     }
 
+    function hasValidSlotFormat(slotId) {
+      let data = request.resource.data;
+      return data.date.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$') &&
+        data.time.matches('^([01][0-9]|2[0-3]):[0-5][0-9]$') &&
+        slotId == data.date + '_' + data.time.replace(':', '');
+    }
+
     // Every master's data lives under her own document; only she can touch it, and only once
     // her email is verified. The one exception is creating the profile at sign-up, which
     // happens before the verification email is even sent.
@@ -63,6 +70,11 @@ service cloud.firestore {
       match /clients/{clientId} {
         allow read, delete: if isVerifiedOwner(uid);
         allow create, update: if isVerifiedOwner(uid) && hasValidClientFormat();
+      }
+
+      match /slots/{slotId} {
+        allow read, delete: if isVerifiedOwner(uid);
+        allow create, update: if isVerifiedOwner(uid) && hasValidSlotFormat(slotId);
       }
     }
   }
