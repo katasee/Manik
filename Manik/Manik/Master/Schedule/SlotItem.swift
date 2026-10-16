@@ -6,7 +6,7 @@ struct SlotItem: Identifiable {
     let isPast: Bool
 
     init(slot: Slot, now: Date) {
-        id = slot.id ?? "\(slot.date)_\(slot.time)"
+        id = slot.id ?? Slot.documentId(date: slot.date, time: slot.time)
         timeText = DateFormat.displayTime(slot.time)
         isPast = slot.isPast(now: now)
     }
