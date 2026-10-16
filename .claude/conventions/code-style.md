@@ -22,7 +22,7 @@ which is not what the rest of the code does — the whole of `Auth/`, `Master/Sc
 `Client/Booking/` (removed in M-30) were normalized back to match.
 
 One agreed exception: **literal fixture arrays inside `#if DEBUG` preview data may stay packed**
-(`ServicesPreviewData.swift`, `SchedulePreviewData.swift`). A column of `Service(...)` / `block(...)`
+(`ServicesPreviewData.swift`, `SchedulePreviewData.swift`). A column of `Service(...)` / `Slot(...)`
 calls reads as a table, which is the point of the file, and none of it ships. The exception is for
 fixture *literals* only — production code and preview *views* follow the normal rule.
 
@@ -44,13 +44,12 @@ clear in light, white in dark, so the light theme is untouched. Both modifiers d
 `colorScheme` branches to get depth. **Nothing a user reads as an object is flat**: a flat outlined box
 (`.insetSurface`) existed in M-27 and was removed after a device pass, because a summary plate that
 does not lift reads as a hole in the popup. The deliberately flat exceptions are markers, not
-objects: the dashed free slot, the "today" outline in `WeekDayStrip`, the "Вільно" pill outline.
+objects: the dashed free window (`FreeSlotRow`) and the "today" outline in `WeekDayStrip`.
 A raised control that can be *selected* swaps its surface for a `PrimaryFill` fill with
 `.brandShadow()` (the selected day in `WeekDayStrip`); write that as an explicit `if`/`else` in
 `.background`, not as a fill stacked over a raised one. `Hairline` is for dividers and outlines
 only — never a fill (the client avatar, removed in M-30, shaded with a `Raised` → `Shadow` gradient instead) — and
-`Stroke` is for the dashed free slot (the unchecked `ServicesChecklist` circle is `Ink`, kept from
-before the dark theme so light stays unchanged). Shadows sit on the surface's background shape,
+`Stroke` is for the dashed outline of a free window (`FreeSlotRow`). Shadows sit on the surface's background shape,
 never on the whole content — `.shadow` on a view with children shadows each child. A horizontal `ScrollView` of raised chips
 clips their shadows; the client booking chip row (removed in M-30) used `.scrollClipDisabled()` (scrolled chips may then paint into
 the screen gutters — accepted).

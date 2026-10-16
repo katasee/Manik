@@ -1588,6 +1588,39 @@ this file is just "what's done, what's next," not a design doc.
   - Verified: `xcodebuild`, check script, and a simulator pass by the user (edit, duplicate handle,
     cleared phone, delete, delete from the Console with the popup open, offline, dark theme).
 
+- **M-33.1 — Free slots day list (UI)** (branch `feature/pr-33-Free-Slots-Day-List`; first of three
+  M-33 PRs, design in `docs/superpowers/specs/2026-10-14-free-slots-design.md`).
+  - **`Block` stays until M-38, for Статистика only** (user decision): Stats on slots is M-38, and
+    before M-34 there is nothing to count. Kept: `Block`, `Block+Minutes`/`+StartDate`/`+EndDate`/
+    `+Completed`, `BlockRepository` and its Firestore/fake implementations, `blocks` in
+    `FirestoreUserDataRepository.collections`.
+  - Removed with Розклад's block code: `Timeline/`, `CreateBlock/`, `BlockDetail/`,
+    `ScheduleBlockCard`, `ScheduleViewModel`, `SchedulePopup`, `ScheduledBlock`, `BlockAction*`,
+    `BlockStatus*`, `DashedSlot`, `Block+Overlap`/`+TimeRange`/`+BookedService`/`+Upcoming`/
+    `+Chronological`, `WorkHours` (M-33.3 brings it back for the fill hours),
+    `DateFormat.hourLabel`, 28 `schedule.*` keys and `common.service.unknown`. Booking details
+    come back in M-34 as "Дії із записом", built on `Slot` + `Client`.
+  - `TimeWheel` + `ClockTime` moved to `Assets/UICommons/` for M-33.3's "+ Свій час": own
+    `Layout` (15-minute step), keys `timeWheel.hours`/`.minutes`, the 22:00 closing rule dropped;
+    `DateFormat.storageTime(minutesOfDay:)` kept for them.
+  - `Models/Slot/` — `Slot` (`id`, `date`, `time`, `clientId?`; not `Hashable`), `startsAt`,
+    `isPast(now:)` (true from the start minute on; unparsable → never past), `chronologically`
+    (date, time, then id for a stable order). The document-id rule (`2026-10-20_1300`) moved to
+    M-33.2, its first reader.
+  - `Master/Schedule/` — `SlotItem` (`id` falls back to `"date_time"` so an unsynced slot keeps a
+    stable id; `timeText` via `DateFormat.displayTime`), `FreeSlotRow` (dashed `Stroke` outline,
+    time leading, "Вільно" centred in a `ZStack` with `.textCase(.uppercase)`, past rows at 0.45
+    opacity, one accessibility element), `ScheduleView(items:hasLoaded:)` on `LargeTitleHeader` +
+    `WeekDayStrip` + list / `ListStatusOverlay` ("Немає вікон"). The selected day is the view's
+    `@State` until M-33.2's view model; "+" does nothing until M-33.3. In the app:
+    `items: []`, `hasLoaded: true` — no fake data ships.
+  - Preview data: four slots today with `now` fixed at 12:00, so two rows are always dimmed.
+  - **Workflow change** (user decision, recorded in `CLAUDE.md`): from Task 3 on, Claude writes
+    the code and explains the key decisions with 2–3 questions per task — the user writing every
+    gap with dosed hints was slow and did not stick.
+  - Verified: `xcodebuild`, a throwaway `swiftc` check script (15/15), `swiftui-pro` review (no
+    findings beyond accepted project conventions).
+
 ## Screens (in order)
 
 This is the actual work queue, and the only numbered list here. The ordering follows the **data
@@ -1720,20 +1753,18 @@ those items are referred to by name, so the list can grow without renumbering an
    2. ~~**M-31 Master account**~~ — **done** (under "Done"): email verification, forgot/change
       password, delete account with a full data wipe, Profile screen.
    3. ~~**M-32 Клієнтки**~~ — **done** (under "Done"): six UI-first PRs, M-32.1 … M-32.5.
-   4. **M-33 Free slots** — `slots` (date + start time), new Розклад day list, Заповнити місяць;
-      `Block`/`blocks` removed. Swap `blocks` for `slots` in `FirestoreUserDataRepository.collections`.
-      Agreed before the brainstorm (user, 2026-10-14):
-      - Branch `feature/pr-33-Free-Slots` ("Windows" was ambiguous; the model is `slots`); likely
-        split into M-33.1… PRs like M-32.
-      - Scope: the Розклад day list with free slots and "+" → Заповнити місяць. Bookings in the list
-        are M-34, the send button M-35, personal plans M-37.
-      - A free slot row: dashed outline (`Stroke`, like `DashedSlot`), time on the left, "ВІЛЬНО"
-        uppercase centred, nothing else — no "Записати" label (the whole row is the tap target for
-        booking in M-34) and no conflict tag (M-37 decides how to show a clash with a personal
-        plan). Drawn on the canvas artboard "Розклад" (page "Тільки майстриня").
-      - The hourly timeline with dashed empty hours (`Master/Schedule/Timeline/`) is removed.
-      - Before starting: the final whole-branch review of M-32.5 was skipped (merged first) —
-        offered to run it on `main`.
+   4. **M-33 Free slots** — design in `docs/superpowers/specs/2026-10-14-free-slots-design.md`
+      (user decisions, 2026-10-14). Three PRs:
+      1. ~~**M-33.1 Day list (UI)**~~ — **done** (under "Done").
+      2. **M-33.2 Slots from Firestore** — `SlotRepository` + Firestore/fake, the document-id rule,
+         `listen(_:read:)` moved to `Services/Firestore/`, `ScheduleViewModel` (selected day,
+         `items`, load error), delete by swipe without confirmation, `hasValidSlotFormat()` in
+         `firestore.rules`, `slots` added to `FirestoreUserDataRepository.collections`.
+      3. **M-33.3 Заповнити місяць** — month grid (weekday letter selects all those days, dots on
+         days with windows), chips 8:00–19:00 + "+ Свій час" (`TimeWheel`), "Додати N вікон"
+         skipping existing windows, one merge batch.
+      - Still open from before the brainstorm: the final whole-branch review of M-32.5 was skipped
+        (merged first) — offered to run it on `main`.
    5. **M-34 Booking** — book a client into a window (search + inline add), booking actions,
       history on the client card. Open question from M-32.5: show the last visit in the list row
       too (today the row is avatar + name only)?
@@ -1742,7 +1773,7 @@ those items are referred to by name, so the list can grow without renumbering an
    7. **M-36 Reschedule**.
    8. **M-37 Personal plans** — `events` + `eventTemplates` (Мої справи), weekly repeat, conflict
       warnings. Add both to `FirestoreUserDataRepository.collections`.
-   9. **M-38 Statistics on slots**.
+   9. **M-38 Statistics on slots** — and delete `Block`/`blocks` (kept for Статистика since M-33.1).
 
 ## Backlog and tech debt (unordered)
 

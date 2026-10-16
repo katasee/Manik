@@ -5,7 +5,9 @@ Rewritten: 2026-10-09 for the **master-only pivot** (independent cabinets, one p
 the full pivot design (alternatives, data model detail, open points) is
 `docs/superpowers/specs/2026-10-09-master-only-pivot-design.md`. Until PRs M-31…M-38 land
 (`docs/plan.md`, item 9), the code is partway there: since M-30 there is no client side and every
-account is an independent master, but the Schedule still runs on the old `blocks` model until M-33.
+account is an independent master; since M-33.1 the Schedule is a day list of free `slots` (still
+empty in the app until M-33.2 reads them from Firestore), and only Статистика still reads the old
+`blocks` until M-38.
 
 ## Goal
 

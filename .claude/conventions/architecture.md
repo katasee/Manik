@@ -10,13 +10,15 @@
   `AuthView.swift` and `AuthViewModel.swift` together, rather than spreading them across generic
   top-level `Views/`/`ViewModels` folders. A model only lives inside a feature folder if it's
   genuinely private to that feature; anything referenced from more than one feature belongs in
-  `Manik/Manik/Models/` instead — that's where `Service` and `Block` live, since each is read
-  by more than one feature (`Service` by Мої послуги and the Schedule's slot popup; `Block` by the
-  Schedule and Статистика), not just by the screen that created it — `Client` (Клієнтки now, the
-  booking flow in M-34), and `UserProfile`, the account model `Root/` reads. `Models/` is the **domain
-  layer** — the M of MVVM — not "files that contain a struct": it also holds derived properties of
-  domain types (`Block/Block+Minutes.swift`, `Block/Block+StartDate.swift`) and domain
-  configuration with no fields at all (`WorkHours.swift`). **A domain rule that two features must
+  `Manik/Manik/Models/` instead — that's where `Service` and `Slot` live, since each is read
+  by more than one feature (`Service` by Мої послуги and, from M-34, booking; `Slot` by Розклад
+  now and Заповнити місяць, booking and Статистика later), not just by the screen that created
+  it — `Client` (Клієнтки now, the booking flow in M-34), `UserProfile`, the account model `Root/`
+  reads, and `Block`, which since M-33.1 only Статистика reads (it goes in M-38). `Models/` is the
+  **domain layer** — the M of MVVM — not "files that contain a struct": it also holds derived properties of
+  domain types (`Slot/Slot+StartDate.swift`, `Slot/Slot+Past.swift`) and domain
+  configuration with no fields at all (`WorkHours.swift`, removed in M-33.1 with the hourly
+  timeline; M-33.3 brings it back for the fill-month hours). **A domain rule that two features must
   agree on lives here too, even when it is one line.** `Block/Block+Completed.swift`
   (`isCompleted(now:)` — `confirmed` and already ended) is read by both the master's
   `StatsCalculator` and the client's `AccountStats` (the client cabinet, removed in M-30 — the
@@ -34,14 +36,13 @@
   `ClientContact`'s menu titles and icons live in `ClientContactMenu.swift`, not in `Models/`,
   which stays free of UI, and `private` keeps every other screen from depending on them. Once a
   second screen needs the same look, promote it to a presentation model (`ClientItem`-style), not
-  to an `internal` extension. A type gets its own subfolder (`Models/Block/`) once it spans more than one file;
+  to an `internal` extension. A type gets its own subfolder (`Models/Slot/`) once it spans more than one file;
   single-file types stay flat. **A type that exists only to serve one neighbour lives in that
-  neighbour's file, not in its own** — `BlockActionConfirmation` sits with `BlockAction`,
-  `StatsRoute` with `StatsLinkRow`, `MonthlyTotals` with `StatsCalculator`. Order inside such a file
-  is supporting type first, the file's namesake second. This is not a licence to pile unrelated
+  neighbour's file, not in its own** — `StatsRoute` sits with `StatsLinkRow`, `MonthlyTotals`
+  with `StatsCalculator`. Order inside such a file is supporting type first, the file's namesake second. This is not a licence to pile unrelated
   types together: the test is whether the type would ever be referenced without its host, and a
   three-line enum that only feeds one `navigationDestination` would not. A feature also owns
-  **presentation models** — `MonthlyStats`, `ScheduledBlock` — built from a persistence
+  **presentation models** — `MonthlyStats`, `SlotItem`, `ClientItem` — built from a persistence
   model and never written back. They carry ready-made
   display strings so views never touch `DateFormat` or a raw stored value, and they keep persistence
   fields the screen has no business with (`status`, `clientId`) out of reach of the view.
@@ -54,7 +55,7 @@
   zero) belong on the presentation side too — that is a display decision, not a sum. The same
   principle applies
   to reusable *views*: a component used (or reusable) across more than one feature lives in
-  `Manik/Manik/Assets/UICommons/` (e.g. `WeekDayStrip`, `DashedSlot`, `View+BrandShadow`, the
+  `Manik/Manik/Assets/UICommons/` (e.g. `WeekDayStrip`, `TimeWheel`, `View+BrandShadow`, the
   `ElmsSans` font extension), not in a feature folder, and must not depend on any feature's types
   (e.g. a feature's `*Metrics`) — give it its own private constants or take them as parameters.
   Those constants are a `private enum Layout` **nested inside the component's struct** — the
@@ -76,7 +77,8 @@
   a feature-local metrics file (e.g. `Schedule/ScheduleMetrics.swift`, `Stats/StatsMetrics.swift`).
   A metrics file holds **layout** numbers only — anything the view model needs to reason about
   (salon working hours, tolerances, durations) is domain config and lives in `Models/`
-  (e.g. `Models/WorkHours.swift`), otherwise the view model ends up importing the view layer.
+  (e.g. `Models/WorkHours.swift`, back in M-33.3), otherwise the view model ends up importing the
+  view layer.
   A generic UICommons component (e.g. `SwipeToDelete<Content>`) must keep its constants enum at
   **file scope**, not nested inside the struct — Swift forbids static stored properties in types
   nested within generic types, and moving them "tidily" inside breaks the build.
@@ -131,16 +133,17 @@
   The same goes for **splitting one value across several controls** (hour and minute wheels for a
   time): don't derive the parts with `Binding(get:set:)`. Model the value as a small struct whose
   parts are stored properties and bind each control by key path — `TimeWheel` binds
-  `$time.hour`/`$time.minute` on `ClockTime`. A rule tying the parts together (hour 22 → minute
-  `00`) is a `didSet` on that plain struct, which is fine: the `@Observable` caution above is about
-  observers on view model properties, not on a value type stored in one.
+  `$time.hour`/`$time.minute` on `ClockTime`. A rule tying the parts together (the old closing
+  rule "hour 22 → minute `00`", dropped in M-33.1) is a `didSet` on that plain struct, which is
+  fine: the `@Observable` caution above is about observers on view model properties, not on a
+  value type stored in one.
 - **A `Task {}` created inside a `View`'s helper method does not inherit `MainActor`.** `Task`
   captures isolation *statically*, from the enclosing declaration — and helper methods on a `View`
   struct are nonisolated (only `body` carries the protocol's `@MainActor`). So anything
   **synchronous** called after an `await` — a `dismiss()` closure, an `onSuccess()` callback —
   runs on the generic executor and mutates `@State` off the main thread. Nothing diagnoses this:
   the callee is nonisolated too, so even Swift 6 stays quiet. Write `Task { @MainActor in ... }`
-  at these sites (`ServiceFormPopup`, `AddNewSlotBlock`, `BlockActionButton` all do). Don't
+  at these sites (`ServiceFormPopup`, `ClientFormPopup`, `DeleteAccountPopup` all do). Don't
   annotate the *method* instead — that cascades up through every caller (`actions(dismiss:)` and
   friends) and then into closure-conversion questions. A `Task {}` whose only post-`await` work is
   another `await` needs nothing: the async call hops to its own actor by itself.

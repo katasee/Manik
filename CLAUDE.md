@@ -23,7 +23,8 @@ Manik is an iOS calendar for nail masters: each master signs up and gets an inde
 clients never use the app (they write to her in Instagram and she books them). SwiftUI + Firebase
 (Auth + Firestore). It was a two-cabinet booking app (one master / clients) until the 2026-10-09
 pivot; the code moves over PRs M-30…M-38 (`docs/plan.md`, item 9) — since M-30 the client cabinet
-is gone, and the Schedule still runs on the old `blocks` model until M-33. Full product spec —
+is gone; since M-33.1 the Schedule is a day list of `slots`, and only Статистика still reads the
+old `blocks` model, until M-38. Full product spec —
 data model, screen flows, out-of-scope list — lives in
 `docs/superpowers/specs/2026-07-15-manik-mvp-design.md`; keep it in sync with any product decision
 that changes scope, not just this file.
