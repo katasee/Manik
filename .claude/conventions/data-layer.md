@@ -44,7 +44,9 @@
   face value) — the async-operations warning is a genuine compiler diagnostic about the code as
   written and won't go away on its own.
 - **The deliberate fire-and-forget writes are `FirestoreClientRepository`'s `add`, `update` and
-  `delete`** (user decisions: `add` in M-32.4, `update`/`delete` in M-32.5). Awaiting a write waits
+  `delete`, and `FirestoreSlotRepository`'s `add` and `delete`** (user decisions: `add` in M-32.4,
+  `update`/`delete` in M-32.5, slots in M-33.2, where the protocol itself declares them plain
+  `throws`). Awaiting a write waits
   for the *server* acknowledgement, so offline the client popups spun forever with Cancel disabled,
   although the change was already in the local cache and on screen. They now pass
   `completion: nil`: the write lands locally at once and Firestore syncs it later. The cost is that a
@@ -65,12 +67,17 @@
   snapshot is the full list, so only the latest one matters — and `FakeClientRepository` keeps its
   state in a `Mutex` so `onTermination` can drop a finished continuation without a data race.
   `observeClient(id:)` (M-32.5) listens to one document and yields `nil` when it does not exist
-  (`try? snapshot.data(as:)`). Both client streams go through one private generic
-  `listen(_:read:)` in `FirestoreClientRepository` (and `observe(_:)` in the fake, which keeps one
-  dictionary of observer closures): the caller says what to listen to and how to read a snapshot,
-  the helper owns the stream, the error and `onTermination`. When a second repository needs it
-  (`slots`, M-33.2), move it out of the class into `Services/Firestore/`; `observeServices` stays
-  as it is and `observeBlocks` goes with `Block` in M-38.
+  (`try? snapshot.data(as:)`). Every throwing stream goes through
+  `AsyncThrowingStream.listening(_:read:)` (`Services/Firestore/AsyncThrowingStream+Listener.swift`,
+  moved out of `FirestoreClientRepository` in M-33.2 when `slots` became the second user): the
+  caller says what to listen to and how to read a snapshot, the helper owns the stream, the error
+  and `onTermination`. The fakes keep their own observer dictionary (`observe(_:)` in
+  `FakeClientRepository`). `observeServices` stays as it is and `observeBlocks` goes with `Block`
+  in M-38.
+- **A listener reads its whole result again** whenever it re-attaches more than ~30 minutes after
+  the last one, and a tab's `.task` re-attaches on every return to the tab. So a collection that
+  only grows (`slots`) is queried with a lower bound (`Slot.historyStart(now:)`, 3 months), not
+  read whole; reads are billed per document across all masters.
 - **A new field added to a model whose collection already has documents must be optional.** Swift's
   synthesized `init(from:)` does **not** fall back to a property's default value — a missing key
   throws `keyNotFound`, so `var isActive = true` would break decoding for every pre-existing
