@@ -1841,6 +1841,19 @@ numbering drifts every time an item is added or closed (it already did once: PR9
     and record the rules in `architecture.md`/`code-style.md`, including the first `#available` in
     a view. Own PR, not mixed into a feature.
 
+- **Swift 6 language mode: make the models `Sendable`** (found 2026-10-16 in M-33.2's
+  `swift-concurrency-pro` review). The project builds in Swift 5 mode (`SWIFT_VERSION = 5.0`), and a
+  build with `SWIFT_STRICT_CONCURRENCY=complete` warns in every fake and stream because `Slot` and
+  `Client` (and likely `Service`, `Block`) are not `Sendable`: `FakeSlotRepository`/
+  `FakeClientRepository` (`Mutex` state, the `onTermination` capture of `self`, yields),
+  `AsyncThrowingStream.listening` (yielding a non-`Sendable` `Element`, capturing
+  `ListenerRegistration`), and the `static` preview fixtures. Not a runtime race today — Firestore
+  calls back on the main queue and the fakes yield under the lock — but each warning becomes an
+  error the day the language mode is switched. Fix once, project-wide, in its own PR: make the
+  model structs `Sendable` (check that `@DocumentID` allows it), constrain `listening` to
+  `Element: Sendable`, decide `@preconcurrency import FirebaseFirestore` vs. fixing each capture,
+  then switch `SWIFT_VERSION` to 6 and build clean.
+
 - **Verification emails don't reach ukr.net — own sender before release** (found 2026-10-10 during
   M-31's manual pass). With Firebase's default sender (`noreply@<project>.firebaseapp.com`) the
   verification email arrives at Gmail within a minute but never at `@ukr.net` — not in Inbox, Spam
