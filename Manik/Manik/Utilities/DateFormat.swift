@@ -5,6 +5,7 @@ enum DateFormat {
     static let time = storageFormatter("HH:mm")
     static let dayNumber = displayFormatter("d")
     static let weekdayLetter = displayFormatter("EEEEE")
+    static let weekdayName = displayFormatter("cccc")
     static let monthYear = displayFormatter("LLLL y")
     static let dateTime = storageFormatter("yyyy-MM-dd HH:mm")
     static let dayMonth = templateFormatter("dMMMM")
