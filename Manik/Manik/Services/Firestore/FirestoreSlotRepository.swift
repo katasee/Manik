@@ -4,7 +4,11 @@ final class FirestoreSlotRepository: SlotRepository {
     private let db = Firestore.firestore()
 
     func observeSlots() -> AsyncThrowingStream<[Slot], Error> {
-        .listening { try db.userCollection("slots").addSnapshotListener($0) } read: { snapshot in
+        .listening {
+            try db.userCollection("slots")
+                .whereField("date", isGreaterThanOrEqualTo: Slot.historyStart(now: .now))
+                .addSnapshotListener($0)
+        } read: { snapshot in
             snapshot.documents.compactMap { try? $0.data(as: Slot.self) }
         }
     }
