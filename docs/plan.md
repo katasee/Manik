@@ -1729,7 +1729,56 @@ this file is just "what's done, what's next," not a design doc.
   - Verified: `xcodebuild`, a throwaway `swiftc` check script (26/26: history start, the pager
     limit and clamping in both view models, Fill clearing days, weekday order, `select(dayId:)`),
     `swiftui-pro` review of the plan (weekday ids — letters repeat; the month row as its own view),
-    and the user's device pass.
+    the user's device pass, and a final `swiftui-pro` + `swift-concurrency-pro` review of the
+    branch (two style fixes: an `if` expression in `MonthDayCell`, the weekday action as a method;
+    a `SWIFT_STRICT_CONCURRENCY=complete` build adds no warnings in the changed files).
+
+- **M-34.1 — Book a client** (branch `feature/pr-34.1-Book-Client`; first of three M-34 PRs, design
+  in `docs/superpowers/specs/2026-10-17-m34-booking-design.md`, brainstormed with mockups
+  2026-10-17).
+  - User decisions: today the master ticks the time in Apple Notes and writes the nick
+    (`13:00 ✓ @anna_nails`) — booking must be about that fast. Option A of the mockups (one popup:
+    search, then optional service, then "Записати"). No "recent clients": an empty search shows
+    nothing. "+ Нова клієнтка" is always visible (a near-miss match would otherwise hide it) and
+    opens the existing client form, empty, over the booking popup; it opens with the keyboard up
+    (all add forms, Клієнтки too). Selecting a client clears the search and leaves only her, with
+    ✓. Service optional; only **starred** services are offered (the star in Мої послуги is a filter
+    — "favourite services" dropped from M-35). Past free windows can be booked (a forgotten visit
+    still counts for Статистика). No contact button on the booked row — "Написати" comes with the
+    booking actions in M-34.2. Visit history on the client card is M-34.3; no last visit in the
+    client list row.
+  - Data: `Slot` gains optional `serviceId`/`serviceName`/`servicePrice` (snapshot at booking) and
+    `isBooked`; `SlotBooking` (`Models/Slot/`) is the one place that decides what is copied from a
+    `Service`. `SlotRepository.book(slotId:_:)` / `clearBooking(slotId:)` are `setData(merge: true)`
+    fire-and-forget, a missing service is `FieldValue.delete()`. "Заповнити місяць" merges only
+    `date`/`time`, so bookings survive it. `ClientRepository.add` returns the document id, which
+    `addDocument` creates on the device — a client added from the booking popup can be booked at
+    once, offline too; `ClientFormViewModel.savedClient` carries her back.
+  - Розклад: `ScheduleViewModel` also listens to clients and services. `ClientDirectory` owns the
+    name rule — not loaded yet → blank (no "Клієнтку видалено" flash at launch or after a failed
+    listener), found → `displayName`, missing → "Клієнтку видалено". `SlotItem.booking` is an
+    optional `SlotBookingItem` (name + "service · price" or "Без послуги"). `ScheduleSlotRow` picks
+    `BookedSlotRow` (white `.cardSurface`, 68pt — the client card's height, user on a device) or a
+    tappable `FreeSlotRow`. Swipe-deleting a booked window asks first (`.alert(presenting:)`).
+    `SwipeToDelete` clipped the card's shadow, so booked cards looked flat: at rest its clip is now
+    24pt wider than the row and snaps to the edge only while the delete action shows. Tried and
+    rejected on a device: an ink outline, an inset outline, black cards with white text.
+  - Popup: `BookClientViewModel` coordinates a snapshot (like Заповнити місяць); `ClientPicker`
+    (search text + selection; the selected client is pinned first; at most 5 options) keeps the
+    rules testable. `BookClientPopup` scrolls its sections above the keyboard with the buttons
+    outside (FillMonthPopup's pattern) and stays invisible until its height is measured.
+    `SearchField.focusesOnAppear` focuses after 200 ms in a `.task` (cancellation respected) — the
+    popup's 0.2 s fade-in. The first keyboard of an app launch loads slowly (iOS, worse under the
+    Xcode debugger); focusing during the fade made the popup stutter, focusing after it only delays
+    the keyboard. Prewarming the keyboard with a hidden UIKit field was rejected as a hack. `ClientAvatar` moved to `UICommons` (two features
+    read it). `query` → `searchText` in Клієнтки and the picker. `DateFormat.weekdayDayMonth`.
+  - SOLID pass on the plan (user request): `SlotBooking`, `ClientDirectory`, `ClientPicker` split
+    out; `savedClient` and a five-method `SlotRepository` kept as they are (user).
+  - Verified: `xcodebuild`, a throwaway `swiftc` check script (37/37: booking writes and the fill
+    merge, device ids, the name rule, the picker, starred services, the factory), `swiftui-pro`
+    review of the plan (keyboard covering "Записати", one `.alert(presenting:)`, chip text
+    scaling), `swift-concurrency-pro` review (the focus delay ignored cancellation; a method passed
+    as a `@Sendable` closure), and the user's device pass.
 
 ## Screens (in order)
 
@@ -1863,8 +1912,8 @@ those items are referred to by name, so the list can grow without renumbering an
    2. ~~**M-31 Master account**~~ — **done** (under "Done"): email verification, forgot/change
       password, delete account with a full data wipe, Profile screen.
    3. ~~**M-32 Клієнтки**~~ — **done** (under "Done"): six UI-first PRs, M-32.1 … M-32.5.
-   4. **M-33 Free slots** — design in `docs/superpowers/specs/2026-10-14-free-slots-design.md`
-      (user decisions, 2026-10-14). Three PRs, plus M-33.4 added on 2026-10-17:
+   4. **M-33 Free slots** — done; its design file `2026-10-14-free-slots-design.md` was deleted
+      after M-33.4 merged (user decisions, 2026-10-14). Three PRs, plus M-33.4 added on 2026-10-17:
       1. ~~**M-33.1 Day list (UI)**~~ — **done** (under "Done").
       2. ~~**M-33.2 Slots from Firestore**~~ — **done** (under "Done"). Was: `SlotRepository` + Firestore/fake, the document-id rule,
          `listen(_:read:)` moved to `Services/Firestore/`, `ScheduleViewModel` (selected day,
@@ -1877,11 +1926,16 @@ those items are referred to by name, so the list can grow without renumbering an
          opens a month calendar; picking a day moves the strip there.
       - Still open from before the brainstorm: the final whole-branch review of M-32.5 was skipped
         (merged first) — offered to run it on `main`.
-   5. **M-34 Booking** — book a client into a window (search + inline add), booking actions,
-      history on the client card. Open question from M-32.5: show the last visit in the list row
-      too (today the row is avatar + name only)?
+   5. **M-34 Booking** — design in `docs/superpowers/specs/2026-10-17-m34-booking-design.md`.
+      Three PRs:
+      1. ~~**M-34.1 Book a client**~~ — **done** (under "Done").
+      2. **M-34.2 Booking actions** — tap a booked window: Написати, Змінити послугу, Картка
+         клієнтки, Скасувати запис (asks first). `clearBooking` already exists.
+      3. **M-34.3 Recent visits on the client card** — under "Зв'язатися", from the slots already
+         read (3 months + ahead), future ones marked "Заплановано".
    6. **M-35 Publishing** — free windows as a 9:16 image (layout A) and as text, Надіслати прайс,
-      favourite services, "Надіслати @нік".
+      "Надіслати @нік". (The "favourite services" item was dropped on 2026-10-17: the star in Мої
+      послуги stays a filter — only starred services are offered when booking, see M-34.)
    7. **M-36 Reschedule**.
    8. **M-37 Personal plans** — `events` + `eventTemplates` (Мої справи), weekly repeat, conflict
       warnings. Add both to `FirestoreUserDataRepository.collections`.
@@ -1916,6 +1970,12 @@ numbering drifts every time an item is added or closed (it already did once: PR9
   - Check light and dark on a device (wine-on-glass contrast already failed once on the tab bar)
     and record the rules in `architecture.md`/`code-style.md`, including the first `#available` in
     a view. Own PR, not mixed into a feature.
+
+- **Swipe the day list to change the day** (user request, 2026-10-17, during M-34.1). On Розклад,
+  a horizontal swipe on the list of windows moves to the previous / next day (today only the week
+  strip swipes, by week). Watch the conflict with `SwipeToDelete`, which also reads horizontal
+  drags on every row: probably only a swipe that starts on empty space, or a right-swipe for
+  "previous day" since rows only open to the left — decide when it is picked up.
 
 - **Swift 6 language mode: make the models `Sendable`** (found 2026-10-16 in M-33.2's
   `swift-concurrency-pro` review). The project builds in Swift 5 mode (`SWIFT_VERSION = 5.0`), and a

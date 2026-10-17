@@ -4,7 +4,7 @@ import Observation
 @MainActor
 @Observable
 final class ClientListViewModel {
-    var query = ""
+    var searchText = ""
 
     private(set) var hasLoaded = false
     private(set) var hasFailed = false
@@ -18,7 +18,7 @@ final class ClientListViewModel {
 
     var items: [ClientItem] {
         clients
-            .filter { $0.matches(query) }
+            .filter { $0.matches(searchText) }
             .map(ClientItem.init)
     }
 

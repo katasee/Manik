@@ -28,6 +28,32 @@ final class FirestoreSlotRepository: SlotRepository {
         batch.commit(completion: nil)
     }
 
+    func book(slotId: String, _ booking: SlotBooking) throws {
+        try db.userCollection("slots").document(slotId).setData(
+            [
+                "clientId": booking.clientId,
+                "serviceId": booking.serviceId ?? FieldValue.delete(),
+                "serviceName": booking.serviceName ?? FieldValue.delete(),
+                "servicePrice": booking.servicePrice ?? FieldValue.delete()
+            ],
+            merge: true,
+            completion: nil
+        )
+    }
+
+    func clearBooking(slotId: String) throws {
+        try db.userCollection("slots").document(slotId).setData(
+            [
+                "clientId": FieldValue.delete(),
+                "serviceId": FieldValue.delete(),
+                "serviceName": FieldValue.delete(),
+                "servicePrice": FieldValue.delete()
+            ],
+            merge: true,
+            completion: nil
+        )
+    }
+
     func delete(id: String) throws {
         try db.userCollection("slots").document(id).delete(completion: nil)
     }

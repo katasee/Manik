@@ -11,7 +11,7 @@ struct FillMonthCalendar: View {
             onDay: viewModel.toggleDay
         ) { weekday in
             Button {
-                viewModel.toggleWeekday(weekday.id)
+                toggleWeekday(weekday)
             } label: {
                 Text(verbatim: weekday.letter)
                     .font(.elmsSans(.semiBold, ScheduleMetrics.Size.weekdayLetter))
@@ -23,6 +23,10 @@ struct FillMonthCalendar: View {
             .disabled(weekday.isEnabled == false)
             .accessibilityLabel(Text("schedule.fill.weekday \(weekday.name)"))
         }
+    }
+
+    private func toggleWeekday(_ weekday: MonthWeekday) {
+        viewModel.toggleWeekday(weekday.id)
     }
 }
 

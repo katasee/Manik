@@ -3,6 +3,9 @@ import SwiftUI
 struct SearchField: View {
     @Binding var text: String
     let placeholderKey: LocalizedStringKey
+    var focusesOnAppear = false
+
+    @FocusState private var isFocused: Bool
 
     private enum Layout {
         static let spacing: CGFloat = 10
@@ -10,6 +13,7 @@ struct SearchField: View {
         static let tapTarget: CGFloat = 44
         static let tapVerticalOverflow: CGFloat = 12
         static let tapTrailingOverflow: CGFloat = 14
+        static let focusDelay: Duration = .milliseconds(200)
     }
 
     var body: some View {
@@ -23,12 +27,29 @@ struct SearchField: View {
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
                 .submitLabel(.search)
+                .focused($isFocused)
 
             if text.isEmpty == false {
                 clearButton
             }
         }
         .inputFieldStyle()
+        .task {
+            await focusIfNeeded()
+        }
+    }
+
+    @MainActor
+    private func focusIfNeeded() async {
+        guard focusesOnAppear else { return }
+
+        do {
+            try await Task.sleep(for: Layout.focusDelay)
+        } catch {
+            return
+        }
+
+        isFocused = true
     }
 
     private var clearButton: some View {

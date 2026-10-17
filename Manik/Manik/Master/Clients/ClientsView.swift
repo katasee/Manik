@@ -21,7 +21,7 @@ struct ClientsView: View {
                     )
                 }
 
-                SearchField(text: $viewModel.query, placeholderKey: "clients.search.placeholder")
+                SearchField(text: $viewModel.searchText, placeholderKey: "clients.search.placeholder")
                     .padding(.horizontal, ClientsMetrics.Spacing.horizontalPadding)
                     .padding(.top, ClientsMetrics.Spacing.searchTopPadding)
 
@@ -103,7 +103,7 @@ struct ClientsView: View {
     private func list(_ items: [ClientItem]) -> some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: ClientsMetrics.Spacing.rowSpacing) {
-                if viewModel.query.isEmpty {
+                if viewModel.searchText.isEmpty {
                     SectionLabel(titleKey: "clients.section.recent")
                         .padding(.horizontal, ClientsMetrics.Spacing.sectionLabelInset)
                 }

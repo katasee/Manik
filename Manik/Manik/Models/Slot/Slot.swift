@@ -5,4 +5,7 @@ struct Slot: Identifiable, Codable {
     var date: String
     var time: String
     var clientId: String?
+    var serviceId: String?
+    var serviceName: String?
+    var servicePrice: Int?
 }

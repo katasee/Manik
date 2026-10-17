@@ -5,8 +5,8 @@ Rewritten: 2026-10-09 for the **master-only pivot** (independent cabinets, one p
 the full pivot design (alternatives, data model detail, open points) is
 `docs/superpowers/specs/2026-10-09-master-only-pivot-design.md`. Until PRs M-31…M-38 land
 (`docs/plan.md`, item 9), the code is partway there: since M-30 there is no client side and every
-account is an independent master; since M-33.1 the Schedule is a day list of free `slots` (still
-empty in the app until M-33.2 reads them from Firestore), and only Статистика still reads the old
+account is an independent master; since M-33 the Schedule is a day list of free `slots` read from
+Firestore, and only Статистика still reads the old
 `blocks` until M-38.
 
 ## Goal
@@ -58,7 +58,9 @@ Three tabs: **Розклад / Клієнтки / Статистика**. "Мо�
    handle or phone. The card opens the client's Instagram profile (`https://instagram.com/<handle>`)
    and/or calls / texts the phone.
 2. **Free windows** — "+" → "Вільні вікна на місяць": select several days on a month grid, pick
-   hours, add them all at once. Repeat for days with other hours.
+   hours, add them all at once. Repeat for days with other hours. The month under the Розклад
+   title opens a month calendar to jump straight to any day (back to the 3 months of history that
+   are read, forward without limit).
 3. **Publish** — "Надіслати графік": the free windows from today as a 9:16 image for stories
    (list layout, one line per day: `1.10 Чт 10:00 · 13:00 · 16:00`) and as text for DMs/SMS.
    "Надіслати прайс" does the same for the price list.

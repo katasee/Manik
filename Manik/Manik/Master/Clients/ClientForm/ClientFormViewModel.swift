@@ -7,6 +7,7 @@ final class ClientFormViewModel: Identifiable {
     var fields = ClientFormFields()
 
     private(set) var isSaving = false
+    private(set) var savedClient: Client?
     private var hasSubmitted = false
     private var hasSaveFailed = false
 
@@ -75,7 +76,9 @@ final class ClientFormViewModel: Identifiable {
 
         do {
             if original == nil {
-                try await clientRepository.add(client)
+                var saved = client
+                saved.id = try await clientRepository.add(client)
+                savedClient = saved
             } else {
                 try await clientRepository.update(client)
             }

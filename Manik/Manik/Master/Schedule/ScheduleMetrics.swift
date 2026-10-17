@@ -3,6 +3,7 @@ import CoreGraphics
 enum ScheduleMetrics {
     enum Size {
         static let rowHeight: CGFloat = 52
+        static let bookedRowHeight: CGFloat = 68
         static let rowCornerRadius: CGFloat = 18
         static let rowBorderWidth: CGFloat = 1.5
         static let rowDash: [CGFloat] = [5, 4]
@@ -23,6 +24,16 @@ enum ScheduleMetrics {
         static let monthTitle: CGFloat = 17
         static let monthChevron: CGFloat = 12
         static let monthRowHeight: CGFloat = 44
+        static let rowTimeWidth: CGFloat = 64
+        static let rowName: CGFloat = 15
+        static let rowService: CGFloat = 13
+        static let bookTitle: CGFloat = 18
+        static let bookSubtitle: CGFloat = 14
+        static let bookAvatar: CGFloat = 32
+        static let bookRowHeight: CGFloat = 48
+        static let bookRowCornerRadius: CGFloat = 14
+        static let bookCheck: CGFloat = 14
+        static let serviceChipMinWidth: CGFloat = 140
     }
 
     enum Spacing {
@@ -40,5 +51,10 @@ enum ScheduleMetrics {
         static let hoursSpacing: CGFloat = 12
         static let scrollShadowInset: CGFloat = 8
         static let monthChevronSpacing: CGFloat = 6
+        static let rowLineSpacing: CGFloat = 2
+        static let bookTitleSpacing: CGFloat = 4
+        static let bookOptionSpacing: CGFloat = 2
+        static let bookRowPadding: CGFloat = 8
+        static let bookRowContentSpacing: CGFloat = 12
     }
 }

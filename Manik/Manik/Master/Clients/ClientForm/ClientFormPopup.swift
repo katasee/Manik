@@ -57,6 +57,7 @@ struct ClientFormPopup: View {
                 }
             }
         }
+        .onAppear(perform: focusFirstFieldIfAdding)
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
                 Spacer()
@@ -152,6 +153,12 @@ struct ClientFormPopup: View {
                 dismiss()
             }
         }
+    }
+
+    private func focusFirstFieldIfAdding() {
+        guard mode == .add else { return }
+
+        focusedField = .instagram
     }
 
     private func dismissKeyboard() {

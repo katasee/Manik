@@ -44,9 +44,9 @@
   face value) — the async-operations warning is a genuine compiler diagnostic about the code as
   written and won't go away on its own.
 - **The deliberate fire-and-forget writes are `FirestoreClientRepository`'s `add`, `update` and
-  `delete`, and `FirestoreSlotRepository`'s `add` and `delete`** (user decisions: `add` in M-32.4,
-  `update`/`delete` in M-32.5, slots in M-33.2, where the protocol itself declares them plain
-  `throws`). Awaiting a write waits
+  `delete`, and `FirestoreSlotRepository`'s `add`, `book`, `clearBooking` and `delete`** (user
+  decisions: `add` in M-32.4, `update`/`delete` in M-32.5, slots in M-33.2 and booking in M-34.1,
+  where the protocol itself declares them plain `throws`). Awaiting a write waits
   for the *server* acknowledgement, so offline the client popups spun forever with Cancel disabled,
   although the change was already in the local cache and on screen. They now pass
   `completion: nil`: the write lands locally at once and Firestore syncs it later. The cost is that a
@@ -57,6 +57,12 @@
   an `async` function raises "consider using asynchronous alternative function". Every other
   write still awaits; don't copy this without the same reasoning (services have the same offline
   spinner, not yet changed).
+  `ClientRepository.add` returns the new document id: `addDocument` builds the reference — and its
+  auto id — on the device before anything is sent, so a client created from the booking popup can
+  be booked at once, offline too. Booking writes are `setData(merge: true)` on the slot document;
+  a cleared field is `FieldValue.delete()`, never `null`. "Заповнити місяць" merges only `date` and
+  `time`, which is what keeps a booking alive when a filled month covers it — don't turn either
+  write into a plain `setData`, it would replace the whole document.
 - Realtime data uses **async/await + `AsyncStream`** (`observeBlocks()`, `observeServices()`), not
   Combine. Each Firestore `addSnapshotListener` callback yields the full current array for that
   query; `continuation.onTermination` removes the listener. Listener errors are currently swallowed
@@ -107,9 +113,10 @@
   Since M-30 nobody but the owning master writes a block (client booking is gone), so
   `firestore.rules` (deployed manually via Firebase Console — no CLI/CI hookup) only checks the
   `date`/`startTime`/`endTime` format server-side with `hasValidBlockFormat()`. The block model is
-  being replaced by `slots` (`Models/Slot/`: `date`, `time`, `clientId?` — no end time, no
-  status): since M-33.1 Розклад has no block code left, and only Статистика still reads `blocks`
-  (with `Block+Minutes`/`+StartDate`/`+EndDate`/`+Completed`) until M-38 recomputes it from slots.
+  being replaced by `slots` (`Models/Slot/`: `date`, `time`, `clientId?` + the service snapshot
+  `serviceId?`/`serviceName?`/`servicePrice?` since M-34.1 — no end time, no status): since
+  M-33.1 Розклад has no block code left, and only Статистика still reads `blocks` (with
+  `Block+Minutes`/`+StartDate`/`+EndDate`/`+Completed`) until M-38 recomputes it from slots.
 - **Independent cabinets, no roles** (since M-30). Every account is a master; sign-up creates
   `users/{uid}` (`name`, `email`), and all her data lives under it: `users/{uid}/services`,
   `users/{uid}/blocks`, and every later collection. The Firestore repositories resolve the path with

@@ -22,10 +22,13 @@ final class FakeClientRepository: ClientRepository {
         observe { clients in clients.first { $0.id == id } }
     }
 
-    func add(_ client: Client) async throws {
+    func add(_ client: Client) async throws -> String {
         var stored = client
-        stored.id = client.id ?? UUID().uuidString
+        let id = client.id ?? UUID().uuidString
+        stored.id = id
         change { $0.append(stored) }
+
+        return id
     }
 
     func update(_ client: Client) async throws {

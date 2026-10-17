@@ -5,6 +5,7 @@ private enum SwipeToDeleteLayout {
     static let iconSize: CGFloat = 22
     static let openThreshold: CGFloat = 36
     static let minimumDrag: CGFloat = 12
+    static let shadowAllowance: CGFloat = 24
     static let snap = Animation.spring(response: 0.3, dampingFraction: 0.8)
     static let reducedMotionSnap = Animation.easeOut(duration: 0.15)
 }
@@ -30,7 +31,10 @@ struct SwipeToDelete<Content: View>: View {
             Color.destructiveFill.opacity(isRevealed ? 1 : 0),
             in: .rect(cornerRadius: cornerRadius)
         )
-        .clipShape(.rect(cornerRadius: cornerRadius))
+        .clipShape(
+            RoundedRectangle(cornerRadius: cornerRadius)
+                .inset(by: isRevealed ? 0 : -SwipeToDeleteLayout.shadowAllowance)
+        )
         .onChange(of: openId) {
             withAnimation(snap) {
                 offsetX = restingOffset
