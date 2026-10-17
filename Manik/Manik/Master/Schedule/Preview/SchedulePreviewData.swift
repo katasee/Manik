@@ -18,7 +18,7 @@ enum SchedulePreviewData {
     ]
 
     static var items: [SlotItem] {
-        slots.map { SlotItem(slot: $0, now: noon) }
+        slots.map { SlotItem(slot: $0, clientName: "", now: noon) }
     }
 
     @MainActor

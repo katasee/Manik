@@ -1941,6 +1941,23 @@
         }
       }
     },
+    "schedule.slot.clientDeleted" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Client deleted"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Клієнтку видалено"
+          }
+        }
+      }
+    },
     "schedule.slot.free" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1954,6 +1971,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Вільно"
+          }
+        }
+      }
+    },
+    "schedule.slot.noService" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No service"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Без послуги"
           }
         }
       }
