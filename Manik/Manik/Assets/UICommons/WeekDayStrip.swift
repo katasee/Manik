@@ -42,9 +42,18 @@ struct WeekDayStrip: View {
     }
 
     private func shiftWeek(forward: Bool) {
-        guard let newDate = DateFormat.salonCalendar.date(byAdding: .day, value: forward ? 7 : -7, to: selectedDate) else {
+        let calendar = DateFormat.salonCalendar
+
+        guard
+            let shifted = calendar.date(byAdding: .weekOfYear, value: forward ? 1 : -1, to: selectedDate),
+            let week = calendar.dateInterval(of: .weekOfYear, for: shifted)
+        else {
             return
         }
+
+        let now = Date.now
+        let newDate = calendar.isDate(now, equalTo: shifted, toGranularity: .weekOfYear) ? now : week.start
+
         withAnimation(Layout.selectionAnimation) {
             selectedDate = newDate
         }
