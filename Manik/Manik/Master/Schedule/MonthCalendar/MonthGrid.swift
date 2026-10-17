@@ -22,6 +22,12 @@ struct MonthGrid: Equatable {
         )}
     }
 
+    var firstWeek: [Date] {
+        days
+            .prefix(7)
+            .sorted { Self.column(of: $0) < Self.column(of: $1) }
+    }
+
     var leadingBlanks: Int {
         Self.column(of: start)
     }
