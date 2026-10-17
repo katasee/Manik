@@ -33,10 +33,15 @@ struct MonthDayCell: View {
     }
 
     private var numberColor: Color {
-        if day.isSelected { return Color.onPrimary }
-        if day.isEnabled == false { return Color.textTertiary }
-
-        return day.isToday ? Color.wine : Color.ink
+        if day.isSelected {
+            Color.onPrimary
+        } else if day.isEnabled == false {
+            Color.textTertiary
+        } else if day.isToday {
+            Color.wine
+        } else {
+            Color.ink
+        }
     }
 }
 

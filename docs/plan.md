@@ -1729,7 +1729,9 @@ this file is just "what's done, what's next," not a design doc.
   - Verified: `xcodebuild`, a throwaway `swiftc` check script (26/26: history start, the pager
     limit and clamping in both view models, Fill clearing days, weekday order, `select(dayId:)`),
     `swiftui-pro` review of the plan (weekday ids — letters repeat; the month row as its own view),
-    and the user's device pass.
+    the user's device pass, and a final `swiftui-pro` + `swift-concurrency-pro` review of the
+    branch (two style fixes: an `if` expression in `MonthDayCell`, the weekday action as a method;
+    a `SWIFT_STRICT_CONCURRENCY=complete` build adds no warnings in the changed files).
 
 ## Screens (in order)
 
