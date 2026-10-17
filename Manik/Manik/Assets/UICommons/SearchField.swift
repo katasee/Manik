@@ -34,14 +34,21 @@ struct SearchField: View {
             }
         }
         .inputFieldStyle()
-        .task(focusIfNeeded)
+        .task {
+            await focusIfNeeded()
+        }
     }
 
     @MainActor
     private func focusIfNeeded() async {
         guard focusesOnAppear else { return }
 
-        try? await Task.sleep(for: Layout.focusDelay)
+        do {
+            try await Task.sleep(for: Layout.focusDelay)
+        } catch {
+            return
+        }
+
         isFocused = true
     }
 
