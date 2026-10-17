@@ -14,6 +14,7 @@ enum PopupContainerLayout {
 struct PopupContainer<Content: View>: View {
     let dismissLabel: LocalizedStringKey
     var isDismissDisabled = false
+    var blursBackground = false
     let onDismiss: () -> Void
     @ViewBuilder let content: (_ dismiss: @escaping () -> Void) -> Content
 
@@ -36,6 +37,12 @@ struct PopupContainer<Content: View>: View {
         Button(action: fadeOutAndDismiss) {
             Rectangle()
                 .fill(Color.backdrop)
+                .background {
+                    if blursBackground {
+                        Rectangle()
+                            .fill(.ultraThinMaterial)
+                    }
+                }
         }
         .buttonStyle(.plain)
         .disabled(isDismissDisabled)
