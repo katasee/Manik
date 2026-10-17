@@ -3,6 +3,7 @@ import SwiftUI
 struct ScheduleView: View {
     @State private var viewModel: ScheduleViewModel
     @State private var openRowId: String?
+    @State private var fillMonth: FillMonthViewModel?
 
     init(viewModel: ScheduleViewModel) {
         _viewModel = State(initialValue: viewModel)
@@ -14,8 +15,9 @@ struct ScheduleView: View {
                 RoundIconButton(
                     systemImage: "plus",
                     accessibilityLabel: "schedule.action.addSlots",
-                    action: {}
+                    action: openFillMonth
                 )
+                .disabled(viewModel.canFillMonth == false)
             }
 
             WeekDayStrip(selectedDate: $viewModel.selectedDate)
@@ -32,6 +34,10 @@ struct ScheduleView: View {
             await viewModel.observeSlots()
         }
         .onChange(of: viewModel.selectedDate, closeOpenRow)
+        .fullScreenCover(item: $fillMonth) { fillMonth in
+            FillMonthPopup(viewModel: fillMonth, onDismiss: closeFillMonth)
+                .presentationBackground(.clear)
+        }
     }
 
     private var monthTitle: String {
@@ -88,6 +94,18 @@ struct ScheduleView: View {
 
     private func closeOpenRow() {
         openRowId = nil
+    }
+
+    private func openFillMonth() {
+        withoutPresentationAnimation {
+            fillMonth = viewModel.makeFillMonthViewModel()
+        }
+    }
+
+    private func closeFillMonth() {
+        withoutPresentationAnimation {
+            fillMonth = nil
+        }
     }
 
     private func delete(_ item: SlotItem) {

@@ -12,6 +12,10 @@ final class ScheduleViewModel {
 
     private let slotRepository: SlotRepository
 
+    var canFillMonth: Bool {
+        hasLoaded && hasFailed == false
+    }
+
     init(slotRepository: SlotRepository = FirestoreSlotRepository()) {
         self.slotRepository = slotRepository
     }
@@ -42,5 +46,14 @@ final class ScheduleViewModel {
 
     func delete(id: String) {
         try? slotRepository.delete(id: id)
+    }
+
+    func makeFillMonthViewModel(now: Date = .now) -> FillMonthViewModel {
+        FillMonthViewModel(
+            month: selectedDate,
+            existing: slots,
+            now: now,
+            slotRepository: slotRepository
+        )
     }
 }

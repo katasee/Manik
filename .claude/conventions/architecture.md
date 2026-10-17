@@ -17,8 +17,8 @@
   reads, and `Block`, which since M-33.1 only Статистика reads (it goes in M-38). `Models/` is the
   **domain layer** — the M of MVVM — not "files that contain a struct": it also holds derived properties of
   domain types (`Slot/Slot+StartDate.swift`, `Slot/Slot+Past.swift`) and domain
-  configuration with no fields at all (`WorkHours.swift`, removed in M-33.1 with the hourly
-  timeline; M-33.3 brings it back for the fill-month hours). **A domain rule that two features must
+  configuration with no fields at all (`WorkHours.swift`: the Заповнити місяць hour chips and the
+  "Свій час" wheel range). **A domain rule that two features must
   agree on lives here too, even when it is one line.** `Block/Block+Completed.swift`
   (`isCompleted(now:)` — `confirmed` and already ended) is read by both the master's
   `StatsCalculator` and the client's `AccountStats` (the client cabinet, removed in M-30 — the
@@ -77,7 +77,7 @@
   a feature-local metrics file (e.g. `Schedule/ScheduleMetrics.swift`, `Stats/StatsMetrics.swift`).
   A metrics file holds **layout** numbers only — anything the view model needs to reason about
   (salon working hours, tolerances, durations) is domain config and lives in `Models/`
-  (e.g. `Models/WorkHours.swift`, back in M-33.3), otherwise the view model ends up importing the
+  (e.g. `Models/WorkHours.swift`), otherwise the view model ends up importing the
   view layer.
   A generic UICommons component (e.g. `SwipeToDelete<Content>`) must keep its constants enum at
   **file scope**, not nested inside the struct — Swift forbids static stored properties in types

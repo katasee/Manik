@@ -1657,6 +1657,50 @@ this file is just "what's done, what's next," not a design doc.
     month-end clamping of the history start and the view model with a failing repository),
     `swiftui-pro` and `swift-concurrency-pro` reviews of the plan, and a device pass by the user.
 
+- **M-33.3 — Заповнити місяць** (branch `feature/pr-33.3-Fill-Month`; third of three M-33 PRs).
+  - `Models/WorkHours` is back: `fillHours = 8...19` (the hour chips), `customHours = 7...22` (the
+    "Свій час" wheel).
+  - `Slot.missing(days:times:existingIds:now:)` (`Slot+Missing`) — the pure "what to create"
+    function: every day × time pair whose rule id is not in `existingIds` and which is not
+    `isPast(now:)`, sorted with `chronologically`, `id` left `nil` (the repository builds it). A
+    past hour today is never created, and a window starting exactly now counts as past.
+  - SOLID pass on the plan before coding (user request): the view model only coordinates.
+    `MonthGrid` (start of month, `days`, `leadingBlanks`, `shifted(by:)`, Monday-first
+    `column(of:)` from `salonCalendar.firstWeekday`) and `FillTimes` (hour chips + custom times +
+    selection; `toggle`, `addCustom` — an hour that is already a chip is just selected —
+    `removeCustom`) are plain value types in `Master/Schedule/FillMonth/`, their only reader.
+  - `FillMonthViewModel` keeps all state private and exposes presentation models only
+    (`FillMonthDay`, `FillMonthWeekday`, `FillMonthTime`, each with `isSelected` where it applies).
+    It opens on the selected day's month but never before the current one; switching month clears
+    the days and keeps the times; a weekday letter selects every non-past day of its column or
+    clears them if all are selected; one private `missingSlots(now:)` feeds both the count (with
+    the `now` of opening) and `add(now:)` (with the real `now`, so an hour that passes while the
+    popup is open is not written — found in the final review).
+    `ScheduleViewModel.makeFillMonthViewModel(now:)` hands it a snapshot of the slots — the popup
+    does not listen to Firestore; "+" stays disabled until the listener has loaded and not failed
+    (`canFillMonth`), so the snapshot is never an empty placeholder.
+  - Popup: `FillMonthPopup` (title, `MonthHeader`, `FillMonthCalendar`, `FillMonthHours`, "Додати N
+    вікон" — plural key — disabled at 0, adds and closes with no `Task`: the write is
+    fire-and-forget). The sections scroll inside a `ScrollView` capped at the content's height
+    (`onGeometryChange`), so the card hugs its content and scrolls on a small screen while the
+    buttons stay visible. `ViewThatFits` was planned and dropped: switching between its two copies
+    resets `@State` in `FillMonthHours`. `FillMonthDayCell` (≥ 44pt tall, wine dot when the day
+    has windows) and `FillMonthTimeChip` (custom times carry an `xmark`; tap removes them).
+  - "Свій час" (user, on screen): a full-width secondary `CapsuleButton` under the chips, opening
+    `CustomTimePopup` over everything — `PopupContainer` gained `blursBackground` (an
+    `.ultraThinMaterial` layer under the backdrop). The wheel's state is `@State` in
+    `FillMonthHours`, not in the view model; it starts at 9:30 and remembers the last pick.
+  - `LazyVGrid` merges the ids of all its `ForEach`es: the leading blanks (`0..<n`) collided with
+    the weekday letters (0…6) — "the ID 4 is used by multiple child views" in November. Blanks
+    are now `"blank-\(i)"`.
+  - `WeekDayStrip` (user request, own commit): the week arrows and swipe select the Monday of the
+    new week, or today when the new week contains it — before, they kept the weekday (+7 days).
+  - Verified: `xcodebuild`, a throwaway `swiftc` check script (58/58: `Slot.missing`, `MonthGrid`,
+    `FillTimes`, the view model against `FakeSlotRepository`), `swiftui-pro` review of the plan,
+    the user's on-screen pass, and a final whole-branch review (no Critical/Important; the frozen
+    `now`, "+" before load and three style slips fixed; the 500-writes batch limit — reachable
+    only with 31 days × 17 times — dismissed by the user).
+
 ## Screens (in order)
 
 This is the actual work queue, and the only numbered list here. The ordering follows the **data
@@ -1790,15 +1834,20 @@ those items are referred to by name, so the list can grow without renumbering an
       password, delete account with a full data wipe, Profile screen.
    3. ~~**M-32 Клієнтки**~~ — **done** (under "Done"): six UI-first PRs, M-32.1 … M-32.5.
    4. **M-33 Free slots** — design in `docs/superpowers/specs/2026-10-14-free-slots-design.md`
-      (user decisions, 2026-10-14). Three PRs:
+      (user decisions, 2026-10-14). Three PRs, plus M-33.4 added on 2026-10-17:
       1. ~~**M-33.1 Day list (UI)**~~ — **done** (under "Done").
       2. ~~**M-33.2 Slots from Firestore**~~ — **done** (under "Done"). Was: `SlotRepository` + Firestore/fake, the document-id rule,
          `listen(_:read:)` moved to `Services/Firestore/`, `ScheduleViewModel` (selected day,
          `items`, load error), delete by swipe without confirmation, `hasValidSlotFormat()` in
          `firestore.rules`, `slots` added to `FirestoreUserDataRepository.collections`.
-      3. **M-33.3 Заповнити місяць** — month grid (weekday letter selects all those days, dots on
-         days with windows), chips 8:00–19:00 + "+ Свій час" (`TimeWheel`), "Додати N вікон"
-         skipping existing windows, one merge batch.
+      3. ~~**M-33.3 Заповнити місяць**~~ — **done** (under "Done"). Was: month grid (weekday
+         letter selects all those days, dots on days with windows), chips 8:00–19:00 + "+ Свій
+         час" (`TimeWheel`), "Додати N вікон" skipping existing windows, one merge batch.
+      4. **M-33.4 Jump to a date** (user idea, 2026-10-17) — tapping the month subtitle on Розклад
+         opens a month calendar; picking a day moves the strip there. Reuses `MonthGrid`,
+         `FillMonthDayCell` (dots) and `MonthHeader`, so the first two move out of `FillMonth/` to
+         a shared place. Open: past months (only the 3 read from Firestore?), tap target (whole
+         subtitle or a calendar icon), close on pick or "Готово".
       - Still open from before the brainstorm: the final whole-branch review of M-32.5 was skipped
         (merged first) — offered to run it on `main`.
    5. **M-34 Booking** — book a client into a window (search + inline add), booking actions,
@@ -1840,6 +1889,11 @@ numbering drifts every time an item is added or closed (it already did once: PR9
   - Check light and dark on a device (wine-on-glass contrast already failed once on the tab bar)
     and record the rules in `architecture.md`/`code-style.md`, including the first `#available` in
     a view. Own PR, not mixed into a feature.
+
+- **`MonthHeader` reads `booking.calendar.*` keys** (found 2026-10-17 in M-33.3). Its arrow labels
+  still use keys from the client booking calendar removed in M-30; it now serves Статистика and
+  Заповнити місяць. Rename to `common.calendar.previousMonth`/`nextMonth` in the String Catalog and
+  the component. Small; do it whenever `MonthHeader` is next touched (M-33.4).
 
 - **Swift 6 language mode: make the models `Sendable`** (found 2026-10-16 in M-33.2's
   `swift-concurrency-pro` review). The project builds in Swift 5 mode (`SWIFT_VERSION = 5.0`), and a
