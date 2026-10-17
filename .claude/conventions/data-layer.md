@@ -77,7 +77,9 @@
 - **A listener reads its whole result again** whenever it re-attaches more than ~30 minutes after
   the last one, and a tab's `.task` re-attaches on every return to the tab. So a collection that
   only grows (`slots`) is queried with a lower bound (`Slot.historyStart(now:)`, 3 months), not
-  read whole; reads are billed per document across all masters.
+  read whole; reads are billed per document across all masters. The same bound limits how far back
+  Розклад's "Перейти до дати" calendar pages (`Slot.historyStartDate(now:)`, the `Date` that
+  `historyStart` formats), so it never offers months whose windows were not read.
 - **A new field added to a model whose collection already has documents must be optional.** Swift's
   synthesized `init(from:)` does **not** fall back to a property's default value — a missing key
   throws `keyNotFound`, so `var isActive = true` would break decoding for every pre-existing
