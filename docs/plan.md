@@ -1673,9 +1673,12 @@ this file is just "what's done, what's next," not a design doc.
     (`FillMonthDay`, `FillMonthWeekday`, `FillMonthTime`, each with `isSelected` where it applies).
     It opens on the selected day's month but never before the current one; switching month clears
     the days and keeps the times; a weekday letter selects every non-past day of its column or
-    clears them if all are selected; one private `newSlots` feeds both the count and `add()`.
+    clears them if all are selected; one private `missingSlots(now:)` feeds both the count (with
+    the `now` of opening) and `add(now:)` (with the real `now`, so an hour that passes while the
+    popup is open is not written — found in the final review).
     `ScheduleViewModel.makeFillMonthViewModel(now:)` hands it a snapshot of the slots — the popup
-    does not listen to Firestore.
+    does not listen to Firestore; "+" stays disabled until the listener has loaded and not failed
+    (`canFillMonth`), so the snapshot is never an empty placeholder.
   - Popup: `FillMonthPopup` (title, `MonthHeader`, `FillMonthCalendar`, `FillMonthHours`, "Додати N
     вікон" — plural key — disabled at 0, adds and closes with no `Task`: the write is
     fire-and-forget). The sections scroll inside a `ScrollView` capped at the content's height
@@ -1692,9 +1695,11 @@ this file is just "what's done, what's next," not a design doc.
     are now `"blank-\(i)"`.
   - `WeekDayStrip` (user request, own commit): the week arrows and swipe select the Monday of the
     new week, or today when the new week contains it — before, they kept the weekday (+7 days).
-  - Verified: `xcodebuild`, a throwaway `swiftc` check script (56/56: `Slot.missing`, `MonthGrid`,
+  - Verified: `xcodebuild`, a throwaway `swiftc` check script (58/58: `Slot.missing`, `MonthGrid`,
     `FillTimes`, the view model against `FakeSlotRepository`), `swiftui-pro` review of the plan,
-    and the user's on-screen pass.
+    the user's on-screen pass, and a final whole-branch review (no Critical/Important; the frozen
+    `now`, "+" before load and three style slips fixed; the 500-writes batch limit — reachable
+    only with 31 days × 17 times — dismissed by the user).
 
 ## Screens (in order)
 

@@ -89,7 +89,7 @@ final class FillMonthViewModel: Identifiable {
     }
 
     var newSlotCount: Int {
-        newSlots.count
+        missingSlots(now: now).count
     }
 
     func showPreviousMonth() {
@@ -132,15 +132,15 @@ final class FillMonthViewModel: Identifiable {
         fillTimes.removeCustom(id)
     }
 
-    func add() {
-        let slots = newSlots
+    func add(now: Date = .now) {
+        let slots = missingSlots(now: now)
 
         guard slots.isEmpty == false else { return }
 
         try? slotRepository.add(slots)
     }
 
-    private var newSlots: [Slot] {
+    private func missingSlots(now: Date) -> [Slot] {
         Slot.missing(
             days: selectedDays,
             times: fillTimes.selected,

@@ -37,7 +37,7 @@ struct FillMonthHours: View {
                 onAdd: addCustomTime,
                 onDismiss: closeCustomTime
             )
-                .presentationBackground(.clear)
+            .presentationBackground(.clear)
         }
     }
 

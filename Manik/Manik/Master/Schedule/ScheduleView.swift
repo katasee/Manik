@@ -17,6 +17,7 @@ struct ScheduleView: View {
                     accessibilityLabel: "schedule.action.addSlots",
                     action: openFillMonth
                 )
+                .disabled(viewModel.canFillMonth == false)
             }
 
             WeekDayStrip(selectedDate: $viewModel.selectedDate)

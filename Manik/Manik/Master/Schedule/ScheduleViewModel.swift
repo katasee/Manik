@@ -12,6 +12,10 @@ final class ScheduleViewModel {
 
     private let slotRepository: SlotRepository
 
+    var canFillMonth: Bool {
+        hasLoaded && hasFailed == false
+    }
+
     init(slotRepository: SlotRepository = FirestoreSlotRepository()) {
         self.slotRepository = slotRepository
     }
