@@ -1921,6 +1921,12 @@ numbering drifts every time an item is added or closed (it already did once: PR9
     and record the rules in `architecture.md`/`code-style.md`, including the first `#available` in
     a view. Own PR, not mixed into a feature.
 
+- **Swipe the day list to change the day** (user request, 2026-10-17, during M-34.1). On Розклад,
+  a horizontal swipe on the list of windows moves to the previous / next day (today only the week
+  strip swipes, by week). Watch the conflict with `SwipeToDelete`, which also reads horizontal
+  drags on every row: probably only a swipe that starts on empty space, or a right-swipe for
+  "previous day" since rows only open to the left — decide when it is picked up.
+
 - **Swift 6 language mode: make the models `Sendable`** (found 2026-10-16 in M-33.2's
   `swift-concurrency-pro` review). The project builds in Swift 5 mode (`SWIFT_VERSION = 5.0`), and a
   build with `SWIFT_STRICT_CONCURRENCY=complete` warns in every fake and stream because `Slot` and

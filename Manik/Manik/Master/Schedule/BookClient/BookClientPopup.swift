@@ -19,6 +19,7 @@ struct BookClientPopup: View {
                     }
             }
             .frame(maxHeight: contentHeight)
+            .opacity(contentHeight == nil ? 0 : 1)
             .scrollBounceBehavior(.basedOnSize)
             .scrollIndicators(.hidden)
             .padding(-ScheduleMetrics.Spacing.scrollShadowInset)

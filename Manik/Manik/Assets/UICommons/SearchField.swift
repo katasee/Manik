@@ -13,6 +13,7 @@ struct SearchField: View {
         static let tapTarget: CGFloat = 44
         static let tapVerticalOverflow: CGFloat = 12
         static let tapTrailingOverflow: CGFloat = 14
+        static let focusDelay: Duration = .milliseconds(100)
     }
 
     var body: some View {
@@ -33,12 +34,14 @@ struct SearchField: View {
             }
         }
         .inputFieldStyle()
-        .onAppear(perform: focusIfNeeded)
+        .task(focusIfNeeded)
     }
 
-    private func focusIfNeeded() {
+    @MainActor
+    private func focusIfNeeded() async {
         guard focusesOnAppear else { return }
 
+        try? await Task.sleep(for: Layout.focusDelay)
         isFocused = true
     }
 
