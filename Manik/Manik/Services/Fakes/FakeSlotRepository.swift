@@ -45,8 +45,34 @@ final class FakeSlotRepository: SlotRepository {
         }
     }
 
+    func book(slotId: String, _ booking: SlotBooking) throws {
+        changeSlot(slotId) { slot in
+            slot.clientId = booking.clientId
+            slot.serviceId = booking.serviceId
+            slot.serviceName = booking.serviceName
+            slot.servicePrice = booking.servicePrice
+        }
+    }
+
+    func clearBooking(slotId: String) throws {
+        changeSlot(slotId) { slot in
+            slot.clientId = nil
+            slot.serviceId = nil
+            slot.serviceName = nil
+            slot.servicePrice = nil
+        }
+    }
+
     func delete(id: String) throws {
         change { $0.removeAll { $0.id == id } }
+    }
+
+    private func changeSlot(_ id: String, _ apply: (inout Slot) -> Void) {
+        change { stored in
+            guard let index = stored.firstIndex(where: { $0.id == id }) else { return }
+
+            apply(&stored[index])
+        }
     }
 
     private func change(_ apply: (inout [Slot]) -> Void) {

@@ -15,9 +15,10 @@ final class FirestoreClientRepository: ClientRepository {
         }
     }
 
-    func add(_ client: Client) async throws {
+    func add(_ client: Client) throws -> String {
         let encoded = try Firestore.Encoder().encode(client)
-        _ = try db.userCollection("clients").addDocument(data: encoded, completion: nil)
+
+        return try db.userCollection("clients").addDocument(data: encoded, completion: nil).documentID
     }
 
     func update(_ client: Client) throws {

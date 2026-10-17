@@ -1,7 +1,8 @@
 protocol ClientRepository {
     func observeClients() -> AsyncThrowingStream<[Client], Error>
     func observeClient(id: String) -> AsyncThrowingStream<Client?, Error>
-    func add(_ client: Client) async throws
+    @discardableResult
+    func add(_ client: Client) async throws -> String
     func update(_ client: Client) async throws
     func delete(id: String) async throws
 }
