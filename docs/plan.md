@@ -1865,8 +1865,8 @@ those items are referred to by name, so the list can grow without renumbering an
    2. ~~**M-31 Master account**~~ — **done** (under "Done"): email verification, forgot/change
       password, delete account with a full data wipe, Profile screen.
    3. ~~**M-32 Клієнтки**~~ — **done** (under "Done"): six UI-first PRs, M-32.1 … M-32.5.
-   4. **M-33 Free slots** — design in `docs/superpowers/specs/2026-10-14-free-slots-design.md`
-      (user decisions, 2026-10-14). Three PRs, plus M-33.4 added on 2026-10-17:
+   4. **M-33 Free slots** — done; its design file `2026-10-14-free-slots-design.md` was deleted
+      after M-33.4 merged (user decisions, 2026-10-14). Three PRs, plus M-33.4 added on 2026-10-17:
       1. ~~**M-33.1 Day list (UI)**~~ — **done** (under "Done").
       2. ~~**M-33.2 Slots from Firestore**~~ — **done** (under "Done"). Was: `SlotRepository` + Firestore/fake, the document-id rule,
          `listen(_:read:)` moved to `Services/Firestore/`, `ScheduleViewModel` (selected day,
@@ -1880,10 +1880,12 @@ those items are referred to by name, so the list can grow without renumbering an
       - Still open from before the brainstorm: the final whole-branch review of M-32.5 was skipped
         (merged first) — offered to run it on `main`.
    5. **M-34 Booking** — book a client into a window (search + inline add), booking actions,
-      history on the client card. Open question from M-32.5: show the last visit in the list row
+      history on the client card. Carried over from the M-33 design: deleting a *booked* window by
+      swipe asks for confirmation (free windows still delete without one). Open question from M-32.5: show the last visit in the list row
       too (today the row is avatar + name only)?
    6. **M-35 Publishing** — free windows as a 9:16 image (layout A) and as text, Надіслати прайс,
-      favourite services, "Надіслати @нік".
+      "Надіслати @нік". (The "favourite services" item was dropped on 2026-10-17: the star in Мої
+      послуги stays a filter — only starred services are offered when booking, see M-34.)
    7. **M-36 Reschedule**.
    8. **M-37 Personal plans** — `events` + `eventTemplates` (Мої справи), weekly repeat, conflict
       warnings. Add both to `FirestoreUserDataRepository.collections`.
