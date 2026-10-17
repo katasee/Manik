@@ -17,11 +17,16 @@ struct ClientPicker {
     }
 
     mutating func toggle(_ id: String) {
-        selectedId = selectedId == id ? nil : id
+        if selectedId == id {
+            selectedId = nil
+        } else {
+            select(id)
+        }
     }
 
     mutating func select(_ id: String) {
         selectedId = id
+        searchText = ""
     }
 
     private var isSearchTextEmpty: Bool {

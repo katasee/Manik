@@ -3,6 +3,9 @@ import SwiftUI
 struct SearchField: View {
     @Binding var text: String
     let placeholderKey: LocalizedStringKey
+    var focusesOnAppear = false
+
+    @FocusState private var isFocused: Bool
 
     private enum Layout {
         static let spacing: CGFloat = 10
@@ -23,12 +26,20 @@ struct SearchField: View {
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
                 .submitLabel(.search)
+                .focused($isFocused)
 
             if text.isEmpty == false {
                 clearButton
             }
         }
         .inputFieldStyle()
+        .onAppear(perform: focusIfNeeded)
+    }
+
+    private func focusIfNeeded() {
+        guard focusesOnAppear else { return }
+
+        isFocused = true
     }
 
     private var clearButton: some View {

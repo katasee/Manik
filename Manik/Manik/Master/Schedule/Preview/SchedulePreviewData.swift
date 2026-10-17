@@ -4,8 +4,8 @@ import Foundation
 enum SchedulePreviewData {
     static let slots: [Slot] = [
         Slot(id: "slot-0900", date: today, time: "09:00"),
-        Slot(id: "slot-1100", date: today, time: "11:00"),
-        Slot(id: "slot-1300", date: today, time: "13:00"),
+        Slot(id: "slot-1100", date: today, time: "11:00", clientId: "client-olya", serviceId: "svc-classic", serviceName: "Класичний манікюр", servicePrice: 500),
+        Slot(id: "slot-1300", date: today, time: "13:00", clientId: "client-kate"),
         Slot(id: "slot-1600", date: today, time: "16:00")
     ]
 
@@ -18,7 +18,42 @@ enum SchedulePreviewData {
     ]
 
     static var items: [SlotItem] {
-        slots.map { SlotItem(slot: $0, clientName: "", now: noon) }
+        let directory = ClientDirectory(clients: ClientsPreviewData.clients, isLoaded: true)
+
+        return slots.map { slot in
+            SlotItem(
+                slot: slot,
+                clientName: slot.clientId.map(directory.name(for:)) ?? "",
+                now: noon
+            )
+        }
+    }
+
+    static let options: [BookClientOption] = [
+        BookClientOption(id: "client-olya", title: "Оля", initial: "О", isSelected: true),
+        BookClientOption(id: "client-kate", title: "Катя", initial: "К", isSelected: false)
+    ]
+
+    static let serviceChips: [BookServiceChip] = [
+        BookServiceChip(id: "svc-classic", title: "Класичний манікюр · 500 zł", isSelected: true),
+        BookServiceChip(id: "svc-hybrid", title: "Манікюр гібридний (гель-лак) · 800 zł", isSelected: false)
+    ]
+
+    @MainActor
+    static var bookClient: BookClientViewModel {
+        let viewModel = BookClientViewModel(
+            slot: slots[0],
+            clients: ClientsPreviewData.clients,
+            services: ServicesPreviewData.services,
+            slotRepository: FakeSlotRepository(slots: slots),
+            clientRepository: FakeClientRepository(clients: ClientsPreviewData.clients)
+        )
+
+        viewModel.searchText = "о"
+        viewModel.toggleClient("client-olya")
+        viewModel.toggleService("svc-classic")
+
+        return viewModel
     }
 
     @MainActor

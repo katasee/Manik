@@ -5,6 +5,9 @@ struct ScheduleView: View {
     @State private var openRowId: String?
     @State private var fillMonth: FillMonthViewModel?
     @State private var jumpToDate: JumpToDateViewModel?
+    @State private var bookClient: BookClientViewModel?
+    @State private var pendingDelete: SlotItem?
+    @State private var isConfirmingDelete = false
 
     init(viewModel: ScheduleViewModel) {
         _viewModel = State(initialValue: viewModel)
@@ -36,10 +39,33 @@ struct ScheduleView: View {
         .task {
             await viewModel.observeSlots()
         }
+        .task {
+            await viewModel.observeClients()
+        }
+        .task {
+            await viewModel.observeServices()
+        }
         .onChange(of: viewModel.selectedDate, closeOpenRow)
         .fullScreenCover(item: $fillMonth) { fillMonth in
             FillMonthPopup(viewModel: fillMonth, onDismiss: closeFillMonth)
                 .presentationBackground(.clear)
+        }
+        .fullScreenCover(item: $bookClient) { bookClient in
+            BookClientPopup(viewModel: bookClient, onDismiss: closeBookClient)
+                .presentationBackground(.clear)
+        }
+        .alert(
+            "schedule.delete.booked.title",
+            isPresented: $isConfirmingDelete,
+            presenting: pendingDelete
+        ) { item in
+            Button("schedule.delete.booked.action", role: .destructive) {
+                delete(item)
+            }
+
+            Button("common.action.cancel", role: .cancel) {}
+        } message: { item in
+            Text("schedule.delete.booked.message \(item.booking?.clientName ?? "")")
         }
         .fullScreenCover(item: $jumpToDate) { jumpToDate in
             JumpToDatePopup(
@@ -83,12 +109,14 @@ struct ScheduleView: View {
                         id: item.id,
                         openId: $openRowId,
                         cornerRadius: ScheduleMetrics.Size.rowCornerRadius,
-                        onDelete: { delete(item) }
+                        onDelete: { requestDelete(item) }
                     ) {
-                        FreeSlotRow(item: item)
-                            .accessibilityAction(named: Text("schedule.action.deleteSlot")) {
-                                delete(item)
-                            }
+                        ScheduleSlotRow(item: item) {
+                            openBookClient(item)
+                        }
+                        .accessibilityAction(named: Text("schedule.action.deleteSlot")) {
+                            requestDelete(item)
+                        }
                     }
                 }
             }
@@ -127,6 +155,28 @@ struct ScheduleView: View {
         }
     }
 
+    private func openBookClient(_ item: SlotItem) {
+        withoutPresentationAnimation {
+            bookClient = viewModel.makeBookClientViewModel(slotId: item.id)
+        }
+    }
+
+    private func closeBookClient() {
+        withoutPresentationAnimation {
+            bookClient = nil
+        }
+    }
+
+    private func requestDelete(_ item: SlotItem) {
+        guard item.booking != nil else {
+            delete(item)
+            return
+        }
+
+        pendingDelete = item
+        isConfirmingDelete = true
+    }
+
     private func delete(_ item: SlotItem) {
         viewModel.delete(id: item.id)
     }
@@ -136,7 +186,9 @@ struct ScheduleView: View {
 #Preview {
     ScheduleView(
         viewModel: ScheduleViewModel(
-            slotRepository: FakeSlotRepository(slots: SchedulePreviewData.slots)
+            slotRepository: FakeSlotRepository(slots: SchedulePreviewData.slots),
+            clientRepository: FakeClientRepository(clients: ClientsPreviewData.clients),
+            serviceRepository: FakeServiceRepository(services: ServicesPreviewData.services)
         )
     )
 }

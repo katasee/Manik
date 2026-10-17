@@ -18,7 +18,6 @@ struct ClientAvatar: View {
     }
 }
 
-#if DEBUG
 #Preview {
     HStack(spacing: 16) {
         ClientAvatar(initial: "О", size: 44)
@@ -28,4 +27,3 @@ struct ClientAvatar: View {
     .frame(maxHeight: .infinity)
     .background(Color.background)
 }
-#endif
