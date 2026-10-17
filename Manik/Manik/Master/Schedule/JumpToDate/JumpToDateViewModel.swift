@@ -35,8 +35,15 @@ final class JumpToDateViewModel: Identifiable {
         pager.grid.leadingBlanks
     }
 
-    var weekdayLetters: [String] {
-        pager.grid.firstWeek.map { DateFormat.weekdayLetter.string(from: $0).uppercased() }
+    var weekdays: [MonthWeekday] {
+        pager.grid.firstWeek.map { date in
+            MonthWeekday(
+                id: MonthGrid.column(of: date),
+                letter: DateFormat.weekdayLetter.string(from: date).uppercased(),
+                name: DateFormat.weekdayName.string(from: date),
+                isEnabled: true
+            )
+        }
     }
 
     var days: [MonthDay] {

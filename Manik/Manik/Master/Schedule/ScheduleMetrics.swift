@@ -20,6 +20,9 @@ enum ScheduleMetrics {
         static let chipTime: CGFloat = 15
         static let chipGlyph: CGFloat = 10
         static let chipTextScale: CGFloat = 0.75
+        static let monthTitle: CGFloat = 17
+        static let monthChevron: CGFloat = 12
+        static let monthRowHeight: CGFloat = 44
     }
 
     enum Spacing {
@@ -36,5 +39,6 @@ enum ScheduleMetrics {
         static let chipGlyphSpacing: CGFloat = 4
         static let hoursSpacing: CGFloat = 12
         static let scrollShadowInset: CGFloat = 8
+        static let monthChevronSpacing: CGFloat = 6
     }
 }

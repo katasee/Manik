@@ -1877,6 +1877,38 @@
         }
       }
     },
+    "schedule.jump.hint" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opens the month calendar"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Відкриває календар місяця"
+          }
+        }
+      }
+    },
+    "schedule.jump.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Go to date"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Перейти до дати"
+          }
+        }
+      }
+    },
     "schedule.loadFailed.message" : {
       "localizations" : {
         "en" : {

@@ -12,6 +12,10 @@ final class ScheduleViewModel {
 
     private let slotRepository: SlotRepository
 
+    var monthTitle: String {
+        DateFormat.monthYear.string(from: selectedDate).capitalized
+    }
+
     var canFillMonth: Bool {
         hasLoaded && hasFailed == false
     }

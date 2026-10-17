@@ -57,11 +57,11 @@ final class FillMonthViewModel: Identifiable {
         }
     }
 
-    var weekdays: [FillMonthWeekday] {
+    var weekdays: [MonthWeekday] {
         pager.grid.firstWeek.map { date in
             let column = MonthGrid.column(of: date)
 
-            return FillMonthWeekday(
+            return MonthWeekday(
                 id: column,
                 letter: DateFormat.weekdayLetter.string(from: date).uppercased(),
                 name: DateFormat.weekdayName.string(from: date),

@@ -38,6 +38,15 @@ enum SchedulePreviewData {
         return viewModel
     }
 
+    @MainActor
+    static var jumpToDate: JumpToDateViewModel {
+        JumpToDateViewModel(
+            selectedDate: .now,
+            datesWithSlots: [today],
+            now: .now
+        )
+    }
+
     private static var today: String {
         DateFormat.date.string(from: .now)
     }
