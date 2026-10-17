@@ -1,7 +1,7 @@
 import SwiftUI
 
-struct FillMonthDayCell: View {
-    let day: FillMonthDay
+struct MonthDayCell: View {
+    let day: MonthDay
     let action: () -> Void
 
     var body: some View {
@@ -27,15 +27,16 @@ struct FillMonthDayCell: View {
             .contentShape(.rect)
         }
         .buttonStyle(.plain)
-        .disabled(day.isPast)
+        .disabled(day.isEnabled == false)
         .accessibilityAddTraits(day.isSelected ? .isSelected : [])
-        .accessibilityValue(day.hasSlots ? Text("schedule.fill.day.hasSlots") : Text(verbatim: ""))
+        .accessibilityValue(day.hasSlots ? Text("schedule.day.hasSlots") : Text(verbatim: ""))
     }
 
     private var numberColor: Color {
         if day.isSelected { return Color.onPrimary }
+        if day.isEnabled == false { return Color.textTertiary }
 
-        return day.isPast ? Color.textTertiary : Color.ink
+        return day.isToday ? Color.wine : Color.ink
     }
 }
 
@@ -43,7 +44,7 @@ struct FillMonthDayCell: View {
 #Preview {
     HStack {
         ForEach(SchedulePreviewData.dayStates) { day in
-            FillMonthDayCell(day: day, action: {})
+            MonthDayCell(day: day, action: {})
         }
     }
     .padding()

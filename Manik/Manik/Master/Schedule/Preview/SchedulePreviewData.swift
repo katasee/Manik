@@ -9,12 +9,12 @@ enum SchedulePreviewData {
         Slot(id: "slot-1600", date: today, time: "16:00")
     ]
 
-    static let dayStates: [FillMonthDay] = [
-        FillMonthDay(id: "past", numberText: "12", isPast: true, isSelected: false, hasSlots: true),
-        FillMonthDay(id: "plain", numberText: "18", isPast: false, isSelected: false, hasSlots: false),
-        FillMonthDay(id: "slots", numberText: "19", isPast: false, isSelected: false, hasSlots: true),
-        FillMonthDay(id: "selected", numberText: "20", isPast: false, isSelected: true, hasSlots: false),
-        FillMonthDay(id: "both", numberText: "26", isPast: false, isSelected: true, hasSlots: true)
+    static let dayStates: [MonthDay] = [
+        MonthDay(id: "past", numberText: "12", isEnabled: false, isToday: false, isSelected: false, hasSlots: true),
+        MonthDay(id: "today", numberText: "17", isEnabled: true, isToday: true, isSelected: false, hasSlots: false),
+        MonthDay(id: "slots", numberText: "19", isEnabled: true, isToday: false, isSelected: false, hasSlots: true),
+        MonthDay(id: "selected", numberText: "20", isEnabled: true, isToday: false, isSelected: true, hasSlots: false),
+        MonthDay(id: "both", numberText: "26", isEnabled: true, isToday: false, isSelected: true, hasSlots: true)
     ]
 
     static var items: [SlotItem] {

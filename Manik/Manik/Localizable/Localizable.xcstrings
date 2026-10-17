@@ -823,7 +823,7 @@
         }
       }
     },
-    "booking.calendar.nextMonth" : {
+    "common.calendar.nextMonth" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -839,7 +839,7 @@
         }
       }
     },
-    "booking.calendar.previousMonth" : {
+    "common.calendar.previousMonth" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1809,7 +1809,7 @@
         }
       }
     },
-    "schedule.fill.day.hasSlots" : {
+    "schedule.day.hasSlots" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {

@@ -62,7 +62,7 @@ struct RoundIconButton: View {
         RoundIconButton(
             systemImage: "chevron.right",
             size: .small,
-            accessibilityLabel: "booking.calendar.nextMonth",
+            accessibilityLabel: "common.calendar.nextMonth",
             action: {}
         )
         .disabled(true)

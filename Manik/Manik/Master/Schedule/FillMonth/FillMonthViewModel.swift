@@ -47,14 +47,15 @@ final class FillMonthViewModel: Identifiable {
         grid.leadingBlanks
     }
 
-    var days: [FillMonthDay] {
+    var days: [MonthDay] {
         grid.days.map { date in
             let id = DateFormat.date.string(from: date)
 
-            return FillMonthDay(
+            return MonthDay(
                 id: id,
                 numberText: DateFormat.dayNumber.string(from: date),
-                isPast: id < today,
+                isEnabled: id >= today,
+                isToday: id == today,
                 isSelected: selectedDays.contains(id),
                 hasSlots: datesWithSlots.contains(id)
             )

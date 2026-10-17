@@ -30,7 +30,7 @@ struct FillMonthCalendar: View {
             }
 
             ForEach(viewModel.days) { day in
-                FillMonthDayCell(day: day) {
+                MonthDayCell(day: day) {
                     viewModel.toggleDay(day.id)
                 }
             }
