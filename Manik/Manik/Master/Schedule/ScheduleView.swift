@@ -4,6 +4,7 @@ struct ScheduleView: View {
     @State private var viewModel: ScheduleViewModel
     @State private var openRowId: String?
     @State private var fillMonth: FillMonthViewModel?
+    @State private var jumpToDate: JumpToDateViewModel?
 
     init(viewModel: ScheduleViewModel) {
         _viewModel = State(initialValue: viewModel)
@@ -11,7 +12,7 @@ struct ScheduleView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            LargeTitleHeader(titleKey: "schedule.title", subtitle: monthTitle) {
+            LargeTitleHeader(titleKey: "schedule.title") {
                 RoundIconButton(
                     systemImage: "plus",
                     accessibilityLabel: "schedule.action.addSlots",
@@ -19,6 +20,8 @@ struct ScheduleView: View {
                 )
                 .disabled(viewModel.canFillMonth == false)
             }
+
+            ScheduleMonthButton(title: viewModel.monthTitle, action: openJumpToDate)
 
             WeekDayStrip(selectedDate: $viewModel.selectedDate)
                 .padding(.vertical, ScheduleMetrics.Spacing.stripVerticalPadding)
@@ -38,10 +41,14 @@ struct ScheduleView: View {
             FillMonthPopup(viewModel: fillMonth, onDismiss: closeFillMonth)
                 .presentationBackground(.clear)
         }
-    }
-
-    private var monthTitle: String {
-        DateFormat.monthYear.string(from: viewModel.selectedDate).capitalized
+        .fullScreenCover(item: $jumpToDate) { jumpToDate in
+            JumpToDatePopup(
+                viewModel: jumpToDate,
+                onPick: viewModel.select(dayId:),
+                onDismiss: closeJumpToDate
+            )
+            .presentationBackground(.clear)
+        }
     }
 
     private func content(_ items: [SlotItem]) -> some View {
@@ -105,6 +112,18 @@ struct ScheduleView: View {
     private func closeFillMonth() {
         withoutPresentationAnimation {
             fillMonth = nil
+        }
+    }
+
+    private func openJumpToDate() {
+        withoutPresentationAnimation {
+            jumpToDate = viewModel.makeJumpToDateViewModel()
+        }
+    }
+
+    private func closeJumpToDate() {
+        withoutPresentationAnimation {
+            jumpToDate = nil
         }
     }
 

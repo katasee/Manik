@@ -1701,6 +1701,36 @@ this file is just "what's done, what's next," not a design doc.
     `now`, "+" before load and three style slips fixed; the 500-writes batch limit — reachable
     only with 31 days × 17 times — dismissed by the user).
 
+- **M-33.4 — Jump to a date** (branch `feature/pr-33.4-Open-Calendar`; user idea 2026-10-17, design
+  agreed in chat — no spec file).
+  - Розклад: the month moved out of `LargeTitleHeader`'s subtitle into `ScheduleMonthButton` — a
+    centred "Жовтень 2026 ⌄" row (17 semiBold `Ink`, ≥ 44pt) under the title row; `monthTitle` moved
+    to `ScheduleViewModel`. Tapping it opens `JumpToDatePopup` ("Перейти до дати", blurred
+    background): `MonthHeader`, Monday-first grid, wine dots on days with windows, selected day
+    filled, today's number in `Wine`. Every day is tappable, past ones too; a tap calls
+    `ScheduleViewModel.select(dayId:)` and fades the popup out. "Скасувати"/backdrop close it.
+  - `JumpToDateViewModel` gets a snapshot of the dates with windows from
+    `makeJumpToDateViewModel(now:)` (like Заповнити місяць) and opens on the selected day's month.
+    Back stops at the month of `Slot.historyStartDate(now:)` (new; `historyStart` formats it) —
+    older windows are never read (user decision); forward is unlimited. The days before the
+    history start inside that first month show no dots — accepted.
+  - Shared with Заповнити місяць in `Master/Schedule/MonthCalendar/` (two SOLID passes, user
+    request): `MonthGrid` (+ `firstWeek`, the seven days in column order), `MonthPager` (shown
+    month + lower limit, `showPrevious()` returns whether it moved so Fill clears its days only
+    then), `MonthCalendarGrid` (columns, `"blank-i"` blanks, `MonthDayCell`s; the weekday cell is a
+    `@ViewBuilder` — a button in Fill, plain text here), `MonthDay` (was `FillMonthDay`: `isPast`
+    → `isEnabled` + `isToday`, so Fill's today is wine too), `MonthWeekday` (was
+    `FillMonthWeekday`), `MonthDayCell` (was `FillMonthDayCell`).
+  - Claude's calls: the calendar opens before the slots have loaded (no dots then; jumping needs
+    no data, unlike "+"); today in wine.
+  - Keys: `MonthHeader`'s arrows `booking.calendar.*` → `common.calendar.*` (closes that backlog
+    item), `schedule.fill.day.hasSlots` → `schedule.day.hasSlots`; new `schedule.jump.title`,
+    `schedule.jump.hint`.
+  - Verified: `xcodebuild`, a throwaway `swiftc` check script (26/26: history start, the pager
+    limit and clamping in both view models, Fill clearing days, weekday order, `select(dayId:)`),
+    `swiftui-pro` review of the plan (weekday ids — letters repeat; the month row as its own view),
+    and the user's device pass.
+
 ## Screens (in order)
 
 This is the actual work queue, and the only numbered list here. The ordering follows the **data
@@ -1843,11 +1873,8 @@ those items are referred to by name, so the list can grow without renumbering an
       3. ~~**M-33.3 Заповнити місяць**~~ — **done** (under "Done"). Was: month grid (weekday
          letter selects all those days, dots on days with windows), chips 8:00–19:00 + "+ Свій
          час" (`TimeWheel`), "Додати N вікон" skipping existing windows, one merge batch.
-      4. **M-33.4 Jump to a date** (user idea, 2026-10-17) — tapping the month subtitle on Розклад
-         opens a month calendar; picking a day moves the strip there. Reuses `MonthGrid`,
-         `FillMonthDayCell` (dots) and `MonthHeader`, so the first two move out of `FillMonth/` to
-         a shared place. Open: past months (only the 3 read from Firestore?), tap target (whole
-         subtitle or a calendar icon), close on pick or "Готово".
+      4. ~~**M-33.4 Jump to a date**~~ — **done** (under "Done"). Was: tapping the month on Розклад
+         opens a month calendar; picking a day moves the strip there.
       - Still open from before the brainstorm: the final whole-branch review of M-32.5 was skipped
         (merged first) — offered to run it on `main`.
    5. **M-34 Booking** — book a client into a window (search + inline add), booking actions,
@@ -1889,11 +1916,6 @@ numbering drifts every time an item is added or closed (it already did once: PR9
   - Check light and dark on a device (wine-on-glass contrast already failed once on the tab bar)
     and record the rules in `architecture.md`/`code-style.md`, including the first `#available` in
     a view. Own PR, not mixed into a feature.
-
-- **`MonthHeader` reads `booking.calendar.*` keys** (found 2026-10-17 in M-33.3). Its arrow labels
-  still use keys from the client booking calendar removed in M-30; it now serves Статистика and
-  Заповнити місяць. Rename to `common.calendar.previousMonth`/`nextMonth` in the String Catalog and
-  the component. Small; do it whenever `MonthHeader` is next touched (M-33.4).
 
 - **Swift 6 language mode: make the models `Sendable`** (found 2026-10-16 in M-33.2's
   `swift-concurrency-pro` review). The project builds in Swift 5 mode (`SWIFT_VERSION = 5.0`), and a

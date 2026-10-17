@@ -823,7 +823,7 @@
         }
       }
     },
-    "booking.calendar.nextMonth" : {
+    "common.calendar.nextMonth" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -839,7 +839,7 @@
         }
       }
     },
-    "booking.calendar.previousMonth" : {
+    "common.calendar.previousMonth" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1809,7 +1809,7 @@
         }
       }
     },
-    "schedule.fill.day.hasSlots" : {
+    "schedule.day.hasSlots" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
@@ -1873,6 +1873,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Усі: %@"
+          }
+        }
+      }
+    },
+    "schedule.jump.hint" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opens the month calendar"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Відкриває календар місяця"
+          }
+        }
+      }
+    },
+    "schedule.jump.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Go to date"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Перейти до дати"
           }
         }
       }

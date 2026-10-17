@@ -6,11 +6,10 @@ import Observation
 final class FillMonthViewModel: Identifiable {
     let id = UUID()
 
-    private var grid: MonthGrid
+    private var pager: MonthPager
     private var selectedDays: Set<String> = []
     private var fillTimes = FillTimes()
 
-    private let currentMonth: MonthGrid
     private let today: String
     private let existingIds: Set<String>
     private let datesWithSlots: Set<String>
@@ -23,11 +22,7 @@ final class FillMonthViewModel: Identifiable {
         now: Date,
         slotRepository: SlotRepository
     ) {
-        let currentMonth = MonthGrid(containing: now)
-        let requested = MonthGrid(containing: month)
-
-        grid = requested.start < currentMonth.start ? currentMonth : requested
-        self.currentMonth = currentMonth
+        pager = MonthPager(showing: month, earliest: now)
         today = DateFormat.date.string(from: now)
         existingIds = Set(existing.map { Slot.documentId(date: $0.date, time: $0.time) })
         datesWithSlots = Set(existing.map(\.date))
@@ -36,45 +31,43 @@ final class FillMonthViewModel: Identifiable {
     }
 
     var monthTitle: String {
-        DateFormat.monthYear.string(from: grid.start).capitalized
+        DateFormat.monthYear.string(from: pager.grid.start).capitalized
     }
 
     var canGoBack: Bool {
-        grid != currentMonth
+        pager.canGoBack
     }
 
     var leadingBlanks: Int {
-        grid.leadingBlanks
+        pager.grid.leadingBlanks
     }
 
-    var days: [FillMonthDay] {
-        grid.days.map { date in
+    var days: [MonthDay] {
+        pager.grid.days.map { date in
             let id = DateFormat.date.string(from: date)
 
-            return FillMonthDay(
+            return MonthDay(
                 id: id,
                 numberText: DateFormat.dayNumber.string(from: date),
-                isPast: id < today,
+                isEnabled: id >= today,
+                isToday: id == today,
                 isSelected: selectedDays.contains(id),
                 hasSlots: datesWithSlots.contains(id)
             )
         }
     }
 
-    var weekdays: [FillMonthWeekday] {
-        grid.days
-            .prefix(7)
-            .map { date in
-                let column = MonthGrid.column(of: date)
+    var weekdays: [MonthWeekday] {
+        pager.grid.firstWeek.map { date in
+            let column = MonthGrid.column(of: date)
 
-                return FillMonthWeekday(
-                    id: column,
-                    letter: DateFormat.weekdayLetter.string(from: date).uppercased(),
-                    name: DateFormat.weekdayName.string(from: date),
-                    isEnabled: selectableDays(inColumn: column).isEmpty == false
-                )
-            }
-            .sorted { $0.id < $1.id }
+            return MonthWeekday(
+                id: column,
+                letter: DateFormat.weekdayLetter.string(from: date).uppercased(),
+                name: DateFormat.weekdayName.string(from: date),
+                isEnabled: selectableDays(inColumn: column).isEmpty == false
+            )
+        }
     }
 
     var times: [FillMonthTime] {
@@ -93,13 +86,14 @@ final class FillMonthViewModel: Identifiable {
     }
 
     func showPreviousMonth() {
-        guard canGoBack else { return }
-
-        show(grid.shifted(by: -1))
+        if pager.showPrevious() {
+            selectedDays = []
+        }
     }
 
     func showNextMonth() {
-        show(grid.shifted(by: 1))
+        pager.showNext()
+        selectedDays = []
     }
 
     func toggleDay(_ id: String) {
@@ -149,14 +143,9 @@ final class FillMonthViewModel: Identifiable {
         )
     }
 
-    private func show(_ month: MonthGrid) {
-        grid = month
-        selectedDays = []
-    }
-
     private func selectableDays(inColumn column: Int) -> Set<String> {
         Set(
-            grid.days
+            pager.grid.days
                 .filter { MonthGrid.column(of: $0) == column }
                 .map { DateFormat.date.string(from: $0) }
                 .filter { $0 >= today }

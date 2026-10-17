@@ -1,4 +1,4 @@
-struct FillMonthWeekday: Identifiable {
+struct MonthWeekday: Identifiable {
     let id: Int
     let letter: String
     let name: String

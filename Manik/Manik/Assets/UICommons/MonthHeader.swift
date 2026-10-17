@@ -16,7 +16,7 @@ struct MonthHeader: View {
         HStack(spacing: Layout.spacing) {
             arrow(
                 systemName: "chevron.left",
-                labelKey: "booking.calendar.previousMonth",
+                labelKey: "common.calendar.previousMonth",
                 isEnabled: canGoBack,
                 action: onPrevious
             )
@@ -28,7 +28,7 @@ struct MonthHeader: View {
 
             arrow(
                 systemName: "chevron.right",
-                labelKey: "booking.calendar.nextMonth",
+                labelKey: "common.calendar.nextMonth",
                 isEnabled: canGoForward,
                 action: onNext
             )

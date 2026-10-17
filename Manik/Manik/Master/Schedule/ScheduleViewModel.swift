@@ -12,6 +12,10 @@ final class ScheduleViewModel {
 
     private let slotRepository: SlotRepository
 
+    var monthTitle: String {
+        DateFormat.monthYear.string(from: selectedDate).capitalized
+    }
+
     var canFillMonth: Bool {
         hasLoaded && hasFailed == false
     }
@@ -44,6 +48,12 @@ final class ScheduleViewModel {
         }
     }
 
+    func select(dayId: String) {
+        guard let date = DateFormat.date.date(from: dayId) else { return }
+
+        selectedDate = date
+    }
+
     func delete(id: String) {
         try? slotRepository.delete(id: id)
     }
@@ -54,6 +64,14 @@ final class ScheduleViewModel {
             existing: slots,
             now: now,
             slotRepository: slotRepository
+        )
+    }
+
+    func makeJumpToDateViewModel(now: Date = .now) -> JumpToDateViewModel {
+        JumpToDateViewModel(
+            selectedDate: selectedDate,
+            datesWithSlots: Set(slots.map(\.date)),
+            now: now
         )
     }
 }
