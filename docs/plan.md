@@ -1767,8 +1767,10 @@ this file is just "what's done, what's next," not a design doc.
     (search text + selection; the selected client is pinned first; at most 5 options) keeps the
     rules testable. `BookClientPopup` scrolls its sections above the keyboard with the buttons
     outside (FillMonthPopup's pattern) and stays invisible until its height is measured.
-    `SearchField.focusesOnAppear` focuses after 100 ms in a `.task` (cancellation respected) — focusing
-    while the popup faded in made it flicker. `ClientAvatar` moved to `UICommons` (two features
+    `SearchField.focusesOnAppear` focuses after 200 ms in a `.task` (cancellation respected) — the
+    popup's 0.2 s fade-in. The first keyboard of an app launch loads slowly (iOS, worse under the
+    Xcode debugger); focusing during the fade made the popup stutter, focusing after it only delays
+    the keyboard. Prewarming the keyboard with a hidden UIKit field was rejected as a hack. `ClientAvatar` moved to `UICommons` (two features
     read it). `query` → `searchText` in Клієнтки and the picker. `DateFormat.weekdayDayMonth`.
   - SOLID pass on the plan (user request): `SlotBooking`, `ClientDirectory`, `ClientPicker` split
     out; `savedClient` and a five-method `SlotRepository` kept as they are (user).

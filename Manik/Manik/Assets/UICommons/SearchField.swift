@@ -13,7 +13,7 @@ struct SearchField: View {
         static let tapTarget: CGFloat = 44
         static let tapVerticalOverflow: CGFloat = 12
         static let tapTrailingOverflow: CGFloat = 14
-        static let focusDelay: Duration = .milliseconds(100)
+        static let focusDelay: Duration = .milliseconds(200)
     }
 
     var body: some View {
