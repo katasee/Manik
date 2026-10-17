@@ -99,6 +99,18 @@ final class ScheduleViewModel {
         )
     }
 
+    func makeBookClientViewModel(slotId: String) -> BookClientViewModel? {
+        guard let slot = slots.first(where: { $0.id == slotId }), slot.isBooked == false else { return nil }
+
+        return BookClientViewModel(
+            slot: slot,
+            clients: directory.clients,
+            services: services,
+            slotRepository: slotRepository,
+            clientRepository: clientRepository
+        )
+    }
+
     func makeJumpToDateViewModel(now: Date = .now) -> JumpToDateViewModel {
         JumpToDateViewModel(
             selectedDate: selectedDate,
