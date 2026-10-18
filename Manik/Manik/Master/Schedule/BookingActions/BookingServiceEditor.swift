@@ -7,11 +7,26 @@ struct BookingServiceEditor: View {
     let onBack: () -> Void
     let onSave: () -> Void
 
+    @State private var chipsHeight: CGFloat?
+
     var body: some View {
         VStack(alignment: .leading, spacing: PopupContainerLayout.rowSpacing) {
             SectionLabel(titleKey: "schedule.book.service")
 
-            BookServiceChips(chips: chips, onToggle: onToggle)
+            ScrollView {
+                BookServiceChips(chips: chips, onToggle: onToggle)
+                    .padding(ScheduleMetrics.Spacing.scrollShadowInset)
+                    .onGeometryChange(for: CGFloat.self) { proxy in
+                        proxy.size.height
+                    } action: { height in
+                        chipsHeight = height
+                    }
+            }
+            .frame(maxHeight: chipsHeight)
+            .opacity(chipsHeight == nil ? 0 : 1)
+            .scrollBounceBehavior(.basedOnSize)
+            .scrollIndicators(.hidden)
+            .padding(-ScheduleMetrics.Spacing.scrollShadowInset)
 
             HStack {
                 PopupDismissButton(titleKey: "common.action.back", action: onBack)
