@@ -37,7 +37,7 @@ final class BookingActionsViewModel: Identifiable {
     }
 
     var subtitle: String {
-        let service = slot.serviceName ?? String(localized: "schedule.slot.noService")
+        let service = slot.serviceName ?? String(localized: "service.none")
 
         return "\(SlotWhen.text(for: slot)) · \(service)"
     }

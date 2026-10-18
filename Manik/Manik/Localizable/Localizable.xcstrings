@@ -2263,23 +2263,6 @@
         }
       }
     },
-    "schedule.slot.noService" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No service"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Без послуги"
-          }
-        }
-      }
-    },
     "schedule.title" : {
       "localizations" : {
         "en" : {
@@ -2292,6 +2275,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Розклад"
+          }
+        }
+      }
+    },
+    "service.none" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No service"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Без послуги"
           }
         }
       }
