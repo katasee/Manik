@@ -120,6 +120,20 @@
   not extracted (it is tangled with loading/disabled states and three roles); the client card's
   "Зв'язатися" menu label is drawn privately as a `.cardSurface` row (M-32.5, user decision: it
   matches the list rows instead of the primary capsule) — extract it when a second one appears.
+  `BookingActionLabel` (M-34.2) follows the same rule: one row look, used as a `Button` label for
+  three actions and as the `ClientContactMenu` label for "Написати".
+- **A row inside `SwipeToDelete` is tapped with `.onTapGesture`, not a `Button`** (found on a
+  device in M-34.2). A `Button` fires on release whenever the finger is still over it, however
+  far it moved — and a swiped row moves with the finger, so every swipe also "tapped" the row and
+  opened its popup. A tap gesture fails as soon as the finger moves. Add
+  `.accessibilityAddTraits(.isButton)` so VoiceOver still reads it as a button (`ScheduleSlotRow`,
+  and Мої послуги's `ServiceRow`, which already did this).
+- **A screen can push another feature's screen; it does so by id, after its popup is gone.**
+  Розклад has its own `NavigationStack` (M-34.2) and pushes Клієнтки's `ClientCardView` with
+  `navigationDestination(item:)` over a plain `String` id — not `ClientRoute`, which stays private
+  to Клієнтки's stack. The push comes from "Картка клієнтки" inside a `fullScreenCover`, and
+  navigating while a cover is still dismissing can be dropped, so the tap only stores
+  `pendingCardClientId` and the cover's `onDismiss` moves it into `openCardClientId`.
 - **Input masking uses `.onChange`, never `Binding(get:set:)`.** The obvious way to cap or reformat
   what a `TextField` accepts — a computed binding whose `set` filters the incoming string — **does
   not work**: when the filtered result equals the value the property already held, nothing
