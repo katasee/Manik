@@ -16,9 +16,13 @@ struct ClientDirectory {
         Array(clientsById.values)
     }
 
+    func client(for clientId: String) -> Client? {
+        clientsById[clientId]
+    }
+
     func name(for clientId: String) -> String {
         guard isLoaded else { return "" }
 
-        return clientsById[clientId]?.displayName ?? String(localized: "schedule.slot.clientDeleted")
+        return client(for: clientId)?.displayName ?? String(localized: "schedule.slot.clientDeleted")
     }
 }
