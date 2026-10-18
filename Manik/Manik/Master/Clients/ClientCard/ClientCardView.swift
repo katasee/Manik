@@ -31,6 +31,9 @@ struct ClientCardView: View {
         .task {
             await viewModel.observeClient()
         }
+        .task {
+            await viewModel.observeVisits()
+        }
         .onChange(of: viewModel.isDeleted) {
             closeIfDeleted()
         }
@@ -58,6 +61,12 @@ struct ClientCardView: View {
             VStack(spacing: ClientsMetrics.Spacing.cardSectionSpacing) {
                 profile(card)
                 contact(card)
+
+                TimelineView(.everyMinute) { context in
+                    if let visits = viewModel.visits(now: context.date) {
+                        visitSections(visits)
+                    }
+                }
             }
             .padding(.horizontal, ClientsMetrics.Spacing.horizontalPadding)
             .padding(.top, ClientsMetrics.Spacing.cardTopPadding)
@@ -98,6 +107,17 @@ struct ClientCardView: View {
             ClientContactMenu(contacts: card.contacts) {
                 contactLabel
             }
+        }
+    }
+
+    @ViewBuilder
+    private func visitSections(_ visits: ClientVisits) -> some View {
+        if visits.planned.isEmpty == false {
+            ClientVisitsSection(titleKey: "clients.section.planned", visits: visits.planned)
+        }
+
+        if visits.showsHistory {
+            ClientVisitsSection(titleKey: "clients.section.history", visits: visits.history)
         }
     }
 
