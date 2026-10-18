@@ -1,0 +1,80 @@
+import SwiftUI
+
+struct BookingActionsPopup: View {
+    let viewModel: BookingActionsViewModel
+    let onOpenCard: (String) -> Void
+    let onDismiss: () -> Void
+
+    @State private var isConfirmingCancel = false
+
+    var body: some View {
+        PopupContainer(dismissLabel: "common.action.close", onDismiss: onDismiss) { dismiss in
+            SchedulePopupHeader(title: viewModel.title, subtitle: viewModel.subtitle)
+
+            switch viewModel.mode {
+            case .actions:
+                BookingActionsList(
+                    contacts: viewModel.contacts,
+                    canChangeService: viewModel.canChangeService,
+                    canOpenCard: viewModel.cardClientId != nil,
+                    onChangeService: viewModel.startChangingService,
+                    onOpenCard: { openCard(then: dismiss) },
+                    onCancelBooking: confirmCancel
+                )
+                .alert("schedule.actions.cancel.title", isPresented: $isConfirmingCancel) {
+                    Button("schedule.actions.cancelBooking", role: .destructive) {
+                        cancelBooking(then: dismiss)
+                    }
+
+                    Button("common.action.back", role: .cancel) {}
+                } message: {
+                    Text("schedule.actions.cancel.message")
+                }
+
+                PopupDismissButton(titleKey: "common.action.close", action: dismiss)
+            case .changeService:
+                BookingServiceEditor(
+                    chips: viewModel.services,
+                    canSave: viewModel.hasServiceChanged,
+                    onToggle: viewModel.toggleService,
+                    onBack: viewModel.stopChangingService,
+                    onSave: { saveService(then: dismiss) }
+                )
+            }
+        }
+    }
+
+    private func openCard(then dismiss: () -> Void) {
+        guard let clientId = viewModel.cardClientId else { return }
+
+        onOpenCard(clientId)
+        dismiss()
+    }
+
+    private func confirmCancel() {
+        isConfirmingCancel = true
+    }
+
+    private func cancelBooking(then dismiss: () -> Void) {
+        viewModel.cancelBooking()
+        dismiss()
+    }
+
+    private func saveService(then dismiss: () -> Void) {
+        viewModel.saveService()
+        dismiss()
+    }
+}
+
+#if DEBUG
+#Preview {
+    Color.background
+        .overlay {
+            BookingActionsPopup(
+                viewModel: SchedulePreviewData.bookingActions,
+                onOpenCard: { _ in },
+                onDismiss: {}
+            )
+        }
+}
+#endif

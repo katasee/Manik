@@ -34,6 +34,11 @@ enum ScheduleMetrics {
         static let bookRowCornerRadius: CGFloat = 14
         static let bookCheck: CGFloat = 14
         static let serviceChipMinWidth: CGFloat = 140
+        static let actionRowHeight: CGFloat = 56
+        static let actionRowCornerRadius: CGFloat = 16
+        static let actionTitle: CGFloat = 16
+        static let actionIcon: CGFloat = 17
+        static let actionIconColumn: CGFloat = 40
     }
 
     enum Spacing {
@@ -56,5 +61,8 @@ enum ScheduleMetrics {
         static let bookOptionSpacing: CGFloat = 2
         static let bookRowPadding: CGFloat = 8
         static let bookRowContentSpacing: CGFloat = 12
+        static let actionSpacing: CGFloat = 8
+        static let actionContentSpacing: CGFloat = 12
+        static let actionRowPadding: CGFloat = 8
     }
 }

@@ -6,6 +6,9 @@ struct ScheduleView: View {
     @State private var fillMonth: FillMonthViewModel?
     @State private var jumpToDate: JumpToDateViewModel?
     @State private var bookClient: BookClientViewModel?
+    @State private var bookingActions: BookingActionsViewModel?
+    @State private var pendingCardClientId: String?
+    @State private var openCardClientId: String?
     @State private var pendingDelete: SlotItem?
     @State private var isConfirmingDelete = false
 
@@ -14,66 +17,80 @@ struct ScheduleView: View {
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            LargeTitleHeader(titleKey: "schedule.title") {
-                RoundIconButton(
-                    systemImage: "plus",
-                    accessibilityLabel: "schedule.action.addSlots",
-                    action: openFillMonth
+        NavigationStack {
+            VStack(spacing: 0) {
+                LargeTitleHeader(titleKey: "schedule.title") {
+                    RoundIconButton(
+                        systemImage: "plus",
+                        accessibilityLabel: "schedule.action.addSlots",
+                        action: openFillMonth
+                    )
+                    .disabled(viewModel.canFillMonth == false)
+                }
+
+                ScheduleMonthButton(title: viewModel.monthTitle, action: openJumpToDate)
+
+                WeekDayStrip(selectedDate: $viewModel.selectedDate)
+                    .padding(.vertical, ScheduleMetrics.Spacing.stripVerticalPadding)
+
+                TimelineView(.everyMinute) { context in
+                    content(viewModel.items(now: context.date))
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(Color.background)
+            .toolbar(.hidden, for: .navigationBar)
+            .navigationDestination(item: $openCardClientId) { clientId in
+                ClientCardView(viewModel: viewModel.makeClientCardViewModel(clientId: clientId))
+            }
+            .simultaneousGesture(TapGesture().onEnded(closeOpenRow))
+            .task {
+                await viewModel.observeSlots()
+            }
+            .task {
+                await viewModel.observeClients()
+            }
+            .task {
+                await viewModel.observeServices()
+            }
+            .onChange(of: viewModel.selectedDate, closeOpenRow)
+            .fullScreenCover(item: $fillMonth) { fillMonth in
+                FillMonthPopup(viewModel: fillMonth, onDismiss: closeFillMonth)
+                    .presentationBackground(.clear)
+            }
+            .fullScreenCover(item: $bookClient) { bookClient in
+                BookClientPopup(viewModel: bookClient, onDismiss: closeBookClient)
+                    .presentationBackground(.clear)
+            }
+            .fullScreenCover(item: $bookingActions, onDismiss: openPendingCard) { bookingActions in
+                BookingActionsPopup(
+                    viewModel: bookingActions,
+                    onOpenCard: { pendingCardClientId = $0 },
+                    onDismiss: closeBookingActions
                 )
-                .disabled(viewModel.canFillMonth == false)
-            }
-
-            ScheduleMonthButton(title: viewModel.monthTitle, action: openJumpToDate)
-
-            WeekDayStrip(selectedDate: $viewModel.selectedDate)
-                .padding(.vertical, ScheduleMetrics.Spacing.stripVerticalPadding)
-
-            TimelineView(.everyMinute) { context in
-                content(viewModel.items(now: context.date))
-            }
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color.background)
-        .simultaneousGesture(TapGesture().onEnded(closeOpenRow))
-        .task {
-            await viewModel.observeSlots()
-        }
-        .task {
-            await viewModel.observeClients()
-        }
-        .task {
-            await viewModel.observeServices()
-        }
-        .onChange(of: viewModel.selectedDate, closeOpenRow)
-        .fullScreenCover(item: $fillMonth) { fillMonth in
-            FillMonthPopup(viewModel: fillMonth, onDismiss: closeFillMonth)
                 .presentationBackground(.clear)
-        }
-        .fullScreenCover(item: $bookClient) { bookClient in
-            BookClientPopup(viewModel: bookClient, onDismiss: closeBookClient)
-                .presentationBackground(.clear)
-        }
-        .alert(
-            "schedule.delete.booked.title",
-            isPresented: $isConfirmingDelete,
-            presenting: pendingDelete
-        ) { item in
-            Button("schedule.delete.booked.action", role: .destructive) {
-                delete(item)
             }
+            .alert(
+                "schedule.delete.booked.title",
+                isPresented: $isConfirmingDelete,
+                presenting: pendingDelete
+            ) { item in
+                Button("schedule.delete.booked.action", role: .destructive) {
+                    delete(item)
+                }
 
-            Button("common.action.cancel", role: .cancel) {}
-        } message: { item in
-            Text("schedule.delete.booked.message \(item.booking?.clientName ?? "")")
-        }
-        .fullScreenCover(item: $jumpToDate) { jumpToDate in
-            JumpToDatePopup(
-                viewModel: jumpToDate,
-                onPick: viewModel.select(dayId:),
-                onDismiss: closeJumpToDate
-            )
-            .presentationBackground(.clear)
+                Button("common.action.cancel", role: .cancel) {}
+            } message: { item in
+                Text("schedule.delete.booked.message \(item.booking?.clientName ?? "")")
+            }
+            .fullScreenCover(item: $jumpToDate) { jumpToDate in
+                JumpToDatePopup(
+                    viewModel: jumpToDate,
+                    onPick: viewModel.select(dayId:),
+                    onDismiss: closeJumpToDate
+                )
+                .presentationBackground(.clear)
+            }
         }
     }
 
@@ -111,9 +128,11 @@ struct ScheduleView: View {
                         cornerRadius: ScheduleMetrics.Size.rowCornerRadius,
                         onDelete: { requestDelete(item) }
                     ) {
-                        ScheduleSlotRow(item: item) {
-                            openBookClient(item)
-                        }
+                        ScheduleSlotRow(
+                            item: item,
+                            onBook: { openBookClient(item) },
+                            onOpenActions: { openBookingActions(item) }
+                        )
                         .accessibilityAction(named: Text("schedule.action.deleteSlot")) {
                             requestDelete(item)
                         }
@@ -165,6 +184,23 @@ struct ScheduleView: View {
         withoutPresentationAnimation {
             bookClient = nil
         }
+    }
+
+    private func openBookingActions(_ item: SlotItem) {
+        withoutPresentationAnimation {
+            bookingActions = viewModel.makeBookingActionsViewModel(slotId: item.id)
+        }
+    }
+
+    private func closeBookingActions() {
+        withoutPresentationAnimation {
+            bookingActions = nil
+        }
+    }
+
+    private func openPendingCard() {
+        openCardClientId = pendingCardClientId
+        pendingCardClientId = nil
     }
 
     private func requestDelete(_ item: SlotItem) {

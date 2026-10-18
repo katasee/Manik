@@ -1977,6 +1977,25 @@ numbering drifts every time an item is added or closed (it already did once: PR9
   drags on every row: probably only a swipe that starts on empty space, or a right-swipe for
   "previous day" since rows only open to the left — decide when it is picked up.
 
+- **A big button in Розклад's empty state** (user request, 2026-10-18, during M-34.2, on a
+  screenshot of an empty day). Today an empty day shows only "Немає вікон" / "Натисніть +, щоб
+  додати вільні вікна" and the action is the small "+" in the header. Put a large button in the
+  middle of the screen instead of (or under) that hint. Open when picked up: whether it opens the
+  same "+" choice (Заповнити місяць today; "Своя справа" joins it in M-37) or Заповнити місяць
+  directly, whether the hint text stays, and whether the loading-failed state gets it too (it
+  shouldn't — nothing can be added there).
+
+- **One popup state in `ScheduleView`** (user question, 2026-10-18, during M-34.2; do it as its own
+  PR before M-36, which adds the next popup). `ScheduleView` holds a separate `@State` for every
+  popup (`fillMonth`, `jumpToDate`, `bookClient`, `bookingActions`), each with its own
+  `fullScreenCover` and open/close pair. Replace them with one `enum SchedulePopup: Identifiable`
+  (a case per popup, carrying its view model), one `@State var popup`, and one `fullScreenCover`
+  with a `switch` — which also makes two popups at once impossible. Keep the booking actions'
+  `onDismiss` card hand-off (`pendingCardClientId` → `openCardClientId`) working: the single cover's
+  `onDismiss` runs for every popup, so it must only push when a card id is pending. Not a
+  performance fix — the states only re-run `body` when they change, and nothing there is slow —
+  it is about the view becoming the coordinator of every popup on the screen.
+
 - **Swift 6 language mode: make the models `Sendable`** (found 2026-10-16 in M-33.2's
   `swift-concurrency-pro` review). The project builds in Swift 5 mode (`SWIFT_VERSION = 5.0`), and a
   build with `SWIFT_STRICT_CONCURRENCY=complete` warns in every fake and stream because `Slot` and
