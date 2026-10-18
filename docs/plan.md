@@ -1817,6 +1817,34 @@ this file is just "what's done, what's next," not a design doc.
     (chips scrolling), `swift-concurrency-pro` and a clean-code/SOLID pass on the plan (3 fixes),
     and the user's device pass.
 
+- **M-34.3 — Recent visits on the client card** (branch `feature/pr-34.3-Recent-Visits`; last of
+  the three M-34 PRs, same design file). Under "Зв'язатися" the card shows "Заплановано" (future
+  bookings, nearest first) and "Історія записів" (past ones, newest first): date · service + price
+  or "Без послуги" · time. Rows are not tappable.
+  - User decisions (2026-10-18, replacing the spec's "one list, future marked Заплановано"): two
+    sections; "Заплановано" only when it has rows; "Історія записів" hides when there are planned
+    bookings but no past ones, and when there is nothing at all it shows "Ще немає записів" on the
+    page background (no card). Vertically centring that line in the free space was built and
+    reverted (user).
+  - Data: no new query. `ClientCardViewModel` takes a `SlotRepository` (both factories pass theirs;
+    Розклад its own) and listens to the same bounded `observeSlots()`, keeping her `clientId`.
+    `visitSlots` is `nil` until the first snapshot and after a failure, so neither section shows —
+    an empty list would claim she never came. `ClientVisits` (planned/history, `showsHistory`) and
+    `ClientVisitItem` are presentation models; `TimelineView(.everyMinute)` moves a booking into
+    the history at its start time.
+  - `ServiceFormat.summary(name:price:)` is the one "service · price / Без послуги" text for
+    Розклад and the card; the key `schedule.slot.noService` became `service.none` (app-wide). The
+    booking actions' subtitle still shows the name without a price — a different rule, kept.
+    `ClientVisitsSection` takes its empty text as a parameter (`clients.visits.empty`).
+  - SOLID pass on the plan (user request): a separate visits view model, a narrower
+    `SlotObserving` protocol and a card factory instead of passing repositories were all
+    considered and kept out (user). `ClientVisitItem` got its own file — the section reads it
+    without `ClientVisits`, so the "type serving one neighbour" rule did not apply.
+  - Verified: `xcodebuild` after every step, a throwaway `swiftc` layout probe (for the reverted
+    centring), `swiftui-pro` reviews of the plan (call `visits(now:)` once; dividers by id, not
+    `enumerated()`) and of the branch (empty text as a parameter; a year in far-future dates left
+    for later). Device pass not done yet.
+
 ## Screens (in order)
 
 This is the actual work queue, and the only numbered list here. The ordering follows the **data
@@ -1967,8 +1995,8 @@ those items are referred to by name, so the list can grow without renumbering an
       Three PRs:
       1. ~~**M-34.1 Book a client**~~ — **done** (under "Done").
       2. ~~**M-34.2 Booking actions**~~ — **done** (under "Done").
-      3. **M-34.3 Recent visits on the client card** — under "Зв'язатися", from the slots already
-         read (3 months + ahead), future ones marked "Заплановано".
+      3. ~~**M-34.3 Recent visits on the client card**~~ — **done** (under "Done"). M-34 is
+         finished; next is M-35.
    6. **M-35 Publishing** — free windows as a 9:16 image (layout A) and as text, Надіслати прайс,
       "Надіслати @нік". (The "favourite services" item was dropped on 2026-10-17: the star in Мої
       послуги stays a filter — only starred services are offered when booking, see M-34.)

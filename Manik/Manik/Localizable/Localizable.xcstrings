@@ -1411,6 +1411,38 @@
         }
       }
     },
+    "clients.section.history" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Booking history"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Історія записів"
+          }
+        }
+      }
+    },
+    "clients.section.planned" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Upcoming"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Заплановано"
+          }
+        }
+      }
+    },
     "clients.section.recent" : {
       "localizations" : {
         "en" : {
@@ -1439,6 +1471,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Клієнтки"
+          }
+        }
+      }
+    },
+    "clients.visits.empty" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No bookings yet"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ще немає записів"
           }
         }
       }
@@ -2263,23 +2311,6 @@
         }
       }
     },
-    "schedule.slot.noService" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No service"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Без послуги"
-          }
-        }
-      }
-    },
     "schedule.title" : {
       "localizations" : {
         "en" : {
@@ -2292,6 +2323,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Розклад"
+          }
+        }
+      }
+    },
+    "service.none" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No service"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Без послуги"
           }
         }
       }

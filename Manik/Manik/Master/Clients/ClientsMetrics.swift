@@ -15,6 +15,9 @@ enum ClientsMetrics {
         static let contactIcon: CGFloat = 14
         static let contactMinHeight: CGFloat = 50
         static let noContactsCornerRadius: CGFloat = 20
+        static let visitDate: CGFloat = 16
+        static let visitService: CGFloat = 14
+        static let visitTime: CGFloat = 15
     }
 
     enum Spacing {
@@ -34,5 +37,6 @@ enum ClientsMetrics {
         static let cardSectionSpacing: CGFloat = 20
         static let contactIconSpacing: CGFloat = 6
         static let noContactsPadding: CGFloat = 16
+        static let visitTextSpacing: CGFloat = 2
     }
 }

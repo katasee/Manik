@@ -6,12 +6,7 @@ struct SlotBookingItem {
 
     init(slot: Slot, clientName: String) {
         self.clientName = clientName
-
-        if let serviceName = slot.serviceName, let servicePrice = slot.servicePrice {
-            serviceText = "\(serviceName) · \(ServiceFormat.price(servicePrice))"
-        } else {
-            serviceText = String(localized: "schedule.slot.noService")
-        }
+        serviceText = ServiceFormat.summary(name: slot.serviceName, price: slot.servicePrice)
     }
 }
 

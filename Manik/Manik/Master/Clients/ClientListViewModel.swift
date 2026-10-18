@@ -11,9 +11,14 @@ final class ClientListViewModel {
     private var clients: [Client] = []
 
     private let clientRepository: ClientRepository
+    private let slotRepository: SlotRepository
 
-    init(clientRepository: ClientRepository = FirestoreClientRepository()) {
+    init(
+        clientRepository: ClientRepository = FirestoreClientRepository(),
+        slotRepository: SlotRepository = FirestoreSlotRepository()
+    ) {
         self.clientRepository = clientRepository
+        self.slotRepository = slotRepository
     }
 
     var items: [ClientItem] {
@@ -48,7 +53,8 @@ final class ClientListViewModel {
         ClientCardViewModel(
             clientId: id,
             takenHandles: clients.takenHandles,
-            clientRepository: clientRepository
+            clientRepository: clientRepository,
+            slotRepository: slotRepository
         )
     }
 }

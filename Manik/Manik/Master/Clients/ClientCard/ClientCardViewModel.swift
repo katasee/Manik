@@ -6,19 +6,23 @@ import Observation
 final class ClientCardViewModel {
     private(set) var isDeleted = false
     private var client: Client?
+    private var visitSlots: [Slot]?
 
     private let clientId: String
     private let takenHandles: Set<String>
     private let clientRepository: ClientRepository
+    private let slotRepository: SlotRepository
 
     init(
         clientId: String,
         takenHandles: Set<String>,
-        clientRepository: ClientRepository
+        clientRepository: ClientRepository,
+        slotRepository: SlotRepository
     ) {
         self.clientId = clientId
         self.takenHandles = takenHandles
         self.clientRepository = clientRepository
+        self.slotRepository = slotRepository
     }
 
     var card: ClientCard? {
@@ -40,6 +44,20 @@ final class ClientCardViewModel {
             }
         } catch {
             return
+        }
+    }
+
+    func visits(now: Date) -> ClientVisits? {
+        visitSlots.map { ClientVisits(slots: $0, now: now) }
+    }
+
+    func observeVisits() async {
+        do {
+            for try await slots in slotRepository.observeSlots() {
+                visitSlots = slots.filter { $0.clientId == clientId }
+            }
+        } catch {
+            visitSlots = nil
         }
     }
 
