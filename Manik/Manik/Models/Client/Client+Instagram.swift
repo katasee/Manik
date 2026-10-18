@@ -24,3 +24,9 @@ extension Client {
         return path.first.map(String.init) ?? ""
     }
 }
+
+extension Sequence where Element == Client {
+    var takenHandles: Set<String> {
+        Set(compactMap { $0.instagram.map(Client.normalizedInstagram) })
+    }
+}

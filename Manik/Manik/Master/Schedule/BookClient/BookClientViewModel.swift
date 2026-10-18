@@ -8,10 +8,9 @@ final class BookClientViewModel: Identifiable {
 
     private var picker = ClientPicker()
     private var clients: [Client]
-    private var selectedServiceId: String?
+    private var serviceChoice: ServiceChoice
 
     private let slot: Slot
-    private let offeredServices: [Service]
     private let slotRepository: SlotRepository
     private let clientRepository: ClientRepository
 
@@ -24,9 +23,7 @@ final class BookClientViewModel: Identifiable {
     ) {
         self.slot = slot
         self.clients = clients
-        offeredServices = services
-            .filter(\.isOffered)
-            .sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
+        serviceChoice = ServiceChoice(services: services)
         self.slotRepository = slotRepository
         self.clientRepository = clientRepository
     }
@@ -37,11 +34,7 @@ final class BookClientViewModel: Identifiable {
     }
 
     var subtitle: String {
-        let day = DateFormat.date
-            .date(from: slot.date)
-            .map(DateFormat.weekdayDayMonth.string(from:)) ?? slot.date
-
-        return "\(day) · \(DateFormat.displayTime(slot.time))"
+        SlotWhen.text(for: slot)
     }
 
     var options: [BookClientOption] {
@@ -49,15 +42,7 @@ final class BookClientViewModel: Identifiable {
     }
 
     var services: [BookServiceChip] {
-        offeredServices.compactMap { service in
-            service.id.map { id in
-                BookServiceChip(
-                    id: id,
-                    title: "\(service.name) · \(ServiceFormat.price(service.price))",
-                    isSelected: id == selectedServiceId
-                )
-            }
-        }
+        serviceChoice.chips
     }
 
     var canBook: Bool {
@@ -69,11 +54,11 @@ final class BookClientViewModel: Identifiable {
     }
 
     func toggleService(_ id: String) {
-        selectedServiceId = selectedServiceId == id ? nil : id
+        serviceChoice.toggle(id)
     }
 
     func makeNewClientForm() -> ClientFormViewModel {
-        ClientFormViewModel(takenHandles: takenHandles, clientRepository: clientRepository)
+        ClientFormViewModel(takenHandles: clients.takenHandles, clientRepository: clientRepository)
     }
 
     func select(newClient: Client) {
@@ -86,12 +71,8 @@ final class BookClientViewModel: Identifiable {
     func book() {
         guard let slotId = slot.id, let clientId = picker.selectedId else { return }
 
-        let service = offeredServices.first { $0.id == selectedServiceId }
+        let booking = SlotBooking(clientId: clientId, service: serviceChoice.selectedService)
 
-        try? slotRepository.book(slotId: slotId, SlotBooking(clientId: clientId, service: service))
-    }
-
-    private var takenHandles: Set<String> {
-        Set(clients.compactMap { $0.instagram.map(Client.normalizedInstagram) })
+        try? slotRepository.book(slotId: slotId, booking)
     }
 }
