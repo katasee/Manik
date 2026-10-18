@@ -29,6 +29,7 @@ private struct ClientVisitRow: View {
 
 struct ClientVisitsSection: View {
     let titleKey: LocalizedStringKey
+    let emptyKey: LocalizedStringKey
     let visits: [ClientVisitItem]
 
     var body: some View {
@@ -37,7 +38,7 @@ struct ClientVisitsSection: View {
                 .padding(.horizontal, ClientsMetrics.Spacing.sectionLabelInset)
 
             if visits.isEmpty {
-                Text("clients.history.empty")
+                Text(emptyKey)
                     .font(.elmsSans(.regular, ClientsMetrics.Size.cardDetails))
                     .foregroundStyle(Color.textSecondary)
                     .frame(maxWidth: .infinity)

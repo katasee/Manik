@@ -113,11 +113,19 @@ struct ClientCardView: View {
     @ViewBuilder
     private func visitSections(_ visits: ClientVisits) -> some View {
         if visits.planned.isEmpty == false {
-            ClientVisitsSection(titleKey: "clients.section.planned", visits: visits.planned)
+            ClientVisitsSection(
+                titleKey: "clients.section.planned",
+                emptyKey: "clients.visits.empty",
+                visits: visits.planned
+            )
         }
 
         if visits.showsHistory {
-            ClientVisitsSection(titleKey: "clients.section.history", visits: visits.history)
+            ClientVisitsSection(
+                titleKey: "clients.section.history",
+                emptyKey: "clients.visits.empty",
+                visits: visits.history
+            )
         }
     }
 
