@@ -85,7 +85,9 @@
   only grows (`slots`) is queried with a lower bound (`Slot.historyStart(now:)`, 3 months), not
   read whole; reads are billed per document across all masters. The same bound limits how far back
   Розклад's "Перейти до дати" calendar pages (`Slot.historyStartDate(now:)`, the `Date` that
-  `historyStart` formats), so it never offers months whose windows were not read.
+  `historyStart` formats), so it never offers months whose windows were not read. The client
+  card's bookings (M-34.3) reuse the same bounded query and filter by `clientId`; a full
+  per-client history would need its own `clientId ==` query, read whole on every card open.
 - **A new field added to a model whose collection already has documents must be optional.** Swift's
   synthesized `init(from:)` does **not** fall back to a property's default value — a missing key
   throws `keyNotFound`, so `var isActive = true` would break decoding for every pre-existing

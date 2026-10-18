@@ -56,7 +56,9 @@ Three tabs: **Розклад / Клієнтки / Статистика**. "Мо�
 
 1. **Clients** — add a client by Instagram handle and/or name (+ optional phone). Search by name,
    handle or phone. The card opens the client's Instagram profile (`https://instagram.com/<handle>`)
-   and/or calls / texts the phone.
+   and/or calls / texts the phone, and lists her bookings: "Заплановано" (nearest first) and
+   "Історія записів" (newest first, or "Ще немає записів") — from the slots already read, i.e. the
+   last 3 months and everything ahead, not a separate per-client query.
 2. **Free windows** — "+" → "Вільні вікна на місяць": select several days on a month grid, pick
    hours, add them all at once. Repeat for days with other hours. The month under the Розклад
    title opens a month calendar to jump straight to any day (back to the 3 months of history that
@@ -64,12 +66,13 @@ Three tabs: **Розклад / Клієнтки / Статистика**. "Мо�
 3. **Publish** — "Надіслати графік": the free windows from today as a 9:16 image for stories
    (list layout, one line per day: `1.10 Чт 10:00 · 13:00 · 16:00`) and as text for DMs/SMS.
    "Надіслати прайс" does the same for the price list.
-4. **Book** — tap a free window → search focused, recent clients first; if nobody matches,
-   "Додати @…" creates the client and books her in one tap; the service is optional (favourites
-   first).
-5. **Booking actions** — tap a booked slot → Перенести (to a free window or own time), Написати,
-   Скасувати запис. Where the recipient is known, "Надіслати @нік" copies the message and opens her
-   chat; the master pastes and sends.
+4. **Book** — tap a free window (past ones too) → one popup: search focused (an empty search
+   lists nobody), pick a client, optionally a service — only starred ones are offered — then
+   "Записати". "+ Нова клієнтка" is always there and opens the client form over the popup.
+5. **Booking actions** — tap a booked slot → Написати, Змінити послугу, Картка клієнтки (opens
+   inside Розклад), Скасувати запис (asks first); Перенести (to a free window or own time) comes in
+   M-36. A deleted client keeps only the actions on the window. Where the recipient is known,
+   "Надіслати @нік" copies the message and opens her chat; the master pastes and sends.
 6. **Personal plans** — "Своя справа" (boxing, gym): title, start–end, one date or weekly on chosen
    days, filled from the "Мої справи" list in one tap. A free window that overlaps a plan (assuming
    a 60-minute visit) is flagged and left out of what is published; it is not deleted.
