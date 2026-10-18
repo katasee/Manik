@@ -98,11 +98,7 @@ struct ClientCardView: View {
     @ViewBuilder
     private func contact(_ card: ClientCard) -> some View {
         if card.contacts.isEmpty {
-            Text("clients.card.noContacts")
-                .font(.elmsSans(.regular, ClientsMetrics.Size.cardDetails))
-                .foregroundStyle(Color.textSecondary)
-                .frame(maxWidth: .infinity)
-                .cardSurface(padding: ClientsMetrics.Spacing.noContactsPadding, cornerRadius: ClientsMetrics.Size.noContactsCornerRadius)
+            ClientNoContactsPlate()
         } else {
             ClientContactMenu(contacts: card.contacts) {
                 contactLabel

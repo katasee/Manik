@@ -14,7 +14,9 @@ struct ClientContactMenu<Label: View>: View {
     var body: some View {
         Menu {
             ForEach(contacts) { contact in
-                Button(contact.titleKey, systemImage: contact.systemImage) {
+                let item = ClientContactItem(contact: contact)
+
+                Button(item.titleKey, systemImage: item.systemImage) {
                     open(contact)
                 }
             }
@@ -27,24 +29,6 @@ struct ClientContactMenu<Label: View>: View {
         guard let url = contact.url else { return }
 
         openURL(url)
-    }
-}
-
-private extension ClientContact {
-    var titleKey: LocalizedStringKey {
-        switch self {
-        case .instagramProfile: "clients.contact.instagramProfile"
-        case .call: "clients.contact.call"
-        case .sms: "clients.contact.sms"
-        }
-    }
-
-    var systemImage: String {
-        switch self {
-        case .instagramProfile: "camera"
-        case .call: "phone"
-        case .sms: "message"
-        }
     }
 }
 
