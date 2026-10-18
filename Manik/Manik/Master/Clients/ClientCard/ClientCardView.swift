@@ -151,7 +151,8 @@ struct ClientCardView: View {
             viewModel: ClientCardViewModel(
                 clientId: ClientsPreviewData.clients[0].id ?? "",
                 takenHandles: [],
-                clientRepository: FakeClientRepository(clients: ClientsPreviewData.clients)
+                clientRepository: FakeClientRepository(clients: ClientsPreviewData.clients),
+                slotRepository: FakeSlotRepository(slots: ClientsPreviewData.visits)
             )
         )
     }

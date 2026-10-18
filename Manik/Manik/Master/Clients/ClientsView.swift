@@ -137,7 +137,8 @@ struct ClientsView: View {
 #Preview {
     ClientsView(
         viewModel: ClientListViewModel(
-            clientRepository: FakeClientRepository(clients: ClientsPreviewData.clients)
+            clientRepository: FakeClientRepository(clients: ClientsPreviewData.clients),
+            slotRepository: FakeSlotRepository(slots: ClientsPreviewData.visits)
         )
     )
 }

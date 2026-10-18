@@ -130,7 +130,8 @@ final class ScheduleViewModel {
         ClientCardViewModel(
             clientId: clientId,
             takenHandles: directory.clients.takenHandles,
-            clientRepository: clientRepository
+            clientRepository: clientRepository,
+            slotRepository: slotRepository
         )
     }
 
