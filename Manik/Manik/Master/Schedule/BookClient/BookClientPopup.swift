@@ -45,16 +45,7 @@ struct BookClientPopup: View {
 
     private var sections: some View {
         VStack(alignment: .leading, spacing: PopupContainerLayout.rowSpacing) {
-            VStack(alignment: .leading, spacing: ScheduleMetrics.Spacing.bookTitleSpacing) {
-                Text("schedule.book.title")
-                    .font(.elmsSans(.bold, ScheduleMetrics.Size.bookTitle))
-                    .foregroundStyle(Color.ink)
-                    .accessibilityAddTraits(.isHeader)
-
-                Text(verbatim: viewModel.subtitle)
-                    .font(.elmsSans(.regular, ScheduleMetrics.Size.bookSubtitle))
-                    .foregroundStyle(Color.textSecondary)
-            }
+            SchedulePopupHeader(title: String(localized: "schedule.book.title"), subtitle: viewModel.subtitle)
 
             SearchField(
                 text: $viewModel.searchText,

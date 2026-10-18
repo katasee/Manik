@@ -57,6 +57,16 @@ enum SchedulePreviewData {
     }
 
     @MainActor
+    static var bookingActions: BookingActionsViewModel {
+        BookingActionsViewModel(
+            slot: slots[1],
+            client: ClientsPreviewData.clients.first,
+            services: ServicesPreviewData.services,
+            slotRepository: FakeSlotRepository(slots: slots)
+        )
+    }
+
+    @MainActor
     static var fillMonth: FillMonthViewModel {
         let viewModel = FillMonthViewModel(
             month: .now,

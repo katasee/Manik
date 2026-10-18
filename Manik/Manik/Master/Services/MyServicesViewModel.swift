@@ -21,7 +21,7 @@ final class MyServicesViewModel {
 
     func observeServices() async {
         for await updatedServices in serviceRepository.observeServices() {
-            services = updatedServices.sorted(by: Self.byName)
+            services = updatedServices.sortedByName()
             hasLoaded = true
         }
     }
@@ -49,9 +49,5 @@ final class MyServicesViewModel {
 
     func makeFormViewModel(for mode: ServiceFormMode) -> ServiceFormViewModel {
         ServiceFormViewModel(mode: mode, serviceRepository: serviceRepository)
-    }
-
-    private static func byName(_ lhs: Service, _ rhs: Service) -> Bool {
-        lhs.name.localizedStandardCompare(rhs.name) == .orderedAscending
     }
 }

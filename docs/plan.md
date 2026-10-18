@@ -1780,6 +1780,43 @@ this file is just "what's done, what's next," not a design doc.
     scaling), `swift-concurrency-pro` review (the focus delay ignored cancellation; a method passed
     as a `@Sendable` closure), and the user's device pass.
 
+- **M-34.2 — Booking actions** (branch `feature/pr-34.2-Booking-Actions`; second of three M-34
+  PRs, same design file). Tapping a booked window opens "Дії із записом": title = the client's
+  name, subtitle = date · time · service.
+  - User decisions: Написати / Змінити послугу / Картка клієнтки / Скасувати запис (asks first);
+    "Перенести" waits for M-36. The card opens **inside Розклад** (pushed, back returns to the
+    day), not by switching to Клієнтки. "Змінити послугу" is a mode of the same popup (chips +
+    Назад / Зберегти), not a second popup. A deleted client keeps Змінити послугу and Скасувати
+    запис (they act on the window) and loses Написати and Картка (they need her document). A tap on
+    a booked row before clients load does nothing — no loader, the window is a fraction of a second
+    from the local cache; a failed clients listener leaving it dead was accepted as is.
+  - `ServiceChoice` (`Master/Schedule/ServiceChips/`, with the chips moved there) took the starred
+    filter, sort and toggle out of `BookClientViewModel`. Pinned to a booked slot, it shows the
+    booked service first and selected even when it is no longer starred or no longer exists, built
+    from the slot's snapshot with the booked price — otherwise opening "Змінити послугу" and saving
+    would silently drop it. Saving an unchanged choice writes nothing, so the snapshot's historic
+    price survives a later price change in Мої послуги.
+  - `Service+Order` (`sortedByName()`, `Models/Service/`) is the one service order for Мої послуги
+    and the chips; `takenHandles` became a `Sequence<Client>` property (three copies before);
+    `SlotWhen` and `SchedulePopupHeader` are shared by both Розклад popups.
+  - `BookingActionsViewModel` is built from a snapshot by `ScheduleViewModel` (`nil` for a free or
+    unknown slot and while clients are not loaded; `client == nil` means deleted). The popup's two
+    modes are separate views (`BookingActionsList`, `BookingServiceEditor`); `BookingActionLabel`
+    is the row's look only, so "Написати" can be a `Menu` label. Service chips scroll when they
+    don't fit, with the buttons outside.
+  - Розклад got a `NavigationStack`; the card is pushed by a plain `String` id
+    (`navigationDestination(item:)`), and only from the cover's `onDismiss`
+    (`pendingCardClientId` → `openCardClientId`).
+  - Found on a device: a swipe-to-delete on a row opened its popup, because a `Button` fires on
+    release whenever the finger is still over it — and the row moves with the finger. Rows inside
+    `SwipeToDelete` now use `.onTapGesture` (+ `.isButton`), like Мої послуги; free rows had the
+    same latent bug since M-34.1.
+  - Verified: `xcodebuild`, a throwaway `swiftc` check script (42/42: `ServiceChoice` with pinned
+    snapshots, the view model's title/contacts/save/cancel, "no write when unchanged", the factory
+    before and after clients load), `swiftui-pro` reviews of the plan (6 fixes) and of the code
+    (chips scrolling), `swift-concurrency-pro` and a clean-code/SOLID pass on the plan (3 fixes),
+    and the user's device pass.
+
 ## Screens (in order)
 
 This is the actual work queue, and the only numbered list here. The ordering follows the **data
@@ -1929,8 +1966,7 @@ those items are referred to by name, so the list can grow without renumbering an
    5. **M-34 Booking** — design in `docs/superpowers/specs/2026-10-17-m34-booking-design.md`.
       Three PRs:
       1. ~~**M-34.1 Book a client**~~ — **done** (under "Done").
-      2. **M-34.2 Booking actions** — tap a booked window: Написати, Змінити послугу, Картка
-         клієнтки, Скасувати запис (asks first). `clearBooking` already exists.
+      2. ~~**M-34.2 Booking actions**~~ — **done** (under "Done").
       3. **M-34.3 Recent visits on the client card** — under "Зв'язатися", from the slots already
          read (3 months + ahead), future ones marked "Заплановано".
    6. **M-35 Publishing** — free windows as a 9:16 image (layout A) and as text, Надіслати прайс,
@@ -1976,6 +2012,25 @@ numbering drifts every time an item is added or closed (it already did once: PR9
   strip swipes, by week). Watch the conflict with `SwipeToDelete`, which also reads horizontal
   drags on every row: probably only a swipe that starts on empty space, or a right-swipe for
   "previous day" since rows only open to the left — decide when it is picked up.
+
+- **A big button in Розклад's empty state** (user request, 2026-10-18, during M-34.2, on a
+  screenshot of an empty day). Today an empty day shows only "Немає вікон" / "Натисніть +, щоб
+  додати вільні вікна" and the action is the small "+" in the header. Put a large button in the
+  middle of the screen instead of (or under) that hint. Open when picked up: whether it opens the
+  same "+" choice (Заповнити місяць today; "Своя справа" joins it in M-37) or Заповнити місяць
+  directly, whether the hint text stays, and whether the loading-failed state gets it too (it
+  shouldn't — nothing can be added there).
+
+- **One popup state in `ScheduleView`** (user question, 2026-10-18, during M-34.2; do it as its own
+  PR before M-36, which adds the next popup). `ScheduleView` holds a separate `@State` for every
+  popup (`fillMonth`, `jumpToDate`, `bookClient`, `bookingActions`), each with its own
+  `fullScreenCover` and open/close pair. Replace them with one `enum SchedulePopup: Identifiable`
+  (a case per popup, carrying its view model), one `@State var popup`, and one `fullScreenCover`
+  with a `switch` — which also makes two popups at once impossible. Keep the booking actions'
+  `onDismiss` card hand-off (`pendingCardClientId` → `openCardClientId`) working: the single cover's
+  `onDismiss` runs for every popup, so it must only push when a card id is pending. Not a
+  performance fix — the states only re-run `body` when they change, and nothing there is slow —
+  it is about the view becoming the coordinator of every popup on the screen.
 
 - **Swift 6 language mode: make the models `Sendable`** (found 2026-10-16 in M-33.2's
   `swift-concurrency-pro` review). The project builds in Swift 5 mode (`SWIFT_VERSION = 5.0`), and a

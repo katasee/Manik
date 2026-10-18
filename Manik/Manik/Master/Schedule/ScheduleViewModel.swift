@@ -111,6 +111,29 @@ final class ScheduleViewModel {
         )
     }
 
+    func makeBookingActionsViewModel(slotId: String) -> BookingActionsViewModel? {
+        guard
+            directory.isLoaded,
+            let slot = slots.first(where: { $0.id == slotId }),
+            let clientId = slot.clientId
+        else { return nil }
+
+        return BookingActionsViewModel(
+            slot: slot,
+            client: directory.client(for: clientId),
+            services: services,
+            slotRepository: slotRepository
+        )
+    }
+
+    func makeClientCardViewModel(clientId: String) -> ClientCardViewModel {
+        ClientCardViewModel(
+            clientId: clientId,
+            takenHandles: directory.clients.takenHandles,
+            clientRepository: clientRepository
+        )
+    }
+
     func makeJumpToDateViewModel(now: Date = .now) -> JumpToDateViewModel {
         JumpToDateViewModel(
             selectedDate: selectedDate,
