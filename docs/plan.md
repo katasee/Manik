@@ -1845,6 +1845,32 @@ this file is just "what's done, what's next," not a design doc.
     `enumerated()`) and of the branch (empty text as a parameter; a year in far-future dates left
     for later). Device pass not done yet.
 
+- **M-35.1 — Send schedule popup (UI)** (branch `feature/pr-35-Publishing`; first of two M-35
+  PRs, design in `docs/superpowers/specs/2026-10-18-m35-send-schedule-design.md`). Not reachable
+  from the app yet — seen only in `#Preview`; M-35.2 adds the button on Розклад.
+  - `SendSchedulePopup` (`Master/Schedule/SendSchedule/`) switches three steps in place on
+    `SendScheduleMode`: **text** (title, `MonthHeader` — back stops at the current month — the
+    text in a card that scrolls when the month is long, "Немає вільних вікон" when `text` is nil,
+    "Скопіювати" / "Надіслати"), **recipient** (`SearchField` + `BookClientRow`s, "Назад") and
+    **contacts** (the client's name, "Графік скопійовано", one `BookingActionLabel` row per
+    contact — Instagram and SMS only, no "Подзвонити" (user) — or the no-contacts plate).
+  - **Pure UI, no view model** (user decision, following M-33.1): the popup takes `now`, a
+    fixture `text` and `clients: [ClientItem]`, and holds mode, month and search in `@State`.
+    A view model was built first and removed. The search shows every client once the field is
+    non-empty (no filtering yet).
+  - "Скопійовано" is view-only state in `SendScheduleTextStep`: `copyCount` + `.task(id:)`, so a
+    second tap restarts the 2 s; a cancelled sleep must not clear (`do/catch`, not `try?`); it
+    resets when the month changes. `.sensoryFeedback(.success)` on copy (user). Icons were
+    dropped from both buttons — "Скопійовано" with one does not fit half the width of the
+    smallest iPhone.
+  - Shared pieces left the client card: `ClientContactItem` (title key + SF Symbol of a
+    `ClientContact`, promoted from `ClientContactMenu`'s private extension when a second screen
+    needed it) and `ClientNoContactsPlate`.
+  - Verified: `xcodebuild` after every task; `swiftui-pro` on the plan (timer body out of
+    `.task`) and on the branch (haptic added; blank-search trimming left to M-35.2); a SOLID /
+    clean-code pass on the plan (reuse `ClientItem` instead of a new recipient type, the copied
+    state in the view, shared plate). Live preview and device pass by the user.
+
 ## Screens (in order)
 
 This is the actual work queue, and the only numbered list here. The ordering follows the **data
@@ -1997,9 +2023,20 @@ those items are referred to by name, so the list can grow without renumbering an
       2. ~~**M-34.2 Booking actions**~~ — **done** (under "Done").
       3. ~~**M-34.3 Recent visits on the client card**~~ — **done** (under "Done"). M-34 is
          finished; next is M-35.
-   6. **M-35 Publishing** — free windows as a 9:16 image (layout A) and as text, Надіслати прайс,
-      "Надіслати @нік". (The "favourite services" item was dropped on 2026-10-17: the star in Мої
-      послуги stays a filter — only starred services are offered when booking, see M-34.)
+   6. **M-35 Send the schedule** — design in
+      `docs/superpowers/specs/2026-10-18-m35-send-schedule-design.md`. Narrowed on 2026-10-18 (user):
+      text only, in the master's own Notes format; the stories image and "Надіслати прайс" moved to
+      the backlog. (The "favourite services" item was dropped on 2026-10-17: the star in Мої
+      послуги stays a filter — only starred services are offered when booking, see M-34.) Two PRs,
+      UI first:
+      1. ~~**M-35.1 Send schedule popup (UI)**~~ — **done** (under "Done").
+      2. **M-35.2 Send schedule logic** — next. `SendScheduleViewModel` takes over the popup's
+         `@State` (mode, `MonthPager`, search) and the month title (the view stops calling
+         `DateFormat`); the text from real slots (`d.MM-H:mm/H:mm`, free only, past ones dropped,
+         `DateFormat.messageDay`/`messageTime` pinned to `en_US_POSIX`); search through
+         `ClientPicker` (trims blanks — the UI placeholder doesn't); "Скопіювати" writes
+         `UIPasteboard`; Instagram opens the profile, SMS opens `sms:<phone>&body=<text>`; the
+         `paperplane` button left of "+" on Розклад opens the popup.
    7. **M-36 Reschedule**.
    8. **M-37 Personal plans** — `events` + `eventTemplates` (Мої справи), weekly repeat, conflict
       warnings. Add both to `FirestoreUserDataRepository.collections`.
@@ -2011,6 +2048,15 @@ Not a queue. These accumulate as they're found and get picked up when they block
 something nearby is already being touched. **No numbers on purpose** — cite them by name, since
 numbering drifts every time an item is added or closed (it already did once: PR9's entry pointed at
 "step 9" for what was item 10).
+
+- **Stories image of the free windows** (moved out of M-35 on 2026-10-18 — the master sends text
+  today). The pivot spec's layout A: the same lines as the M-35 text, 9:16, rendered with
+  `ImageRenderer` at 1080×1920 in the app's fonts and colours, shared with `ShareLink`. Natural
+  place: a third step or button in the "Надіслати графік" popup.
+
+- **"Надіслати прайс"** (moved out of M-35 on 2026-10-18). The price list as text (and later an
+  image) from Мої послуги, copied or sent like the schedule — reuse the popup's recipient and
+  contacts steps.
 
 - **System navigation bar and Liquid Glass for our buttons** (requested 2026-10-12 after
   M-32.2b's simulator pass; one PR, one root cause: we draw our own header instead of the system

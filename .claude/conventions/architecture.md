@@ -33,10 +33,14 @@
   the `extension` keyword would organize by language construct, exactly the layer-first mistake this
   section rejects. One exception: an extension of a **domain** type that only adds **presentation**
   (a title key, an SF Symbol) for a single view is a `private extension` in that view's file —
-  `ClientContact`'s menu titles and icons live in `ClientContactMenu.swift`, not in `Models/`,
-  which stays free of UI, and `private` keeps every other screen from depending on them. Once a
+  `Models/` stays free of UI, and `private` keeps every other screen from depending on them. Once a
   second screen needs the same look, promote it to a presentation model (`ClientItem`-style), not
-  to an `internal` extension. A type gets its own subfolder (`Models/Slot/`) once it spans more than one file;
+  to an `internal` extension — `ClientContact`'s title keys and icons started as a private
+  extension in `ClientContactMenu.swift` and became `ClientContactItem` (`Master/Clients/`) when
+  the "Надіслати графік" contacts step needed them (M-35.1). A feature view another feature
+  reuses stays in its own feature folder, as `ClientContactMenu` and `ClientNoContactsPlate` do
+  for Розклад; it moves to `Assets/UICommons/` only once it no longer depends on that feature's
+  types (`ClientsMetrics`, keys). A type gets its own subfolder (`Models/Slot/`) once it spans more than one file;
   single-file types stay flat. **A type that exists only to serve one neighbour lives in that
   neighbour's file, not in its own** — `StatsRoute` sits with `StatsLinkRow`, `MonthlyTotals`
   with `StatsCalculator`. Order inside such a file is supporting type first, the file's namesake second. This is not a licence to pile unrelated
