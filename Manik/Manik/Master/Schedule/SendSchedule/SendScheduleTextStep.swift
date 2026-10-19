@@ -10,7 +10,6 @@ struct SendScheduleTextStep: View {
     let onSend: () -> Void
 
     @State private var copyCount = 0
-    @State private var textHeight: CGFloat?
 
     private var isCopied: Bool {
         copyCount > 0
@@ -29,9 +28,6 @@ struct SendScheduleTextStep: View {
         }
         .onChange(of: text) {
             copyCount = 0
-        }
-        .sensoryFeedback(.success, trigger: copyCount) { _, newValue in
-            newValue > 0
         }
     }
 
@@ -62,14 +58,8 @@ struct SendScheduleTextStep: View {
                     .lineSpacing(ScheduleMetrics.Spacing.sendLineSpacing)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(ScheduleMetrics.Spacing.sendCardPadding)
-                    .onGeometryChange(for: CGFloat.self) { proxy in
-                        proxy.size.height
-                    } action: { height in
-                        textHeight = height
-                    }
             }
-            .frame(maxHeight: textHeight)
-            .opacity(textHeight == nil ? 0 : 1)
+            .frame(height: ScheduleMetrics.Size.sendCardHeight)
             .scrollBounceBehavior(.basedOnSize)
             .scrollIndicators(.hidden)
             .cardSurface(padding: 0, cornerRadius: ScheduleMetrics.Size.sendCardCornerRadius)
@@ -78,7 +68,8 @@ struct SendScheduleTextStep: View {
                 .font(.elmsSans(.regular, ScheduleMetrics.Size.sendText))
                 .foregroundStyle(Color.textSecondary)
                 .frame(maxWidth: .infinity)
-                .cardSurface(padding: ScheduleMetrics.Spacing.sendCardPadding, cornerRadius: ScheduleMetrics.Size.sendCardCornerRadius)
+                .frame(height: ScheduleMetrics.Size.sendCardHeight)
+                .cardSurface(padding: 0, cornerRadius: ScheduleMetrics.Size.sendCardCornerRadius)
         }
     }
 
@@ -87,6 +78,8 @@ struct SendScheduleTextStep: View {
             CapsuleButton(
                 titleKey: isCopied ? "schedule.send.copied" : "schedule.send.copy",
                 role: .secondary,
+                systemImage: isCopied ? "checkmark" : nil,
+                isIconOnly: isCopied,
                 isEnabled: text != nil,
                 fillsWidth: true,
                 action: copy
@@ -105,6 +98,7 @@ struct SendScheduleTextStep: View {
     private func copy() {
         copyCount += 1
         onCopy()
+        UINotificationFeedbackGenerator().notificationOccurred(.success)
     }
 
     @MainActor

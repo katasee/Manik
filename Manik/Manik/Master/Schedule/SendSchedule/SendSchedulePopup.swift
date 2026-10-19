@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct SendSchedulePopup: View {
+    @Environment(\.openURL) private var openURL
+
     @Bindable var viewModel: SendScheduleViewModel
     let onDismiss: () -> Void
 
@@ -44,7 +46,7 @@ struct SendSchedulePopup: View {
     private func contactsStep(_ recipient: ClientItem) -> some View {
         SendScheduleContactsStep(
             recipient: recipient,
-            onOpen: { _ in },
+            onOpen: open,
             onBack: viewModel.back
         )
     }
@@ -52,6 +54,12 @@ struct SendSchedulePopup: View {
     private func pick(_ clientId: String) {
         viewModel.pick(clientId)
         copy()
+    }
+
+    private func open(_ contact: ClientContact) {
+        guard let url = contact.url(message: viewModel.text ?? "") else { return }
+
+        openURL(url)
     }
 
     private func copy() {

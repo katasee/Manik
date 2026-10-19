@@ -1735,6 +1735,23 @@
         }
       }
     },
+    "schedule.action.sendSchedule" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Send schedule"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Надіслати графік"
+          }
+        }
+      }
+    },
     "schedule.actions.cancel.message" : {
       "localizations" : {
         "en" : {

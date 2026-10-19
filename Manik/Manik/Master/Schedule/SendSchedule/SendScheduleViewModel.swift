@@ -13,6 +13,7 @@ final class SendScheduleViewModel: Identifiable {
     let id = UUID()
 
     private(set) var mode = SendScheduleMode.text
+    private(set) var text: String?
     private var pager: MonthPager
     private var clientPicker = ClientPicker()
 
@@ -29,6 +30,7 @@ final class SendScheduleViewModel: Identifiable {
         self.clients = clients
         self.now = now
         pager = MonthPager(showing: now, earliest: now)
+        updateText()
     }
 
     var searchText: String {
@@ -44,24 +46,18 @@ final class SendScheduleViewModel: Identifiable {
         pager.canGoBack
     }
 
-    var text: String? {
-        ScheduleMessage.text(
-            slots: slots,
-            month: pager.grid,
-            now: now
-        )
-    }
-
     var options: [BookClientOption] {
         clientPicker.options(from: clients)
     }
 
     func showPreviousMonth() {
         pager.showPrevious()
+        updateText()
     }
 
     func showNextMonth() {
         pager.showNext()
+        updateText()
     }
 
     func startSending() {
@@ -84,5 +80,13 @@ final class SendScheduleViewModel: Identifiable {
         case .contacts:
             mode = .recipient
         }
+    }
+
+    private func updateText() {
+        text = ScheduleMessage.text(
+            slots: slots,
+            month: pager.grid,
+            now: now
+        )
     }
 }

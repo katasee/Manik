@@ -11,10 +11,11 @@ enum ScheduleMessage {
         let monthRange = monthStart..<nextMonthStart
         
         let offeredSlots = slots.filter { slot in
-            let isInMonth = monthRange.contains(slot.date)
+            guard monthRange.contains(slot.date) else { return false }
+
             let isBookable = slot.clientId == nil && slot.isPast(now: now) == false
-            
-            return isInMonth && isBookable
+
+            return isBookable
         }
         
         let dayTexts = Dictionary(grouping: offeredSlots, by: \.date)

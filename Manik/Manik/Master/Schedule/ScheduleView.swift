@@ -5,6 +5,7 @@ struct ScheduleView: View {
     @State private var openRowId: String?
     @State private var fillMonth: FillMonthViewModel?
     @State private var jumpToDate: JumpToDateViewModel?
+    @State private var sendSchedule: SendScheduleViewModel?
     @State private var bookClient: BookClientViewModel?
     @State private var bookingActions: BookingActionsViewModel?
     @State private var pendingCardClientId: String?
@@ -21,11 +22,18 @@ struct ScheduleView: View {
             VStack(spacing: 0) {
                 LargeTitleHeader(titleKey: "schedule.title") {
                     RoundIconButton(
+                        systemImage: "paperplane",
+                        accessibilityLabel: "schedule.action.sendSchedule",
+                        action: openSendSchedule
+                    )
+                    .disabled(viewModel.areSlotsReady == false)
+
+                    RoundIconButton(
                         systemImage: "plus",
                         accessibilityLabel: "schedule.action.addSlots",
                         action: openFillMonth
                     )
-                    .disabled(viewModel.canFillMonth == false)
+                    .disabled(viewModel.areSlotsReady == false)
                 }
 
                 ScheduleMonthButton(title: viewModel.monthTitle, action: openJumpToDate)
@@ -56,6 +64,10 @@ struct ScheduleView: View {
             .onChange(of: viewModel.selectedDate, closeOpenRow)
             .fullScreenCover(item: $fillMonth) { fillMonth in
                 FillMonthPopup(viewModel: fillMonth, onDismiss: closeFillMonth)
+                    .presentationBackground(.clear)
+            }
+            .fullScreenCover(item: $sendSchedule) { sendSchedule in
+                SendSchedulePopup(viewModel: sendSchedule, onDismiss: closeSendSchedule)
                     .presentationBackground(.clear)
             }
             .fullScreenCover(item: $bookClient) { bookClient in
@@ -159,6 +171,18 @@ struct ScheduleView: View {
     private func closeFillMonth() {
         withoutPresentationAnimation {
             fillMonth = nil
+        }
+    }
+
+    private func openSendSchedule() {
+        withoutPresentationAnimation {
+            sendSchedule = viewModel.makeSendScheduleViewModel()
+        }
+    }
+
+    private func closeSendSchedule() {
+        withoutPresentationAnimation {
+            sendSchedule = nil
         }
     }
 
