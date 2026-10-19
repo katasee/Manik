@@ -63,9 +63,11 @@ Three tabs: **Розклад / Клієнтки / Статистика**. "Мо�
    hours, add them all at once. Repeat for days with other hours. The month under the Розклад
    title opens a month calendar to jump straight to any day (back to the 3 months of history that
    are read, forward without limit).
-3. **Publish** — "Надіслати графік": the free windows from today as a 9:16 image for stories
-   (list layout, one line per day: `1.10 Чт 10:00 · 13:00 · 16:00`) and as text for DMs/SMS.
-   "Надіслати прайс" does the same for the price list.
+3. **Send the schedule** — "Надіслати графік" on Розклад: the free windows of a month (the
+   current one from now on, later ones whole; arrows like a calendar) as text in the master's own
+   format, one line per day — `1.10-9:00/11:00/13:00`, no title, no weekdays. "Скопіювати"
+   copies it; "Надіслати" picks a client by search, copies it and opens her Instagram profile or
+   an SMS with the text filled in. The stories image and the price list are out of scope for now.
 4. **Book** — tap a free window (past ones too) → one popup: search focused (an empty search
    lists nobody), pick a client, optionally a service — only starred ones are offered — then
    "Записати". "+ Нова клієнтка" is always there and opens the client form over the popup.
