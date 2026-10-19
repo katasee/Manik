@@ -123,7 +123,7 @@ struct SendScheduleTextStep: View {
     SendScheduleTextStep(
         monthTitle: "Жовтень 2026",
         canGoBack: false,
-        text: SchedulePreviewData.sendScheduleText,
+        text: SchedulePreviewData.sendSchedule.text,
         onPrevious: {},
         onNext: {},
         onCopy: {},
