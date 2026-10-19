@@ -11,6 +11,8 @@ enum DateFormat {
     static let dayMonth = templateFormatter("dMMMM")
     static let dayMonthShort = templateFormatter("dMMM")
     static let weekdayDayMonth = templateFormatter("EEEdMMMM")
+    static let messageDay = messageFormatter("d.MM")
+    static let messageTime = messageFormatter("H:mm")
 
     static let salonTimeZone = TimeZone(identifier: "Europe/Warsaw") ?? .current
 
@@ -44,6 +46,10 @@ enum DateFormat {
     private static let clockTime = templateFormatter("jmm")
 
     private static func storageFormatter(_ format: String) -> DateFormatter {
+        formatter(format, locale: Locale(identifier: "en_US_POSIX"))
+    }
+
+    private static func messageFormatter(_ format: String) -> DateFormatter {
         formatter(format, locale: Locale(identifier: "en_US_POSIX"))
     }
 
