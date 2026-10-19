@@ -30,6 +30,9 @@ struct SendScheduleTextStep: View {
         .onChange(of: text) {
             copyCount = 0
         }
+        .sensoryFeedback(.success, trigger: copyCount) { _, newValue in
+            newValue > 0
+        }
     }
 
     private var header: some View {
