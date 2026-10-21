@@ -20,7 +20,7 @@ final class ScheduleViewModel {
         DateFormat.monthYear.string(from: selectedDate).capitalized
     }
 
-    var canFillMonth: Bool {
+    var areSlotsReady: Bool {
         hasLoaded && hasFailed == false
     }
 
@@ -132,6 +132,14 @@ final class ScheduleViewModel {
             takenHandles: directory.clients.takenHandles,
             clientRepository: clientRepository,
             slotRepository: slotRepository
+        )
+    }
+
+    func makeSendScheduleViewModel(now: Date = .now) -> SendScheduleViewModel {
+        SendScheduleViewModel(
+            slots: slots,
+            clients: directory.clients,
+            now: now
         )
     }
 

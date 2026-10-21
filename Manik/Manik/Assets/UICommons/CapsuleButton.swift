@@ -10,6 +10,7 @@ struct CapsuleButton: View {
     let titleKey: LocalizedStringKey
     let role: CapsuleButtonRole
     var systemImage: String?
+    var isIconOnly = false
     var isLoading = false
     var isEnabled = true
     var fillsWidth = false
@@ -45,6 +46,7 @@ struct CapsuleButton: View {
                 .contentShape(.capsule)
         }
         .buttonStyle(PressableButtonStyle())
+        .accessibilityLabel(Text(titleKey))
         .foregroundStyle(labelColor)
         .disabled(isDisabled)
         .opacity(isDisabled ? Layout.disabledOpacity : 1)
@@ -59,14 +61,16 @@ struct CapsuleButton: View {
             HStack(spacing: Layout.iconSpacing) {
                 if let systemImage {
                     Image(systemName: systemImage)
-                        .font(.elmsSans(.bold, Layout.icon))
+                        .font(.elmsSans(.bold, isIconOnly ? Layout.title : Layout.icon))
                         .accessibilityHidden(true)
                 }
 
-                Text(titleKey)
-                    .font(.elmsSans(.semiBold, Layout.title))
-                    .lineLimit(1)
-                    .minimumScaleFactor(Layout.titleScale)
+                if isIconOnly == false {
+                    Text(titleKey)
+                        .font(.elmsSans(.semiBold, Layout.title))
+                        .lineLimit(1)
+                        .minimumScaleFactor(Layout.titleScale)
+                }
             }
         }
     }

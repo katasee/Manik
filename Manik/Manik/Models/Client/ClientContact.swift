@@ -14,4 +14,12 @@ enum ClientContact: Hashable, Identifiable {
         case .sms(let phone): URL(string: "sms:" + phone)
         }
     }
+
+    func url(message: String) -> URL? {
+        guard case .sms(let phone) = self else { return url }
+
+        let body = message.addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? ""
+
+        return URL(string: "sms:" + phone + "&body=" + body)
+    }
 }

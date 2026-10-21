@@ -92,34 +92,47 @@ enum SchedulePreviewData {
         )
     }
 
-    static let sendScheduleText = """
-        1.10-9:00/11:00/13:00/16:00
-        2.10-9:00/11:00/13:00
-        5.10-14:00/19:00
-        6.10-11:00/13:00
-        7.10-12:00/14:00
-        8.10-11:30/13:30/16:30
-        9.10-9:00/11:00/13:00
-        12.10-12:00/14:00
-        13.10-9:00/11:00/13:00
-        14.10-12:00/14:00/19:00
-        16.10-9:00/11:00/13:00
-        17.10-11:30
-        19.10-12:00/14:00/17:00/19:00
-        20.10-9:00/13:00
-        21.10-12:00/14:00
-        22.10-9:00/11:00/13:00/16:00
-        23.10-11:00/13:00/16:00
-        24.10-9:30
-        26.10-12:00/14:00/17:00/19:00
-        27.10-11:00/13:00
-        28.10-12:00/14:00
-        29.10-9:00/11:00/13:00/16:00
-        30.10-9:00/13:00/16:00
-        """
+    static let sendScheduleDays: [(day: Int, times: [String])] = [
+        (1, ["09:00", "11:00", "13:00", "16:00"]), (2, ["09:00", "11:00", "13:00"]), (5, ["14:00", "19:00"]),
+        (6, ["11:00", "13:00"]), (7, ["12:00", "14:00"]), (8, ["11:30", "13:30", "16:30"]),
+        (9, ["09:00", "11:00", "13:00"]), (12, ["12:00", "14:00"]), (13, ["09:00", "11:00", "13:00"]),
+        (14, ["12:00", "14:00", "19:00"]), (16, ["09:00", "11:00", "13:00"]), (17, ["11:30"]),
+        (19, ["12:00", "14:00", "17:00", "19:00"]), (20, ["09:00", "13:00"]), (21, ["12:00", "14:00"]),
+        (22, ["09:00", "11:00", "13:00", "16:00"]), (23, ["11:00", "13:00", "16:00"]), (24, ["09:30"]),
+        (26, ["12:00", "14:00", "17:00", "19:00"]), (27, ["11:00", "13:00"]), (28, ["12:00", "14:00"])
+    ]
+
+    static var sendScheduleSlots: [Slot] {
+        let freeSlots = sendScheduleDays.flatMap { day, times in
+            times.map { time in
+                Slot(id: "send-\(day)-\(time)", date: dayId(day), time: time)
+            }
+        }
+
+        return freeSlots + [Slot(id: "send-booked", date: dayId(5), time: "11:00", clientId: "client-olya")]
+    }
+
+    @MainActor
+    static var sendSchedule: SendScheduleViewModel {
+        SendScheduleViewModel(
+            slots: sendScheduleSlots,
+            clients: ClientsPreviewData.clients,
+            now: monthStart
+        )
+    }
 
     private static var today: String {
         DateFormat.date.string(from: .now)
+    }
+
+    private static var monthStart: Date {
+        MonthGrid(containing: .now).start
+    }
+
+    private static func dayId(_ day: Int) -> String {
+        let date = DateFormat.salonCalendar.date(byAdding: .day, value: day - 1, to: monthStart) ?? monthStart
+
+        return DateFormat.date.string(from: date)
     }
 
     private static var noon: Date {

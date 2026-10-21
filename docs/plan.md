@@ -1871,6 +1871,36 @@ this file is just "what's done, what's next," not a design doc.
     clean-code pass on the plan (reuse `ClientItem` instead of a new recipient type, the copied
     state in the view, shared plate). Live preview and device pass by the user.
 
+- **M-35.2 — Send schedule logic** (branch `feature/pr-35.2-Send-Schedule-Logic`; second of two
+  M-35 PRs). The "Надіслати графік" popup runs on real data and opens from a `paperplane` button
+  left of "+" on Розклад. M-35 is finished.
+  - `ScheduleMessage.text(slots:month:now:)` (`Master/Schedule/SendSchedule/`) builds the master's
+    format — one `d.MM-H:mm/H:mm` line per day, free and not past only, `nil` for an empty month —
+    with the new **message** formatters `DateFormat.messageDay`/`messageTime` (`en_US_POSIX`, see
+    `data-layer.md`). The month filter compares storage strings (`monthStart..<nextMonthStart`)
+    and runs *before* `isPast(now:)`: splitting the condition into named `let`s had lost the `&&`
+    short-circuit, and parsing every slot's start cost ~50 ms per call on 800 slots (~10 ms after).
+  - `SendScheduleViewModel` took over the popup's `@State`: mode, `MonthPager`, search through
+    `ClientPicker` (trims blanks). It gets a snapshot of slots and clients from
+    `ScheduleViewModel.makeSendScheduleViewModel()`; `text` is stored and recomputed only on a
+    month change. The popup keeps the UIKit side: `UIPasteboard` on "Скопіювати" and on picking a
+    client (the contacts step says "Графік скопійовано"), `openURL` for contacts.
+  - `ClientContact.url(message:)`: SMS opens `sms:<phone>&body=<text>` (percent-encoded with
+    `.alphanumerics`); Instagram has no prefill, so it opens the profile and the master pastes.
+  - `canFillMonth` → `areSlotsReady`, since it now enables both header buttons (a popup opened
+    before the slots load would show "Немає вільних вікон" from its snapshot for good).
+  - Device pass fixes (user): `.sensoryFeedback` stalled the first open per launch → haptic fired
+    in the copy action (`architecture.md`); "Скопійовано" became a checkmark (new
+    `CapsuleButton.isIconOnly`, the title stays the VoiceOver label); the text card has a fixed
+    height (`sendCardHeight` 280) so the arrows don't jump when a month is empty. Kept on purpose:
+    `now` is fixed when the popup opens, so a window starting while it is open stays listed (user:
+    not a bug, the popup lives seconds).
+  - Naming pass while the user practised reading the code: `first`/`next`/`days`/`free`/`isOpen`/
+    `line`/`times` became `monthStart`/`nextMonthStart`/`monthRange`/`offeredSlots`/`isBookable`/
+    `dayText`/`messageTimes`, and the shadowing `slots`/`times` were renamed.
+  - Verified: throwaway `swiftc` check of `ScheduleMessage` (7 cases) and of the SMS URL,
+    `xcodebuild` after every task, `swiftui-pro` on the plan; device pass by the user.
+
 ## Screens (in order)
 
 This is the actual work queue, and the only numbered list here. The ordering follows the **data
@@ -2030,13 +2060,8 @@ those items are referred to by name, so the list can grow without renumbering an
       послуги stays a filter — only starred services are offered when booking, see M-34.) Two PRs,
       UI first:
       1. ~~**M-35.1 Send schedule popup (UI)**~~ — **done** (under "Done").
-      2. **M-35.2 Send schedule logic** — next. `SendScheduleViewModel` takes over the popup's
-         `@State` (mode, `MonthPager`, search) and the month title (the view stops calling
-         `DateFormat`); the text from real slots (`d.MM-H:mm/H:mm`, free only, past ones dropped,
-         `DateFormat.messageDay`/`messageTime` pinned to `en_US_POSIX`); search through
-         `ClientPicker` (trims blanks — the UI placeholder doesn't); "Скопіювати" writes
-         `UIPasteboard`; Instagram opens the profile, SMS opens `sms:<phone>&body=<text>`; the
-         `paperplane` button left of "+" on Розклад opens the popup.
+      2. ~~**M-35.2 Send schedule logic**~~ — **done** (under "Done"). M-35 is finished; next is
+         M-36.
    7. **M-36 Reschedule**.
    8. **M-37 Personal plans** — `events` + `eventTemplates` (Мої справи), weekly repeat, conflict
       warnings. Add both to `FirestoreUserDataRepository.collections`.

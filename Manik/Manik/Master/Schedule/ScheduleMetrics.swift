@@ -41,6 +41,7 @@ enum ScheduleMetrics {
         static let actionIconColumn: CGFloat = 40
         static let sendText: CGFloat = 16
         static let sendCardCornerRadius: CGFloat = 18
+        static let sendCardHeight: CGFloat = 280
     }
 
     enum Spacing {
