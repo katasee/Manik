@@ -30,12 +30,7 @@ final class FirestoreSlotRepository: SlotRepository {
 
     func book(slotId: String, _ booking: SlotBooking) throws {
         try db.userCollection("slots").document(slotId).setData(
-            [
-                "clientId": booking.clientId,
-                "serviceId": booking.serviceId ?? FieldValue.delete(),
-                "serviceName": booking.serviceName ?? FieldValue.delete(),
-                "servicePrice": booking.servicePrice ?? FieldValue.delete()
-            ],
+            bookingFields(booking),
             merge: true,
             completion: nil
         )
@@ -43,18 +38,54 @@ final class FirestoreSlotRepository: SlotRepository {
 
     func clearBooking(slotId: String) throws {
         try db.userCollection("slots").document(slotId).setData(
-            [
-                "clientId": FieldValue.delete(),
-                "serviceId": FieldValue.delete(),
-                "serviceName": FieldValue.delete(),
-                "servicePrice": FieldValue.delete()
-            ],
+            clearedBookingFields,
             merge: true,
             completion: nil
         )
     }
 
+    func reschedule(
+        slotId: String,
+        _ booking: SlotBooking,
+        toDate date: String,
+        time: String
+    ) throws {
+        let collection = try db.userCollection("slots")
+        let target = collection.document(Slot.documentId(date: date, time: time))
+        let batch = db.batch()
+
+        batch.setData(
+            bookingFields(booking).merging(["date": date, "time": time]) { $1 },
+            forDocument: target,
+            merge: true
+        )
+        batch.setData(
+            clearedBookingFields,
+            forDocument: collection.document(slotId),
+            merge: true
+        )
+        batch.commit(completion: nil)
+    }
+
     func delete(id: String) throws {
         try db.userCollection("slots").document(id).delete(completion: nil)
+    }
+
+    private func bookingFields(_ booking: SlotBooking) -> [String: Any] {
+        [
+            "clientId": booking.clientId,
+            "serviceId": booking.serviceId ?? FieldValue.delete(),
+            "serviceName": booking.serviceName ?? FieldValue.delete(),
+            "servicePrice": booking.servicePrice ?? FieldValue.delete()
+        ]
+    }
+
+    private var clearedBookingFields: [String: Any] {
+        [
+            "clientId": FieldValue.delete(),
+            "serviceId": FieldValue.delete(),
+            "serviceName": FieldValue.delete(),
+            "servicePrice": FieldValue.delete()
+        ]
     }
 }

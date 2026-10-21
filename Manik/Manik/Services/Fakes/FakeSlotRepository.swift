@@ -46,25 +46,45 @@ final class FakeSlotRepository: SlotRepository {
     }
 
     func book(slotId: String, _ booking: SlotBooking) throws {
-        changeSlot(slotId) { slot in
-            slot.clientId = booking.clientId
-            slot.serviceId = booking.serviceId
-            slot.serviceName = booking.serviceName
-            slot.servicePrice = booking.servicePrice
-        }
+        changeSlot(slotId) { Self.apply(booking, to: &$0) }
     }
 
     func clearBooking(slotId: String) throws {
-        changeSlot(slotId) { slot in
-            slot.clientId = nil
-            slot.serviceId = nil
-            slot.serviceName = nil
-            slot.servicePrice = nil
+        changeSlot(slotId) { Self.apply(nil, to: &$0) }
+    }
+
+    func reschedule(
+        slotId: String,
+        _ booking: SlotBooking,
+        toDate date: String,
+        time: String
+    ) throws {
+        change { stored in
+            if let index = stored.firstIndex(where: { $0.id == slotId }) {
+                Self.apply(nil, to: &stored[index])
+            }
+
+            let targetId = Slot.documentId(date: date, time: time)
+
+            if let index = stored.firstIndex(where: { $0.id == targetId }) {
+                Self.apply(booking, to: &stored[index])
+            } else {
+                var slot = Slot(id: targetId, date: date, time: time)
+                Self.apply(booking, to: &slot)
+                stored.append(slot)
+            }
         }
     }
 
     func delete(id: String) throws {
         change { $0.removeAll { $0.id == id } }
+    }
+
+    private static func apply(_ booking: SlotBooking?, to slot: inout Slot) {
+        slot.clientId = booking?.clientId
+        slot.serviceId = booking?.serviceId
+        slot.serviceName = booking?.serviceName
+        slot.servicePrice = booking?.servicePrice
     }
 
     private func changeSlot(_ id: String, _ apply: (inout Slot) -> Void) {
