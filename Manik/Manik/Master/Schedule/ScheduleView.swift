@@ -1,13 +1,27 @@
 import SwiftUI
 
+private enum SchedulePopup: Identifiable {
+    case fillMonth(FillMonthViewModel)
+    case jumpToDate(JumpToDateViewModel)
+    case sendSchedule(SendScheduleViewModel)
+    case bookClient(BookClientViewModel)
+    case bookingActions(BookingActionsViewModel)
+
+    var id: ObjectIdentifier {
+        switch self {
+        case .fillMonth(let viewModel): viewModel.id
+        case .jumpToDate(let viewModel): viewModel.id
+        case .sendSchedule(let viewModel): viewModel.id
+        case .bookClient(let viewModel): viewModel.id
+        case .bookingActions(let viewModel): viewModel.id
+        }
+    }
+}
+
 struct ScheduleView: View {
     @State private var viewModel: ScheduleViewModel
     @State private var openRowId: String?
-    @State private var fillMonth: FillMonthViewModel?
-    @State private var jumpToDate: JumpToDateViewModel?
-    @State private var sendSchedule: SendScheduleViewModel?
-    @State private var bookClient: BookClientViewModel?
-    @State private var bookingActions: BookingActionsViewModel?
+    @State private var popup: SchedulePopup?
     @State private var pendingCardClientId: String?
     @State private var openCardClientId: String?
     @State private var pendingDelete: SlotItem?
@@ -62,25 +76,9 @@ struct ScheduleView: View {
                 await viewModel.observeServices()
             }
             .onChange(of: viewModel.selectedDate, closeOpenRow)
-            .fullScreenCover(item: $fillMonth) { fillMonth in
-                FillMonthPopup(viewModel: fillMonth, onDismiss: closeFillMonth)
+            .fullScreenCover(item: $popup, onDismiss: openPendingCard) { popup in
+                popupView(popup)
                     .presentationBackground(.clear)
-            }
-            .fullScreenCover(item: $sendSchedule) { sendSchedule in
-                SendSchedulePopup(viewModel: sendSchedule, onDismiss: closeSendSchedule)
-                    .presentationBackground(.clear)
-            }
-            .fullScreenCover(item: $bookClient) { bookClient in
-                BookClientPopup(viewModel: bookClient, onDismiss: closeBookClient)
-                    .presentationBackground(.clear)
-            }
-            .fullScreenCover(item: $bookingActions, onDismiss: openPendingCard) { bookingActions in
-                BookingActionsPopup(
-                    viewModel: bookingActions,
-                    onOpenCard: { pendingCardClientId = $0 },
-                    onDismiss: closeBookingActions
-                )
-                .presentationBackground(.clear)
             }
             .alert(
                 "schedule.delete.booked.title",
@@ -95,14 +93,30 @@ struct ScheduleView: View {
             } message: { item in
                 Text("schedule.delete.booked.message \(item.booking?.clientName ?? "")")
             }
-            .fullScreenCover(item: $jumpToDate) { jumpToDate in
-                JumpToDatePopup(
-                    viewModel: jumpToDate,
-                    onPick: viewModel.select(dayId:),
-                    onDismiss: closeJumpToDate
-                )
-                .presentationBackground(.clear)
-            }
+        }
+    }
+
+    @ViewBuilder
+    private func popupView(_ popup: SchedulePopup) -> some View {
+        switch popup {
+        case .fillMonth(let fillMonth):
+            FillMonthPopup(viewModel: fillMonth, onDismiss: closePopup)
+        case .jumpToDate(let jumpToDate):
+            JumpToDatePopup(
+                viewModel: jumpToDate,
+                onPick: viewModel.select(dayId:),
+                onDismiss: closePopup
+            )
+        case .sendSchedule(let sendSchedule):
+            SendSchedulePopup(viewModel: sendSchedule, onDismiss: closePopup)
+        case .bookClient(let bookClient):
+            BookClientPopup(viewModel: bookClient, onDismiss: closePopup)
+        case .bookingActions(let bookingActions):
+            BookingActionsPopup(
+                viewModel: bookingActions,
+                onOpenCard: { pendingCardClientId = $0 },
+                onDismiss: closePopup
+            )
         }
     }
 
@@ -163,68 +177,42 @@ struct ScheduleView: View {
     }
 
     private func openFillMonth() {
-        withoutPresentationAnimation {
-            fillMonth = viewModel.makeFillMonthViewModel()
-        }
-    }
-
-    private func closeFillMonth() {
-        withoutPresentationAnimation {
-            fillMonth = nil
-        }
+        open(.fillMonth(viewModel.makeFillMonthViewModel()))
     }
 
     private func openSendSchedule() {
-        withoutPresentationAnimation {
-            sendSchedule = viewModel.makeSendScheduleViewModel()
-        }
-    }
-
-    private func closeSendSchedule() {
-        withoutPresentationAnimation {
-            sendSchedule = nil
-        }
+        open(.sendSchedule(viewModel.makeSendScheduleViewModel()))
     }
 
     private func openJumpToDate() {
-        withoutPresentationAnimation {
-            jumpToDate = viewModel.makeJumpToDateViewModel()
-        }
-    }
-
-    private func closeJumpToDate() {
-        withoutPresentationAnimation {
-            jumpToDate = nil
-        }
+        open(.jumpToDate(viewModel.makeJumpToDateViewModel()))
     }
 
     private func openBookClient(_ item: SlotItem) {
-        withoutPresentationAnimation {
-            bookClient = viewModel.makeBookClientViewModel(slotId: item.id)
-        }
-    }
-
-    private func closeBookClient() {
-        withoutPresentationAnimation {
-            bookClient = nil
-        }
+        open(viewModel.makeBookClientViewModel(slotId: item.id).map(SchedulePopup.bookClient))
     }
 
     private func openBookingActions(_ item: SlotItem) {
+        open(viewModel.makeBookingActionsViewModel(slotId: item.id).map(SchedulePopup.bookingActions))
+    }
+
+    private func open(_ popup: SchedulePopup?) {
         withoutPresentationAnimation {
-            bookingActions = viewModel.makeBookingActionsViewModel(slotId: item.id)
+            self.popup = popup
         }
     }
 
-    private func closeBookingActions() {
+    private func closePopup() {
         withoutPresentationAnimation {
-            bookingActions = nil
+            popup = nil
         }
     }
 
     private func openPendingCard() {
+        guard let pendingCardClientId else { return }
+
         openCardClientId = pendingCardClientId
-        pendingCardClientId = nil
+        self.pendingCardClientId = nil
     }
 
     private func requestDelete(_ item: SlotItem) {
