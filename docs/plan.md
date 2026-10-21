@@ -1900,6 +1900,22 @@ this file is just "what's done, what's next," not a design doc.
     `dayText`/`messageTimes`, and the shadowing `slots`/`times` were renamed.
   - Verified: throwaway `swiftc` check of `ScheduleMessage` (7 cases) and of the SMS URL,
     `xcodebuild` after every task, `swiftui-pro` on the plan; device pass by the user.
+- **M-36.0 — One popup state in Розклад** (branch `feature/pr-36.0-Schedule-Popup-State`; a
+  refactor before M-36 adds the next popup, from the backlog). `ScheduleView` had a separate
+  `@State`, `fullScreenCover` and open/close pair for each of its five popups; now it has one
+  `private enum SchedulePopup: Identifiable` (a case per popup carrying its view model, in the same
+  file) and one `fullScreenCover` with a `switch`, so two popups at once are impossible.
+  - `id` is the view model's own `ObjectIdentifier`, not the case name: a new view model is always
+    a new cover, even for the same case.
+  - `open(_:)` takes `SchedulePopup?`: `makeBookClientViewModel`/`makeBookingActionsViewModel`
+    return `nil` for a slot that is gone, and `.map(SchedulePopup.bookClient)` keeps "no view model,
+    no popup" as before.
+  - The single cover's `onDismiss` runs for every popup, so `openPendingCard` pushes the client card
+    only when `pendingCardClientId` is set.
+  - `swiftui-pro` on the diff: the button actions went back into five one-line named methods
+    (`openFillMonth`, …) after the first pass had inlined them in `body`; the enum became `private`.
+  - Verified: `xcodebuild`; device pass by the user (all five popups, the card hand-off, no push
+    after other popups, reopening with a different slot).
 
 ## Screens (in order)
 
@@ -2062,7 +2078,8 @@ those items are referred to by name, so the list can grow without renumbering an
       1. ~~**M-35.1 Send schedule popup (UI)**~~ — **done** (under "Done").
       2. ~~**M-35.2 Send schedule logic**~~ — **done** (under "Done"). M-35 is finished; next is
          M-36.
-   7. **M-36 Reschedule**.
+   7. **M-36 Reschedule**. ~~**M-36.0 One popup state in Розклад**~~ — **done** (under "Done");
+      the reschedule popup is a new `SchedulePopup` case.
    8. **M-37 Personal plans** — `events` + `eventTemplates` (Мої справи), weekly repeat, conflict
       warnings. Add both to `FirestoreUserDataRepository.collections`.
    9. **M-38 Statistics on slots** — and delete `Block`/`blocks` (kept for Статистика since M-33.1).
@@ -2119,17 +2136,6 @@ numbering drifts every time an item is added or closed (it already did once: PR9
   same "+" choice (Заповнити місяць today; "Своя справа" joins it in M-37) or Заповнити місяць
   directly, whether the hint text stays, and whether the loading-failed state gets it too (it
   shouldn't — nothing can be added there).
-
-- **One popup state in `ScheduleView`** (user question, 2026-10-18, during M-34.2; do it as its own
-  PR before M-36, which adds the next popup). `ScheduleView` holds a separate `@State` for every
-  popup (`fillMonth`, `jumpToDate`, `bookClient`, `bookingActions`), each with its own
-  `fullScreenCover` and open/close pair. Replace them with one `enum SchedulePopup: Identifiable`
-  (a case per popup, carrying its view model), one `@State var popup`, and one `fullScreenCover`
-  with a `switch` — which also makes two popups at once impossible. Keep the booking actions'
-  `onDismiss` card hand-off (`pendingCardClientId` → `openCardClientId`) working: the single cover's
-  `onDismiss` runs for every popup, so it must only push when a card id is pending. Not a
-  performance fix — the states only re-run `body` when they change, and nothing there is slow —
-  it is about the view becoming the coordinator of every popup on the screen.
 
 - **Swift 6 language mode: make the models `Sendable`** (found 2026-10-16 in M-33.2's
   `swift-concurrency-pro` review). The project builds in Swift 5 mode (`SWIFT_VERSION = 5.0`), and a

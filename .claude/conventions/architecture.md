@@ -93,6 +93,10 @@
   the router. To keep a custom fade instead of the system slide-up, wrap the *state mutation* in a
   `Transaction` with `disablesAnimations = true` and animate inside the popup; never put
   `.transaction { }` on the modifier, which disables animations for the whole subtree.
+  A screen with several popups holds **one** optional enum (`SchedulePopup` in `ScheduleView`,
+  M-36.0: a case per popup carrying its view model, `id` from that view model) and one
+  `fullScreenCover` with a `switch`, not a `@State` and a cover per popup. The cover's `onDismiss`
+  then runs for every popup, so anything it does must check its own pending state first.
 - **The routers are a system `TabView`** (`Tab(_:systemImage:value:)` over `MasterTab`),
   which renders Liquid Glass on iOS 26 and the standard bar on 18 from the same code, with no
   `#available`. It owns the bottom safe area, including inside a screen's own `NavigationStack`, so
