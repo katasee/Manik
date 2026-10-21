@@ -132,6 +132,12 @@
   opened its popup. A tap gesture fails as soon as the finger moves. Add
   `.accessibilityAddTraits(.isButton)` so VoiceOver still reads it as a button (`ScheduleSlotRow`,
   and Мої послуги's `ServiceRow`, which already did this).
+- **Haptics fire imperatively on the tap, not through `.sensoryFeedback`** (found on a device in
+  M-35.2). The modifier prepares a feedback generator when its view *appears*, and the first one
+  per launch connects to the system haptics service on the main thread — the "Надіслати графік"
+  popup stalled visibly on its first open. `SendScheduleTextStep` calls
+  `UINotificationFeedbackGenerator().notificationOccurred(.success)` inside the button action
+  instead; the one-time cost moved to the first tap and was not noticeable there.
 - **A screen can push another feature's screen; it does so by id, after its popup is gone.**
   Розклад has its own `NavigationStack` (M-34.2) and pushes Клієнтки's `ClientCardView` with
   `navigationDestination(item:)` over a plain `String` id — not `ClientRoute`, which stays private

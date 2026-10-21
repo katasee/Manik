@@ -3,12 +3,15 @@
 - `Slot.date`/`time` (and the legacy `Block.date`/`startTime`/`endTime`) are plain `String`
   (`yyyy-MM-dd`/`HH:mm`) but must never be produced by an inline `DateFormatter` — always go
   through `Manik/Manik/Utilities/DateFormat.swift`.
-  That file splits into two kinds: **storage** formatters (`DateFormat.date`/`DateFormat.time`) pin
+  That file splits into three kinds: **storage** formatters (`DateFormat.date`/`DateFormat.time`) pin
   `en_US_POSIX` locale so the string written to Firestore can't be corrupted by device
   locale/calendar; **display** formatters (`DateFormat.dayNumber`/`weekdayLetter`/`monthYear`) use
   `Locale.current` so on-screen dates follow the app's language — the app is multilingual via the
-  String Catalog, so display formatters must never hardcode a locale. Both keep the salon's fixed
-  `TimeZone`. `firestore.rules` regex-validates the storage format server-side
+  String Catalog, so display formatters must never hardcode a locale; **message** formatters
+  (`DateFormat.messageDay`/`messageTime`, `d.MM`/`H:mm`, M-35.2) pin `en_US_POSIX` like storage
+  ones, because the "Надіслати графік" text is the master's own fixed format (`1.10-9:00/11:00`)
+  and must not follow the device locale either — but it is never stored, hence its own name. All
+  three keep the salon's fixed `TimeZone`. `firestore.rules` regex-validates the storage format server-side
   (`hasValidBlockFormat()`) as defense in depth. Times shown on screen must go through
   `DateFormat.displayTime(_:)` rather than printing the stored `HH:mm` string (`SlotItem.timeText`
   does) — it uses `setLocalizedDateFormatFromTemplate("jmm")`, so an English device gets
