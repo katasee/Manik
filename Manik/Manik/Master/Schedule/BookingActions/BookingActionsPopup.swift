@@ -40,6 +40,8 @@ struct BookingActionsPopup: View {
                     onBack: viewModel.stopChangingService,
                     onSave: { saveService(then: dismiss) }
                 )
+            case .reschedule:
+                EmptyView()
             }
         }
     }

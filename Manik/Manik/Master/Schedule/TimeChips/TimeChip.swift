@@ -1,7 +1,7 @@
 import SwiftUI
 
-struct FillMonthTimeChip: View {
-    let time: FillMonthTime
+struct TimeChip: View {
+    let time: TimeChipItem
     let action: () -> Void
 
     var body: some View {

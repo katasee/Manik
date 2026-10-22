@@ -4,6 +4,7 @@ import Observation
 enum BookingActionsMode {
     case actions
     case changeService
+    case reschedule
 }
 
 @MainActor
@@ -12,17 +13,21 @@ final class BookingActionsViewModel: Identifiable {
     let id = UUID()
 
     private(set) var mode = BookingActionsMode.actions
+    var rescheduleChoice: RescheduleChoice
     private var serviceChoice: ServiceChoice
 
     private let slot: Slot
     private let client: Client?
     private let initialChoice: ServiceChoice
+    private let initialReschedule: RescheduleChoice
     private let slotRepository: SlotRepository
 
     init(
         slot: Slot,
         client: Client?,
         services: [Service],
+        slots: [Slot],
+        now: Date,
         slotRepository: SlotRepository
     ) {
         self.slot = slot
@@ -30,16 +35,26 @@ final class BookingActionsViewModel: Identifiable {
         self.slotRepository = slotRepository
         initialChoice = ServiceChoice(services: services, pinning: slot)
         serviceChoice = initialChoice
+        initialReschedule = RescheduleChoice(booking: slot, slots: slots, now: now)
+        rescheduleChoice = initialReschedule
     }
 
     var title: String {
-        client?.displayName ?? String(localized: "schedule.slot.clientDeleted")
+        switch mode {
+        case .reschedule: String(localized: "schedule.reschedule.title")
+        case .actions, .changeService: clientName
+        }
     }
 
     var subtitle: String {
-        let service = slot.serviceName ?? String(localized: "service.none")
+        switch mode {
+        case .reschedule:
+            return "\(clientName) · \(SlotWhen.text(for: slot))"
+        case .actions, .changeService:
+            let service = slot.serviceName ?? String(localized: "service.none")
 
-        return "\(SlotWhen.text(for: slot)) · \(service)"
+            return "\(SlotWhen.text(for: slot)) · \(service)"
+        }
     }
 
     var contacts: [ClientContact] {
@@ -83,9 +98,43 @@ final class BookingActionsViewModel: Identifiable {
         try? slotRepository.book(slotId: slotId, booking)
     }
 
+    var canReschedule: Bool {
+        rescheduleChoice.target != nil
+    }
+
+    func startRescheduling() {
+        rescheduleChoice = initialReschedule
+        mode = .reschedule
+    }
+
+    func stopRescheduling() {
+        mode = .actions
+    }
+
+    func reschedule() -> String? {
+        guard
+            let target = rescheduleChoice.target,
+            let slotId = slot.id,
+            let booking = SlotBooking(bookedSlot: slot)
+        else { return nil }
+
+        try? slotRepository.reschedule(
+            slotId: slotId,
+            booking,
+            toDate: target.date,
+            time: target.time
+        )
+
+        return target.date
+    }
+
     func cancelBooking() {
         guard let slotId = slot.id else { return }
 
         try? slotRepository.clearBooking(slotId: slotId)
+    }
+
+    private var clientName: String {
+        client?.displayName ?? String(localized: "schedule.slot.clientDeleted")
     }
 }

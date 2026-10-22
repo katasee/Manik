@@ -2294,6 +2294,23 @@
         }
       }
     },
+    "schedule.reschedule.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reschedule booking"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Перенести запис"
+          }
+        }
+      }
+    },
     "schedule.send.contacts.subtitle" : {
       "localizations" : {
         "en" : {

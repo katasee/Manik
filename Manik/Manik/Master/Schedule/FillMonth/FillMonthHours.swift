@@ -17,7 +17,7 @@ struct FillMonthHours: View {
 
             LazyVGrid(columns: columns, spacing: ScheduleMetrics.Spacing.chipSpacing) {
                 ForEach(viewModel.times) { time in
-                    FillMonthTimeChip(time: time) {
+                    TimeChip(time: time) {
                         tap(time)
                     }
                 }
@@ -41,7 +41,7 @@ struct FillMonthHours: View {
         }
     }
 
-    private func tap(_ time: FillMonthTime) {
+    private func tap(_ time: TimeChipItem) {
         if time.isCustom {
             viewModel.removeCustomTime(time.id)
         } else {

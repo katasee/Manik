@@ -1,4 +1,4 @@
-struct FillMonthTime: Identifiable {
+struct TimeChipItem: Identifiable {
     let id: String
     let text: String
     let isSelected: Bool
