@@ -5,6 +5,7 @@ struct BookingActionsList: View {
     let canChangeService: Bool
     let canOpenCard: Bool
     let onChangeService: () -> Void
+    let onReschedule: () -> Void
     let onOpenCard: () -> Void
     let onCancelBooking: () -> Void
 
@@ -23,6 +24,12 @@ struct BookingActionsList: View {
                     action: onChangeService
                 )
             }
+
+            actionButton(
+                titleKey: "schedule.actions.reschedule",
+                systemImage: "arrow.left.arrow.right",
+                action: onReschedule
+            )
 
             if canOpenCard {
                 actionButton(
@@ -65,6 +72,7 @@ struct BookingActionsList: View {
         canChangeService: true,
         canOpenCard: true,
         onChangeService: {},
+        onReschedule: {},
         onOpenCard: {},
         onCancelBooking: {}
     )

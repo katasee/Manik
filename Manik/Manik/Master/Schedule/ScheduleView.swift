@@ -23,6 +23,7 @@ struct ScheduleView: View {
     @State private var openRowId: String?
     @State private var popup: SchedulePopup?
     @State private var pendingCardClientId: String?
+    @State private var pendingDayId: String?
     @State private var openCardClientId: String?
     @State private var pendingDelete: SlotItem?
     @State private var isConfirmingDelete = false
@@ -76,7 +77,7 @@ struct ScheduleView: View {
                 await viewModel.observeServices()
             }
             .onChange(of: viewModel.selectedDate, closeOpenRow)
-            .fullScreenCover(item: $popup, onDismiss: openPendingCard) { popup in
+            .fullScreenCover(item: $popup, onDismiss: applyPending) { popup in
                 popupView(popup)
                     .presentationBackground(.clear)
             }
@@ -115,6 +116,7 @@ struct ScheduleView: View {
             BookingActionsPopup(
                 viewModel: bookingActions,
                 onOpenCard: { pendingCardClientId = $0 },
+                onRescheduled: { pendingDayId = $0 },
                 onDismiss: closePopup
             )
         }
@@ -208,11 +210,16 @@ struct ScheduleView: View {
         }
     }
 
-    private func openPendingCard() {
-        guard let pendingCardClientId else { return }
+    private func applyPending() {
+        if let pendingDayId {
+            viewModel.select(dayId: pendingDayId)
+            self.pendingDayId = nil
+        }
 
-        openCardClientId = pendingCardClientId
-        self.pendingCardClientId = nil
+        if let pendingCardClientId {
+            openCardClientId = pendingCardClientId
+            self.pendingCardClientId = nil
+        }
     }
 
     private func requestDelete(_ item: SlotItem) {

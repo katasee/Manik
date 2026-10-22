@@ -42,6 +42,11 @@ enum ScheduleMetrics {
         static let sendText: CGFloat = 16
         static let sendCardCornerRadius: CGFloat = 18
         static let sendCardHeight: CGFloat = 280
+        static let rescheduleEmpty: CGFloat = 15
+        static let dayScrollerCell: CGFloat = 52
+        static let dayScrollerSelectedScale: CGFloat = 1.15
+        static let dayLensHeight: CGFloat = 68
+        static let dayLensCornerRadius: CGFloat = 20
     }
 
     enum Spacing {
@@ -70,5 +75,7 @@ enum ScheduleMetrics {
         static let sendCardPadding: CGFloat = 16
         static let sendLineSpacing: CGFloat = 4
         static let sendButtonSpacing: CGFloat = 10
+        static let dayScrollerSpacing: CGFloat = 8
+        static let dayScrollerVerticalInset: CGFloat = 6
     }
 }

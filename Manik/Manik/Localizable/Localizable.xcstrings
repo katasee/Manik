@@ -1848,6 +1848,23 @@
         }
       }
     },
+    "schedule.actions.reschedule" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reschedule"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Перенести"
+          }
+        }
+      }
+    },
     "schedule.actions.save" : {
       "localizations" : {
         "en" : {
@@ -2290,6 +2307,57 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Не вдалося завантажити вікна"
+          }
+        }
+      }
+    },
+    "schedule.reschedule.action" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reschedule"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Перенести"
+          }
+        }
+      }
+    },
+    "schedule.reschedule.freeWindows %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Free windows · %@"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вільні вікна · %@"
+          }
+        }
+      }
+    },
+    "schedule.reschedule.noWindows" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No free windows"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Немає вільних вікон"
           }
         }
       }

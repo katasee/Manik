@@ -13,7 +13,7 @@ final class BookingActionsViewModel: Identifiable {
     let id = UUID()
 
     private(set) var mode = BookingActionsMode.actions
-    var rescheduleChoice: RescheduleChoice
+    private var rescheduleChoice: RescheduleChoice
     private var serviceChoice: ServiceChoice
 
     private let slot: Slot
@@ -98,8 +98,41 @@ final class BookingActionsViewModel: Identifiable {
         try? slotRepository.book(slotId: slotId, booking)
     }
 
+    var rescheduleDay: Date {
+        get { rescheduleChoice.day }
+        set { rescheduleChoice.day = newValue }
+    }
+
+    var rescheduleDays: [Date] {
+        rescheduleChoice.days
+    }
+
+    var rescheduleMarkedDays: Set<String> {
+        rescheduleChoice.markedDays
+    }
+
+    var rescheduleDayText: String {
+        rescheduleChoice.dayText
+    }
+
+    var rescheduleTimes: [TimeChipItem] {
+        rescheduleChoice.times
+    }
+
     var canReschedule: Bool {
         rescheduleChoice.target != nil
+    }
+
+    func toggleRescheduleTime(_ time: String) {
+        rescheduleChoice.toggle(time)
+    }
+
+    func addCustomRescheduleTime(_ time: ClockTime) {
+        rescheduleChoice.setCustom(time)
+    }
+
+    func removeCustomRescheduleTime(_ time: String) {
+        rescheduleChoice.removeCustom(time)
     }
 
     func startRescheduling() {
