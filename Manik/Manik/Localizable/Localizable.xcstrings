@@ -2345,6 +2345,23 @@
         }
       }
     },
+    "schedule.reschedule.message %@ %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your appointment is moved to %1$@, %2$@. See you!"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Перенесла запис на %1$@, %2$@. До зустрічі"
+          }
+        }
+      }
+    },
     "schedule.reschedule.noWindows" : {
       "extractionState" : "manual",
       "localizations" : {
