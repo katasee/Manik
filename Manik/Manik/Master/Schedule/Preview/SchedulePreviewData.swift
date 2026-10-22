@@ -62,6 +62,8 @@ enum SchedulePreviewData {
             slot: slots[1],
             client: ClientsPreviewData.clients.first,
             services: ServicesPreviewData.services,
+            slots: slots,
+            now: .now,
             slotRepository: FakeSlotRepository(slots: slots)
         )
     }

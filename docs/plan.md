@@ -1917,6 +1917,44 @@ this file is just "what's done, what's next," not a design doc.
   - Verified: `xcodebuild`; device pass by the user (all five popups, the card hand-off, no push
     after other popups, reopening with a different slot).
 
+- **M-36.1 — Reschedule a booking** (branch `feature/pr-36.1-Reschedule`; design in
+  `docs/superpowers/specs/2026-10-21-m36-reschedule-design.md`). "Дії із записом" gets
+  "Перенести": a horizontal day scroller (today + 8 weeks, at least a week past the booking), that
+  day's free windows as chips plus "Свій час", and "Перенести" moves the booking — same client,
+  same service snapshot — frees the old window and jumps Розклад to the new day.
+  - `SlotRepository.reschedule(slotId:_:toDate:time:)`: one fire-and-forget batch, both writes
+    `merge: true` (target gets `date`/`time` + the booking fields, old one gets them deleted), so a
+    window can never end up double-booked or lost. `book`/`clearBooking`/`reschedule` share the
+    field dictionaries. `SlotBooking(bookedSlot:)` copies the snapshot as it is.
+  - `Slot.isBookable(now:)` (`Models/Slot/Slot+Bookable.swift`) is the one "free window" rule;
+    `ScheduleMessage` and the picker both read it.
+  - `RescheduleChoice` (a value, like `ServiceChoice`) builds `freeTimes`, `bookedIds`,
+    `markedDays` and `days` once in `init`. A booking in the past opens on today. Changing the day
+    clears the picked time and the custom one (`didSet` on the plain struct; same day keeps them —
+    user decision: a pick means "move here"). Own time equal to a free window just selects it; own
+    time on a booking (another client's or her own) or already started cannot be confirmed — both
+    fall out of `bookedIds` and `isPast`, no separate "own time" check.
+  - The step is a third `BookingActionsMode`, drawn inside the actions popup like "Змінити послугу".
+    The jump goes through `pendingDayId` and the cover's `onDismiss` (`applyPending`), like the card.
+  - UI decided on the simulator (user): the week strip was too small inside the popup (~30pt
+    cells), so the step uses `RescheduleDayScroller` — 52pt cells, snaps a day to the centre, the
+    centred day is the selected one, and a magnifier scales the day under the centre
+    (`visualEffect`, `nonisolated static`). Under it sits a Liquid Glass lens (`.glassEffect`
+    under `#available(iOS 26, *)`, a `Raised` pill on iOS 18) — behind the days, not over them,
+    and untinted (see `code-style.md`). No selection fill or shadow in the scroller
+    (`WeekDayCell(fillsSelection: false)`).
+  - Refactors on the way: `TimeChip`/`TimeChipItem`/`CustomTimePopup` moved to
+    `Master/Schedule/TimeChips/`, and `TimeChipPicker` (grid + "Свій час" + its cover) is shared by
+    Заповнити місяць and the step; `WeekDayCell` split out of `WeekDayStrip` into its own file
+    (two users), the strip's chevrons are 44pt tall; `ClockTime` moved to `Models/` (a domain
+    value — `WorkHours.defaultCustomTime` and view models use it).
+  - Reviews: `swiftui-pro` on the plan (work once in `init`, a struct target instead of a tuple,
+    44pt chevrons) and on the code (read `rescheduleTimes` once per `body`, `scrolledDay` set in
+    `init` instead of `onAppear`); clean-code passes removed checks that `isBookable`/`bookedIds`
+    already made (`others`, `current`, the `>= today` filter).
+  - Verified: `xcodebuild`; throwaway `swiftc` checks of the repository fake, `RescheduleChoice` and
+    the view model; simulator passes by the user on the scroller and lens.
+
 ## Screens (in order)
 
 This is the actual work queue, and the only numbered list here. The ordering follows the **data
@@ -2078,8 +2116,12 @@ those items are referred to by name, so the list can grow without renumbering an
       1. ~~**M-35.1 Send schedule popup (UI)**~~ — **done** (under "Done").
       2. ~~**M-35.2 Send schedule logic**~~ — **done** (under "Done"). M-35 is finished; next is
          M-36.
-   7. **M-36 Reschedule**. ~~**M-36.0 One popup state in Розклад**~~ — **done** (under "Done");
-      the reschedule popup is a new `SchedulePopup` case.
+   7. **M-36 Reschedule** — design in `docs/superpowers/specs/2026-10-21-m36-reschedule-design.md`.
+      1. ~~**M-36.0 One popup state in Розклад**~~ — **done** (under "Done").
+      2. ~~**M-36.1 Reschedule a booking**~~ — **done** (under "Done"). The step ended up a mode of
+         the actions popup, not a new `SchedulePopup` case.
+      3. **M-36.2 "Надіслати @нік"** — after "Перенести", open the client's Instagram / SMS with a
+         ready message about the new day and time (reuse the "Надіслати графік" contacts step).
    8. **M-37 Personal plans** — `events` + `eventTemplates` (Мої справи), weekly repeat, conflict
       warnings. Add both to `FirestoreUserDataRepository.collections`.
    9. **M-38 Statistics on slots** — and delete `Block`/`blocks` (kept for Статистика since M-33.1).
@@ -2120,8 +2162,9 @@ numbering drifts every time an item is added or closed (it already did once: PR9
     `.raisedSurface(.circle)` otherwise (deployment target is 18.1). Decide in the same PR whether
     `CapsuleButton` (and the card's private "Зв'язатися" capsule) follow.
   - Check light and dark on a device (wine-on-glass contrast already failed once on the tab bar)
-    and record the rules in `architecture.md`/`code-style.md`, including the first `#available` in
-    a view. Own PR, not mixed into a feature.
+    and record the rules in `architecture.md`/`code-style.md`. Own PR, not mixed into a feature.
+    (The first `#available` in a view already exists: M-36.1's reschedule lens; its rules are in
+    `code-style.md`.)
 
 - **Swipe the day list to change the day** (user request, 2026-10-17, during M-34.1). On Розклад,
   a horizontal swipe on the list of windows moves to the previous / next day (today only the week

@@ -111,7 +111,7 @@ final class ScheduleViewModel {
         )
     }
 
-    func makeBookingActionsViewModel(slotId: String) -> BookingActionsViewModel? {
+    func makeBookingActionsViewModel(slotId: String, now: Date = .now) -> BookingActionsViewModel? {
         guard
             directory.isLoaded,
             let slot = slots.first(where: { $0.id == slotId }),
@@ -122,6 +122,8 @@ final class ScheduleViewModel {
             slot: slot,
             client: directory.client(for: clientId),
             services: services,
+            slots: slots,
+            now: now,
             slotRepository: slotRepository
         )
     }

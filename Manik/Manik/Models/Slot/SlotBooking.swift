@@ -10,4 +10,13 @@ struct SlotBooking: Equatable {
         serviceName = service?.name
         servicePrice = service?.price
     }
+
+    init?(bookedSlot slot: Slot) {
+        guard let clientId = slot.clientId else { return nil }
+
+        self.clientId = clientId
+        serviceId = slot.serviceId
+        serviceName = slot.serviceName
+        servicePrice = slot.servicePrice
+    }
 }

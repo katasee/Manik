@@ -70,9 +70,9 @@ final class FillMonthViewModel: Identifiable {
         }
     }
 
-    var times: [FillMonthTime] {
+    var times: [TimeChipItem] {
         fillTimes.all.map { time in
-            FillMonthTime(
+            TimeChipItem(
                 id: time,
                 text: DateFormat.displayTime(time),
                 isSelected: fillTimes.selected.contains(time),

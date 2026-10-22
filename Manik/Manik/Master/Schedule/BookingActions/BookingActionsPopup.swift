@@ -3,6 +3,7 @@ import SwiftUI
 struct BookingActionsPopup: View {
     let viewModel: BookingActionsViewModel
     let onOpenCard: (String) -> Void
+    let onRescheduled: (String) -> Void
     let onDismiss: () -> Void
 
     @State private var isConfirmingCancel = false
@@ -18,6 +19,7 @@ struct BookingActionsPopup: View {
                     canChangeService: viewModel.canChangeService,
                     canOpenCard: viewModel.cardClientId != nil,
                     onChangeService: viewModel.startChangingService,
+                    onReschedule: viewModel.startRescheduling,
                     onOpenCard: { openCard(then: dismiss) },
                     onCancelBooking: confirmCancel
                 )
@@ -40,6 +42,8 @@ struct BookingActionsPopup: View {
                     onBack: viewModel.stopChangingService,
                     onSave: { saveService(then: dismiss) }
                 )
+            case .reschedule:
+                RescheduleStep(viewModel: viewModel, onConfirm: { reschedule(then: dismiss) })
             }
         }
     }
@@ -60,6 +64,14 @@ struct BookingActionsPopup: View {
         dismiss()
     }
 
+    private func reschedule(then dismiss: () -> Void) {
+        if let dayId = viewModel.reschedule() {
+            onRescheduled(dayId)
+        }
+
+        dismiss()
+    }
+
     private func saveService(then dismiss: () -> Void) {
         viewModel.saveService()
         dismiss()
@@ -73,6 +85,7 @@ struct BookingActionsPopup: View {
             BookingActionsPopup(
                 viewModel: SchedulePreviewData.bookingActions,
                 onOpenCard: { _ in },
+                onRescheduled: { _ in },
                 onDismiss: {}
             )
         }

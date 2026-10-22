@@ -2,17 +2,14 @@ import SwiftUI
 
 struct WeekDayStrip: View {
     @Binding var selectedDate: Date
+
     @Namespace private var namespace
 
     private enum Layout {
         static let daySpacing: CGFloat = 4
         static let horizontalPadding: CGFloat = 6
-        static let cellHeight: CGFloat = 58
-        static let cellCornerRadius: CGFloat = 18
-        static let labelSpacing: CGFloat = 4
-        static let chevronSize: CGFloat = 32
-        static let todayOutline: CGFloat = 1
-        static let selectedLetterOpacity: Double = 0.7
+        static let chevronWidth: CGFloat = 32
+        static let chevronHeight: CGFloat = 44
         static let selectionAnimation = Animation.spring(response: 0.35, dampingFraction: 0.75)
     }
 
@@ -25,7 +22,13 @@ struct WeekDayStrip: View {
             weekNavButton(forward: false)
 
             ForEach(weekDates, id: \.self) { day in
-                dayCell(day)
+                WeekDayCell(
+                    day: day,
+                    isSelected: DateFormat.salonCalendar.isDate(day, inSameDayAs: selectedDate),
+                    isToday: DateFormat.salonCalendar.isDateInToday(day),
+                    namespace: namespace,
+                    action: { select(day) }
+                )
             }
 
             weekNavButton(forward: true)
@@ -39,6 +42,12 @@ struct WeekDayStrip: View {
             .onEnded { value in
                 shiftWeek(forward: value.translation.width < 0)
             }
+    }
+
+    private func select(_ day: Date) {
+        withAnimation(Layout.selectionAnimation) {
+            selectedDate = day
+        }
     }
 
     private func shiftWeek(forward: Bool) {
@@ -61,11 +70,8 @@ struct WeekDayStrip: View {
             equalTo: shifted,
             toGranularity: .weekOfYear
         )
-        let newDate = isCurrentWeek ? now : week.start
 
-        withAnimation(Layout.selectionAnimation) {
-            selectedDate = newDate
-        }
+        select(isCurrentWeek ? now : week.start)
     }
 
     private func weekNavButton(forward: Bool) -> some View {
@@ -75,56 +81,10 @@ struct WeekDayStrip: View {
             Image(systemName: forward ? "chevron.right" : "chevron.left")
                 .font(.elmsSans(.semiBold, 13))
                 .foregroundStyle(Color.textSecondary)
-                .frame(width: Layout.chevronSize, height: Layout.chevronSize)
+                .frame(width: Layout.chevronWidth, height: Layout.chevronHeight)
+                .contentShape(.rect)
         }
         .buttonStyle(.plain)
-    }
-
-    private func dayCell(_ day: Date) -> some View {
-        let isSelected = DateFormat.salonCalendar.isDate(day, inSameDayAs: selectedDate)
-        let isToday = DateFormat.salonCalendar.isDateInToday(day)
-
-        return Button {
-            withAnimation(Layout.selectionAnimation) {
-                selectedDate = day
-            }
-        } label: {
-            VStack(spacing: Layout.labelSpacing) {
-                Text(DateFormat.weekdayLetter.string(from: day).uppercased())
-                    .font(.elmsSans(.medium, 11))
-                    .foregroundStyle(
-                        isSelected
-                            ? Color.onPrimary.opacity(Layout.selectedLetterOpacity)
-                            : Color.textSecondary
-                    )
-
-                Text(DateFormat.dayNumber.string(from: day))
-                    .font(.elmsSans(.semiBold, 16))
-                    .foregroundStyle(dayNumberColor(isSelected: isSelected, isToday: isToday))
-            }
-            .frame(maxWidth: .infinity)
-            .frame(height: Layout.cellHeight)
-            .background {
-                if isSelected {
-                    RoundedRectangle(cornerRadius: Layout.cellCornerRadius)
-                        .fill(Color.primaryFill)
-                        .brandShadow()
-                        .matchedGeometryEffect(id: "selectedDay", in: namespace)
-                } else if isToday {
-                    RoundedRectangle(cornerRadius: Layout.cellCornerRadius)
-                        .strokeBorder(Color.stroke, lineWidth: Layout.todayOutline)
-                }
-            }
-            .contentShape(.rect(cornerRadius: Layout.cellCornerRadius))
-        }
-        .buttonStyle(.plain)
-    }
-
-    private func dayNumberColor(isSelected: Bool, isToday: Bool) -> Color {
-        if isSelected {
-            return Color.onPrimary
-        }
-        return isToday ? Color.wine : Color.ink
     }
 
     private static func weekDates(containing date: Date) -> [Date] {
@@ -134,7 +94,7 @@ struct WeekDayStrip: View {
 }
 
 #Preview {
-    @Previewable @State var selectedDate = Date()
+    @Previewable @State var selectedDate = Date.now
 
     WeekDayStrip(selectedDate: $selectedDate)
         .padding(.vertical, 24)
