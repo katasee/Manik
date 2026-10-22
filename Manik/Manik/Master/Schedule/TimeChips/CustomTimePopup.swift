@@ -40,7 +40,7 @@ struct CustomTimePopup: View {
 
 #if DEBUG
 #Preview {
-    @Previewable @State var time = ClockTime(minutesOfDay: 9 * 60 + 30)
+    @Previewable @State var time = WorkHours.defaultCustomTime
 
     Color.background
         .overlay {
