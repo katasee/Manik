@@ -54,6 +54,15 @@ never on the whole content — `.shadow` on a view with children shadows each ch
 clips their shadows; the client booking chip row (removed in M-30) used `.scrollClipDisabled()` (scrolled chips may then paint into
 the screen gutters — accepted).
 
+**Liquid Glass on our own views** (first used in M-36.1's reschedule lens,
+`RescheduleDayScroller`). `.glassEffect` exists only on iOS 26 and the deployment target is 18.1,
+so it goes under `if #available(iOS 26, *)` with a token fallback in the `else` (the lens: a
+`Raised` pill with a `Hairline` outline). Three things learned on the simulator: glass laid *over*
+text refracts and blurs it — put it behind the content; over a flat card there is nothing to
+refract, so glass reads only by its rim and highlight; and an opaque `.tint` hides the glass
+entirely (the "black" lens was just a black pill). Keep it untinted unless a device pass says
+otherwise.
+
 User-facing strings never sit as bare literals in a View — they go in
 `Manik/Manik/Localizable.xcstrings` (String Catalog) under a `feature.kind.name` key
 (e.g. `auth.field.email`, `auth.action.signUp`) and get pulled in via `String(localized: "key")`.

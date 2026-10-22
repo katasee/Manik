@@ -71,9 +71,11 @@ Three tabs: **Розклад / Клієнтки / Статистика**. "Мо�
 4. **Book** — tap a free window (past ones too) → one popup: search focused (an empty search
    lists nobody), pick a client, optionally a service — only starred ones are offered — then
    "Записати". "+ Нова клієнтка" is always there and opens the client form over the popup.
-5. **Booking actions** — tap a booked slot → Написати, Змінити послугу, Картка клієнтки (opens
-   inside Розклад), Скасувати запис (asks first); Перенести (to a free window or own time) comes in
-   M-36. A deleted client keeps only the actions on the window. Where the recipient is known,
+5. **Booking actions** — tap a booked slot → Написати, Змінити послугу, Перенести, Картка
+   клієнтки (opens inside Розклад), Скасувати запис (asks first). Перенести (past bookings too):
+   a scroller of days from today, that day's free windows or own time; same client and service,
+   the old window becomes free, Розклад jumps to the new day. A deleted client keeps only the
+   actions on the window. Where the recipient is known,
    "Надіслати @нік" copies the message and opens her chat; the master pastes and sends.
 6. **Personal plans** — "Своя справа" (boxing, gym): title, start–end, one date or weekly on chosen
    days, filled from the "Мої справи" list in one tap. A free window that overlaps a plan (assuming
