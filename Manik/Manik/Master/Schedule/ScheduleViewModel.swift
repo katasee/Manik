@@ -37,35 +37,13 @@ final class ScheduleViewModel {
     }
 
     func items(now: Date) -> [ScheduleItem] {
-        let day = DateFormat.date.string(from: selectedDate)
-
-        let slotRows = slots
-            .filter { $0.date == day }
-            .map { slot in
-                (
-                    key: (slot.time, 0, slot.id ?? ""),
-                    item: ScheduleItem.slot(
-                        SlotItem(
-                            slot: slot,
-                            clientName: slot.clientId.map(directory.name(for:)) ?? "",
-                            now: now
-                        )
-                    )
-                )
-            }
-
-        let planRows = plans
-            .filter { $0.date == day }
-            .map { plan in
-                (
-                    key: (plan.startTime, 1, plan.id ?? ""),
-                    item: ScheduleItem.plan(PlanItem(plan: plan, now: now))
-                )
-            }
-
-        return (slotRows + planRows)
-            .sorted { $0.key < $1.key }
-            .map(\.item)
+        ScheduleDayItems.make(
+            day: DateFormat.date.string(from: selectedDate),
+            slots: slots,
+            plans: plans,
+            clientName: directory.name(for:),
+            now: now
+        )
     }
 
     func addPlans(_ newPlans: [PlanEvent]) {

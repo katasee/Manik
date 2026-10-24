@@ -41,7 +41,7 @@ final class BookClientViewModel: Identifiable {
         picker.options(from: clients)
     }
 
-    var services: [BookServiceChip] {
+    var services: [ChoiceChip] {
         serviceChoice.chips
     }
 

@@ -68,9 +68,9 @@ enum SchedulePreviewData {
         BookClientOption(id: "client-kate", title: "Катя", initial: "К", isSelected: false)
     ]
 
-    static let serviceChips: [BookServiceChip] = [
-        BookServiceChip(id: "svc-classic", title: "Класичний манікюр · 500 zł", isSelected: true),
-        BookServiceChip(id: "svc-hybrid", title: "Манікюр гібридний (гель-лак) · 800 zł", isSelected: false)
+    static let serviceChips: [ChoiceChip] = [
+        ChoiceChip(id: "svc-classic", title: "Класичний манікюр · 500 zł", isSelected: true),
+        ChoiceChip(id: "svc-hybrid", title: "Манікюр гібридний (гель-лак) · 800 zł", isSelected: false)
     ]
 
     @MainActor

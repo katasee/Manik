@@ -64,16 +64,7 @@ struct PlanTimeFields: View {
                 minHeight: ScheduleMetrics.Size.timeFieldHeight,
                 alignment: .leading
             )
-            .background {
-                if isEditing {
-                    shape
-                        .fill(Color.primaryFill)
-                        .brandShadow()
-                } else {
-                    Color.clear
-                        .raisedSurface(shape)
-                }
-            }
+            .selectableSurface(isSelected: isEditing, in: shape)
             .contentShape(shape)
         }
         .buttonStyle(.plain)

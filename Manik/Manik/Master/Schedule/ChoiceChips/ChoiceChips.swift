@@ -1,12 +1,12 @@
 import SwiftUI
 
-struct BookServiceChips: View {
-    let chips: [BookServiceChip]
+struct ChoiceChips: View {
+    let chips: [ChoiceChip]
     let onToggle: (String) -> Void
 
     private let columns = [
         GridItem(
-            .adaptive(minimum: ScheduleMetrics.Size.serviceChipMinWidth),
+            .adaptive(minimum: ScheduleMetrics.Size.choiceChipMinWidth),
             spacing: ScheduleMetrics.Spacing.chipSpacing
         )
     ]
@@ -24,16 +24,7 @@ struct BookServiceChips: View {
                         .foregroundStyle(chip.isSelected ? Color.onPrimary : Color.ink)
                         .padding(.horizontal, ScheduleMetrics.Spacing.bookRowPadding)
                         .frame(maxWidth: .infinity, minHeight: ScheduleMetrics.Size.chipHeight)
-                        .background {
-                            if chip.isSelected {
-                                Capsule()
-                                    .fill(Color.primaryFill)
-                                    .brandShadow()
-                            } else {
-                                Color.clear
-                                    .raisedSurface(.capsule)
-                            }
-                        }
+                        .selectableSurface(isSelected: chip.isSelected, in: .capsule)
                         .contentShape(.capsule)
                 }
                 .buttonStyle(.plain)
@@ -45,7 +36,7 @@ struct BookServiceChips: View {
 
 #if DEBUG
 #Preview {
-    BookServiceChips(chips: SchedulePreviewData.serviceChips, onToggle: { _ in })
+    ChoiceChips(chips: SchedulePreviewData.serviceChips, onToggle: { _ in })
         .padding()
         .background(Color.card)
 }

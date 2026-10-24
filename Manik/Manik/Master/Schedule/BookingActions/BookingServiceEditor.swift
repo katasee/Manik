@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct BookingServiceEditor: View {
-    let chips: [BookServiceChip]
+    let chips: [ChoiceChip]
     let canSave: Bool
     let onToggle: (String) -> Void
     let onBack: () -> Void
@@ -14,7 +14,7 @@ struct BookingServiceEditor: View {
             SectionLabel(titleKey: "schedule.book.service")
 
             ScrollView {
-                BookServiceChips(chips: chips, onToggle: onToggle)
+                ChoiceChips(chips: chips, onToggle: onToggle)
                     .padding(ScheduleMetrics.Spacing.scrollShadowInset)
                     .onGeometryChange(for: CGFloat.self) { proxy in
                         proxy.size.height

@@ -10,7 +10,7 @@ struct AddPlanSection: View {
             SectionLabel(titleKey: "schedule.plan.template")
 
             if viewModel.hasTemplates {
-                BookServiceChips(chips: viewModel.templateChips, onToggle: viewModel.selectTemplate)
+                ChoiceChips(chips: viewModel.templateChips, onToggle: viewModel.selectTemplate)
             } else {
                 Text("schedule.plan.noTemplates")
                     .font(.elmsSans(.regular, ScheduleMetrics.Size.planHint))

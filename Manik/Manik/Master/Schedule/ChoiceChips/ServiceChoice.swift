@@ -14,10 +14,10 @@ struct ServiceChoice {
         pinned = slot.flatMap { Self.snapshot(of: $0, outside: offered) }
     }
 
-    var chips: [BookServiceChip] {
+    var chips: [ChoiceChip] {
         ([pinned].compactMap { $0 } + offered).compactMap { service in
             service.id.map { id in
-                BookServiceChip(
+                ChoiceChip(
                     id: id,
                     title: "\(service.name) · \(ServiceFormat.price(service.price))",
                     isSelected: id == selectedId

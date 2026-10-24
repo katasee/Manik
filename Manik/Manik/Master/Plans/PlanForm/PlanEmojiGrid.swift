@@ -36,25 +36,14 @@ struct PlanEmojiGrid: View {
         selection = emoji
     }
 
-    @ViewBuilder
     private func cell(_ emoji: String) -> some View {
         let shape = RoundedRectangle(cornerRadius: PlansMetrics.Size.gridCellCornerRadius)
-        let glyph = Text(verbatim: emoji)
+
+        return Text(verbatim: emoji)
             .font(.elmsSans(.regular, PlansMetrics.Size.gridGlyph))
             .frame(maxWidth: .infinity, minHeight: PlansMetrics.Size.gridCell)
             .contentShape(shape)
-
-        if emoji == selection {
-            glyph
-                .background {
-                    shape
-                        .fill(Color.primaryFill)
-                        .brandShadow()
-                }
-        } else {
-            glyph
-                .raisedSurface(shape)
-        }
+            .selectableSurface(isSelected: emoji == selection, in: shape)
     }
 }
 

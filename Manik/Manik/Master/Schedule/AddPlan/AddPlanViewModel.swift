@@ -10,8 +10,8 @@ enum PlanTimeField {
 @Observable
 final class AddPlanViewModel {
     var days: MonthDaySelection
-    var start = ClockTime(minutesOfDay: 10 * 60)
-    var end = ClockTime(minutesOfDay: 11 * 60)
+    var start = WorkHours.defaultPlanStart
+    var end = AddPlanViewModel.endTime(after: WorkHours.defaultPlanStart)
     var editing = PlanTimeField.start
 
     private(set) var selectedTemplateId: String?
@@ -32,10 +32,10 @@ final class AddPlanViewModel {
         self.templates = templates.filter(\.isActive).sortedByName()
     }
 
-    var templateChips: [BookServiceChip] {
+    var templateChips: [ChoiceChip] {
         templates.compactMap { template in
             template.id.map { id in
-                BookServiceChip(
+                ChoiceChip(
                     id: id,
                     title: "\(template.emoji) \(template.name)",
                     isSelected: id == selectedTemplateId
@@ -69,7 +69,7 @@ final class AddPlanViewModel {
     func keepEndAfterStart() {
         guard end.minutesOfDay <= start.minutesOfDay else { return }
 
-        end = ClockTime(minutesOfDay: min(start.minutesOfDay + Self.defaultLength, Self.latestEnd))
+        end = Self.endTime(after: start)
     }
 
     func makePlans() -> [PlanEvent] {
@@ -87,8 +87,14 @@ final class AddPlanViewModel {
         }
     }
 
-    private static let defaultLength = 60
-    private static let latestEnd = (WorkHours.customHours.upperBound + 1) * 60 - WorkHours.minuteStep
+    private static func endTime(after start: ClockTime) -> ClockTime {
+        ClockTime(
+            minutesOfDay: min(
+                start.minutesOfDay + WorkHours.defaultPlanMinutes,
+                WorkHours.latestTime.minutesOfDay
+            )
+        )
+    }
 
     private var selectedTemplate: EventTemplate? {
         templates.first { $0.id == selectedTemplateId }
