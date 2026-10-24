@@ -66,6 +66,12 @@ final class AddPlanViewModel {
         selectedTemplateId = id
     }
 
+    func keepEndAfterStart() {
+        guard end.minutesOfDay <= start.minutesOfDay else { return }
+
+        end = ClockTime(minutesOfDay: min(start.minutesOfDay + Self.defaultLength, Self.latestEnd))
+    }
+
     func makePlans() -> [PlanEvent] {
         guard canAdd, let template = selectedTemplate, let templateId = template.id else { return [] }
 
@@ -80,6 +86,9 @@ final class AddPlanViewModel {
             )
         }
     }
+
+    private static let defaultLength = 60
+    private static let latestEnd = WorkHours.customHours.upperBound * 60 + 45
 
     private var selectedTemplate: EventTemplate? {
         templates.first { $0.id == selectedTemplateId }

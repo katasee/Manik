@@ -25,6 +25,9 @@ struct PlanTimeFields: View {
                 TimeWheel(time: $viewModel.end, hours: WorkHours.customHours)
             }
         }
+        .onChange(of: viewModel.start) {
+            viewModel.keepEndAfterStart()
+        }
     }
 
     private func field(
