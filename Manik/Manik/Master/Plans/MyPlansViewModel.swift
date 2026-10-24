@@ -4,31 +4,66 @@ import Observation
 @MainActor
 @Observable
 final class MyPlansViewModel {
-    private(set) var templates: [EventTemplate]
+    private(set) var templates: [EventTemplate] = []
+    private(set) var hasLoaded = false
+    private(set) var hasFailed = false
+    private(set) var failure: PlansFailure?
 
-    init(templates: [EventTemplate] = []) {
-        self.templates = templates.sortedByName()
+    var hasFailure: Bool {
+        get { failure != nil }
+        set { if newValue == false { failure = nil } }
+    }
+
+    private let templateRepository: EventTemplateRepository
+
+    init(templateRepository: EventTemplateRepository = FirestoreEventTemplateRepository()) {
+        self.templateRepository = templateRepository
+    }
+
+    func observeTemplates() async {
+        hasFailed = false
+
+        do {
+            for try await updatedTemplates in templateRepository.observeTemplates() {
+                templates = updatedTemplates.sortedByName()
+                hasLoaded = true
+            }
+        } catch {
+            hasFailed = true
+            hasLoaded = true
+        }
     }
 
     func save(_ template: EventTemplate) {
-        if let id = template.id, let index = templates.firstIndex(where: { $0.id == id }) {
-            templates[index] = template
-        } else {
-            var added = template
-            added.id = UUID().uuidString
-            templates.append(added)
+        do {
+            if template.id == nil {
+                try templateRepository.add(template)
+            } else {
+                try templateRepository.update(template)
+            }
+        } catch {
+            failure = .save
         }
-
-        templates = templates.sortedByName()
     }
 
     func toggleActive(_ template: EventTemplate) {
-        guard let index = templates.firstIndex(where: { $0.id == template.id }) else { return }
+        var updated = template
+        updated.isActive.toggle()
 
-        templates[index].isActive.toggle()
+        do {
+            try templateRepository.update(updated)
+        } catch {
+            failure = .save
+        }
     }
 
     func delete(_ template: EventTemplate) {
-        templates.removeAll { $0.id == template.id }
+        guard let id = template.id else { return }
+
+        do {
+            try templateRepository.delete(id: id)
+        } catch {
+            failure = .delete
+        }
     }
 }

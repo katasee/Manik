@@ -30,6 +30,15 @@ struct MyPlansView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color.background)
         .toolbar(.hidden, for: .navigationBar)
+        .task {
+            await viewModel.observeTemplates()
+        }
+        .alert(
+            viewModel.failure?.titleKey ?? "",
+            isPresented: $viewModel.hasFailure
+        ) {
+            Button("common.action.ok", role: .cancel) {}
+        }
         .fullScreenCover(item: $formMode) { mode in
             PlanFormPopup(
                 viewModel: PlanFormViewModel(mode: mode),
@@ -75,12 +84,20 @@ struct MyPlansView: View {
         }
         .overlay {
             ListStatusOverlay(
-                hasLoaded: true,
+                hasLoaded: viewModel.hasLoaded,
                 isEmpty: viewModel.templates.isEmpty,
-                titleKey: "plans.empty.title",
-                messageKey: "plans.empty.message"
+                titleKey: emptyTitleKey,
+                messageKey: emptyMessageKey
             )
         }
+    }
+
+    private var emptyTitleKey: LocalizedStringKey {
+        viewModel.hasFailed ? "plans.loadFailed.title" : "plans.empty.title"
+    }
+
+    private var emptyMessageKey: LocalizedStringKey {
+        viewModel.hasFailed ? "plans.loadFailed.message" : "plans.empty.message"
     }
 
     private func delete(_ template: EventTemplate) {
@@ -118,11 +135,3 @@ struct MyPlansView: View {
         dismiss()
     }
 }
-
-#if DEBUG
-#Preview {
-    NavigationStack {
-        MyPlansView(viewModel: MyPlansViewModel(templates: PlansPreviewData.templates))
-    }
-}
-#endif
