@@ -22,7 +22,10 @@ struct RescheduleNotifyStep: View {
             .foregroundStyle(Color.ink)
             .lineSpacing(ScheduleMetrics.Spacing.sendLineSpacing)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .cardSurface(padding: ScheduleMetrics.Spacing.sendCardPadding, cornerRadius: ScheduleMetrics.Size.sendCardCornerRadius)
+            .cardSurface(
+                padding: ScheduleMetrics.Spacing.sendCardPadding,
+                cornerRadius: ScheduleMetrics.Size.sendCardCornerRadius
+            )
     }
 
     private var doneButton: some View {

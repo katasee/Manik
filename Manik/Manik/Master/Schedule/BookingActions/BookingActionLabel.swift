@@ -33,7 +33,6 @@ struct BookingActionLabel: View {
                 Image(systemName: "checkmark.circle.fill")
                     .font(.elmsSans(.medium, ScheduleMetrics.Size.actionIcon))
                     .foregroundStyle(Color.freeSlot)
-                    .transition(.scale.combined(with: .opacity))
             }
         }
         .padding(.horizontal, ScheduleMetrics.Spacing.actionRowPadding)

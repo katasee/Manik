@@ -36,11 +36,11 @@ struct ClientMessageContacts: View {
     private func open(_ contact: ClientContact) {
         guard let url = contact.url(message: message) else { return }
 
-        withAnimation {
-            _ = openedContacts.insert(contact)
-        }
+        openURL(url) { accepted in
+            guard accepted else { return }
 
-        openURL(url)
+            openedContacts.insert(contact)
+        }
     }
 }
 

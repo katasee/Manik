@@ -2165,6 +2165,15 @@ numbering drifts every time an item is added or closed (it already did once: PR9
   `ImageRenderer` at 1080×1920 in the app's fonts and colours, shared with `ShareLink`. Natural
   place: a third step or button in the "Надіслати графік" popup.
 
+- **Error handling pass over the whole app** (requested 2026-10-24, after M-36.2's review). Walk
+  every write and listener and decide, case by case, what the master sees when it fails — today
+  most failures are silent. Known spots: the slot writes in Розклад ("Записати", "Змінити
+  послугу", "Скасувати запис", "Перенести", delete) are `try?` — "Перенести" only skips its
+  message step on a thrown error (M-36.2), the others just close the popup; the fire-and-forget
+  writes (`data-layer.md`) never see a server rejection at all; `observeServices`/`observeBlocks`
+  swallow listener errors. Agree one pattern (an alert, an inline line in the popup, or a shared
+  error banner) and apply it everywhere in one PR, rather than per screen.
+
 - **Editor for the texts sent to clients** (requested 2026-10-24, during M-36.2). The master's
   own wording of the messages the app copies for her — today the reschedule message ("Перенесла
   запис на 24.10, 14:00. До зустрічі") is fixed in the String Catalog. Likely a Profile screen

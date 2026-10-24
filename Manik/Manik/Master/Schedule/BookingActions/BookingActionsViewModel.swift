@@ -154,12 +154,16 @@ final class BookingActionsViewModel: Identifiable {
             let booking = SlotBooking(bookedSlot: slot)
         else { return nil }
 
-        try? slotRepository.reschedule(
-            slotId: slotId,
-            booking,
-            toDate: target.date,
-            time: target.time
-        )
+        do {
+            try slotRepository.reschedule(
+                slotId: slotId,
+                booking,
+                toDate: target.date,
+                time: target.time
+            )
+        } catch {
+            return nil
+        }
 
         mode = .rescheduled(message: RescheduleMessage.text(date: target.date, time: target.time))
 
