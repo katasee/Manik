@@ -188,12 +188,13 @@
   rather than an auto-generated document ID.
 - `Manik/Manik/Services/Repositories/` — protocols only (`AuthRepository`, `ServiceRepository`,
   `BlockRepository`, `ClientRepository`, `SlotRepository`, `EventTemplateRepository`,
-  `UserDataRepository`). These files must **not** import Firebase — that's the whole point: ViewModels
+  `EventRepository`, `UserDataRepository`). These files must **not** import Firebase — that's the whole point: ViewModels
   depend on these contracts, not on Firestore/Auth directly, so a fake implementation can stand in
   for SwiftUI previews or tests without touching the network.
 - `Manik/Manik/Services/Firestore/` — concrete implementations (`FirebaseAuthRepository`,
   `FirestoreServiceRepository`, `FirestoreBlockRepository`, `FirestoreClientRepository`,
-  `FirestoreSlotRepository`, `FirestoreEventTemplateRepository`, `FirestoreUserDataRepository`).
+  `FirestoreSlotRepository`, `FirestoreEventTemplateRepository`, `FirestoreEventRepository`,
+  `FirestoreUserDataRepository`).
   `Firestore.firestore()`/`Auth.auth()`
   are singletons managed by the Firebase SDK itself; that's fine and expected — what we avoid is
   wrapping *our own* repository classes in `.shared` singletons. ViewModels take a repository
