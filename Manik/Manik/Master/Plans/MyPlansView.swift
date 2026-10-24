@@ -67,11 +67,11 @@ struct MyPlansView: View {
                         id: template.id ?? "",
                         openId: $openRowId,
                         cornerRadius: PlansMetrics.Size.rowCornerRadius,
-                        onDelete: { viewModel.delete(template) }
+                        onDelete: { delete(template) }
                     ) {
                         PlanRow(
                             template: template,
-                            onToggleActive: { viewModel.toggleActive(template) }
+                            onToggleActive: { toggleActive(template) }
                         )
                         .onTapGesture { editTemplate(template) }
                         .accessibilityAddTraits(.isButton)
@@ -98,6 +98,14 @@ struct MyPlansView: View {
 
     private var emptyMessageKey: LocalizedStringKey {
         viewModel.hasFailed ? "plans.loadFailed.message" : "plans.empty.message"
+    }
+
+    private func delete(_ template: EventTemplate) {
+        viewModel.delete(template)
+    }
+
+    private func toggleActive(_ template: EventTemplate) {
+        viewModel.toggleActive(template)
     }
 
     private func addTemplate() {

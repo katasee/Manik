@@ -14,7 +14,7 @@ struct PlanEmojiGrid: View {
         ScrollView {
             LazyVGrid(columns: columns, spacing: PlansMetrics.Spacing.gridSpacing) {
                 ForEach(EventTemplate.emojiChoices, id: \.self) { emoji in
-                    Button { selection = emoji } label: {
+                    Button { select(emoji) } label: {
                         cell(emoji)
                     }
                     .buttonStyle(.plain)
@@ -30,6 +30,10 @@ struct PlanEmojiGrid: View {
         .onAppear {
             position.scrollTo(id: selection, anchor: .center)
         }
+    }
+
+    private func select(_ emoji: String) {
+        selection = emoji
     }
 
     @ViewBuilder
