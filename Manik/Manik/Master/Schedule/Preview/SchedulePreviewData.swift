@@ -77,7 +77,7 @@ enum SchedulePreviewData {
             slotRepository: FakeSlotRepository(slots: slots)
         )
 
-        viewModel.toggleWeekday(MonthGrid.column(of: .now))
+        viewModel.days.toggleWeekday(MonthGrid.column(of: .now))
         viewModel.toggleTime("12:00")
         viewModel.toggleTime("14:00")
         viewModel.addCustomTime(ClockTime(minutesOfDay: 17 * 60 + 30))

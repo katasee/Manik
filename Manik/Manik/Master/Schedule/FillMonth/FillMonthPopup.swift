@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct FillMonthPopup: View {
-    let viewModel: FillMonthViewModel
+    @Bindable var viewModel: FillMonthViewModel
     let onDismiss: () -> Void
 
     @State private var contentHeight: CGFloat?
@@ -33,15 +33,7 @@ struct FillMonthPopup: View {
                 .foregroundStyle(Color.ink)
                 .accessibilityAddTraits(.isHeader)
 
-            MonthHeader(
-                title: viewModel.monthTitle,
-                canGoBack: viewModel.canGoBack,
-                canGoForward: true,
-                onPrevious: viewModel.showPreviousMonth,
-                onNext: viewModel.showNextMonth
-            )
-
-            FillMonthCalendar(viewModel: viewModel)
+            MonthDayPicker(selection: $viewModel.days)
 
             FillMonthHours(viewModel: viewModel)
         }
