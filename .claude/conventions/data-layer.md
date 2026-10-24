@@ -47,9 +47,11 @@
   face value) — the async-operations warning is a genuine compiler diagnostic about the code as
   written and won't go away on its own.
 - **The deliberate fire-and-forget writes are `FirestoreClientRepository`'s `add`, `update` and
-  `delete`, `FirestoreSlotRepository`'s `add`, `book`, `clearBooking` and `delete`, and
-  `FirestoreEventTemplateRepository`'s `add`, `update` and `delete`** (user decisions: `add` in
-  M-32.4, `update`/`delete` in M-32.5, slots in M-33.2, booking in M-34.1 and templates in M-37.2,
+  `delete`, `FirestoreSlotRepository`'s `add`, `book`, `clearBooking` and `delete`,
+  `FirestoreEventTemplateRepository`'s `add`, `update` and `delete`, and
+  `FirestoreEventRepository`'s `add` and `delete`** (user decisions: `add` in
+  M-32.4, `update`/`delete` in M-32.5, slots in M-33.2, booking in M-34.1, templates in M-37.2
+  and plans in M-37.4,
   where the protocol itself declares them plain `throws`). Awaiting a write waits
   for the *server* acknowledgement, so offline the client popups spun forever with Cancel disabled,
   although the change was already in the local cache and on screen. They now pass
@@ -86,7 +88,8 @@
   in M-38.
 - **A listener reads its whole result again** whenever it re-attaches more than ~30 minutes after
   the last one, and a tab's `.task` re-attaches on every return to the tab. So a collection that
-  only grows (`slots`) is queried with a lower bound (`Slot.historyStart(now:)`, 3 months), not
+  only grows (`slots`, and `events` since M-37.4) is queried with a lower bound
+  (`Slot.historyStart(now:)`, 3 months, on `date`), not
   read whole; reads are billed per document across all masters. The same bound limits how far back
   Розклад's "Перейти до дати" calendar pages (`Slot.historyStartDate(now:)`, the `Date` that
   `historyStart` formats), so it never offers months whose windows were not read. The client
@@ -111,8 +114,8 @@
 - In `firestore.rules`, **`write` means create + update + delete**, and on a delete
   `request.resource` is `null`. Any rule that validates incoming fields must therefore be attached
   to `create, update` with `delete` allowed separately — `allow write: if isOwner(uid) &&
-  hasValidServiceFormat()` silently breaks deletion. `services`, `blocks`, `clients`, `slots` and
-  `eventTemplates` are all split this way.
+  hasValidServiceFormat()` silently breaks deletion. `services`, `blocks`, `clients`, `slots`,
+  `eventTemplates` and `events` are all split this way.
 - Block state machine: `available → pending → confirmed`, with cancel/decline both returning to
   `available`. A block carries `offeredServiceIds: [String]` (services the master allows for that
   time slot) and `bookedServiceId: String?` (the one the client actually picked at booking time).

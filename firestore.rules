@@ -57,6 +57,18 @@ service cloud.firestore {
         data.isActive is bool;
     }
 
+    function hasValidEventFormat() {
+      let data = request.resource.data;
+      return data.keys().hasOnly(['date', 'startTime', 'endTime', 'templateId', 'emoji', 'name']) &&
+        data.date is string && data.date.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$') &&
+        data.startTime is string && data.startTime.matches('^([01][0-9]|2[0-3]):[0-5][0-9]$') &&
+        data.endTime is string && data.endTime.matches('^([01][0-9]|2[0-3]):[0-5][0-9]$') &&
+        data.startTime < data.endTime &&
+        data.templateId is string && data.templateId.size() > 0 &&
+        data.emoji is string && data.emoji.size() > 0 &&
+        data.name is string && data.name.size() > 0;
+    }
+
     // Every master's data lives under her own document; only she can touch it, and only once
     // her email is verified. The one exception is creating the profile at sign-up, which
     // happens before the verification email is even sent.
@@ -88,6 +100,11 @@ service cloud.firestore {
       match /eventTemplates/{templateId} {
         allow read, delete: if isVerifiedOwner(uid);
         allow create, update: if isVerifiedOwner(uid) && hasValidEventTemplateFormat();
+      }
+
+      match /events/{eventId} {
+        allow read, delete: if isVerifiedOwner(uid);
+        allow create, update: if isVerifiedOwner(uid) && hasValidEventFormat();
       }
     }
   }

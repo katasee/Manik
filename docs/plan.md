@@ -2067,6 +2067,26 @@ this file is just "what's done, what's next," not a design doc.
     by `(time, slot-before-plan, id)`.
   - Verified: `xcodebuild` after every task, `swiftui-pro` on the plan and on the code, a
     clean-code/SOLID pass; simulator pass by the user.
+- **M-37.4 — "Своя справа" (logic)** (branch `worktree-m-37.4-own-plan-logic`, on top of M-37.3).
+  Plans are stored in `users/{uid}/events` and the "Мої справи" tab's chips are the master's real
+  templates, so both survive a relaunch.
+  - `EventRepository` + `FirestoreEventRepository` (shape of the slot ones): `observeEvents()`
+    bounded below by `Slot.historyStart(now:)` on `date`; `add` writes all selected days in one
+    `WriteBatch` on device-built auto ids; `add` and `delete` are fire-and-forget, so a plan shows
+    at once offline.
+  - `firestore.rules`: `hasValidEventFormat()` — only the six keys, storage formats for `date` /
+    `startTime` / `endTime`, `startTime < endTime` (string order is time order for `HH:mm`),
+    non-empty `templateId` / `emoji` / `name`. `"events"` joined
+    `FirestoreUserDataRepository.collections`.
+  - `ScheduleViewModel` takes `EventTemplateRepository` and `EventRepository`, observes both
+    (`observeTemplates()`, `observePlans()`; a failed listener gives `[]`, no failure overlay —
+    plans are the master's own reminders) and `addPlans` / `deletePlan` only write; the list
+    updates from the listener's local snapshot. `inMemoryTemplates` is gone.
+  - No fake repository (as M-37.2): `ScheduleView`'s `#Preview` and `SchedulePreviewData.schedule`
+    were dropped; the row and popup previews stay.
+  - Verified: `xcodebuild` after every task, `swiftui-pro` on the plan; simulator pass by the user
+    (relaunch, Console shows six fields and no `id`, offline add on three days, account deletion
+    leaves no `events`); rules published in the Console.
 
 ## Screens (in order)
 
@@ -2244,10 +2264,8 @@ those items are referred to by name, so the list can grow without renumbering an
       3. ~~**M-37.3 "Своя справа" (UI)**~~ — **done** (under "Done"). "Своя справа" was split in
          two steps on 2026-10-24 (user: the UI PR alone was 700–900 lines), which renumbered
          everything below.
-      4. **M-37.4 "Своя справа" (logic)** — next. `EventRepository` + Firestore, `events` in
-         `firestore.rules` and `collections`; `ScheduleViewModel` observes `events` and the real
-         `EventTemplateRepository` instead of `inMemoryTemplates`.
-      5. **M-37.5 / M-37.6 Plan actions (UI / logic)** — tap a plan: "Змінити" (another
+      4. ~~**M-37.4 "Своя справа" (logic)**~~ — **done** (under "Done").
+      5. **M-37.5 / M-37.6 Plan actions (UI / logic)** — next. Tap a plan: "Змінити" (another
          template), "Перенести" (day + start/end), "Видалити".
       6. **M-37.7 / M-37.8 Weekly repeat (UI / logic).**
       7. **M-37.9 / M-37.10 Conflicts with free windows (UI / logic).**

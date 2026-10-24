@@ -30,19 +30,6 @@ enum SchedulePreviewData {
         }
     }
 
-    @MainActor
-    static var schedule: ScheduleViewModel {
-        let viewModel = ScheduleViewModel(
-            slotRepository: FakeSlotRepository(slots: slots),
-            clientRepository: FakeClientRepository(clients: ClientsPreviewData.clients),
-            serviceRepository: FakeServiceRepository(services: ServicesPreviewData.services)
-        )
-
-        viewModel.addPlans(plans)
-
-        return viewModel
-    }
-
     static let dayStates: [MonthDay] = [
         MonthDay(id: "past", numberText: "12", isEnabled: false, isToday: false, isSelected: false, hasSlots: true),
         MonthDay(id: "today", numberText: "17", isEnabled: true, isToday: true, isSelected: false, hasSlots: false),

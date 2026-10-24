@@ -76,6 +76,12 @@ struct ScheduleView: View {
             .task {
                 await viewModel.observeServices()
             }
+            .task {
+                await viewModel.observePlans()
+            }
+            .task {
+                await viewModel.observeTemplates()
+            }
             .onChange(of: viewModel.selectedDate, closeOpenRow)
             .fullScreenCover(item: $popup, onDismiss: applyPending) { popup in
                 popupView(popup)
@@ -268,9 +274,3 @@ struct ScheduleView: View {
         viewModel.deletePlan(id: item.id)
     }
 }
-
-#if DEBUG
-#Preview {
-    ScheduleView(viewModel: SchedulePreviewData.schedule)
-}
-#endif
