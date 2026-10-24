@@ -42,6 +42,8 @@ struct StatsView: View {
                 switch route {
                 case .services:
                     MyServicesView(viewModel: MyServicesViewModel())
+                case .plans:
+                    MyPlansView(viewModel: MyPlansViewModel())
                 case .profile:
                     ProfileView(
                         profile: profile,
@@ -96,6 +98,7 @@ struct StatsView: View {
                 }
 
                 servicesLink
+                plansLink
             }
             .padding(.horizontal, StatsMetrics.Spacing.horizontalPadding)
             .padding(.top, StatsMetrics.Spacing.contentTopPadding)
@@ -151,6 +154,14 @@ struct StatsView: View {
             titleKey: "services.action.open",
             iconName: "list.bullet.rectangle",
             route: .services
+        )
+    }
+
+    private var plansLink: some View {
+        StatsLinkRow(
+            titleKey: "plans.action.open",
+            iconName: "checklist",
+            route: .plans
         )
     }
 }

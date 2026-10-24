@@ -13,16 +13,11 @@ enum ServicesMetrics {
         static let horizontalPadding: CGFloat = 16
         static let introTopPadding: CGFloat = 8
         static let sectionTopPadding: CGFloat = 24
-        static let sectionSpacing: CGFloat = 6
         static let listTopPadding: CGFloat = 12
         static let listBottomPadding: CGFloat = 24
         static let rowSpacing: CGFloat = 12
         static let rowContentSpacing: CGFloat = 12
         static let rowHorizontalPadding: CGFloat = 14
         static let rowVerticalPadding: CGFloat = 14
-    }
-
-    enum Tracking {
-        static let sectionLabel: CGFloat = 1.2
     }
 }
