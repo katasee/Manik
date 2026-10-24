@@ -47,7 +47,9 @@ does not lift reads as a hole in the popup. The deliberately flat exceptions are
 objects: the dashed free window (`FreeSlotRow`) and the "today" outline in `WeekDayStrip`.
 A raised control that can be *selected* swaps its surface for a `PrimaryFill` fill with
 `.brandShadow()` (the selected day in `WeekDayStrip`); write that as an explicit `if`/`else` in
-`.background`, not as a fill stacked over a raised one. `Hairline` is for dividers and outlines
+`.background`, not as a fill stacked over a raised one — for a plain chip or field that is
+`.selectableSurface(isSelected:in:)` (`Assets/UICommons/`, M-37.3), which holds exactly that
+`if`/`else`. `Hairline` is for dividers and outlines
 only — never a fill (the client avatar, removed in M-30, shaded with a `Raised` → `Shadow` gradient instead) — and
 `Stroke` is for the dashed outline of a free window (`FreeSlotRow`). Shadows sit on the surface's background shape,
 never on the whole content — `.shadow` on a view with children shadows each child. A horizontal `ScrollView` of raised chips

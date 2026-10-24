@@ -33,7 +33,7 @@ enum ScheduleMetrics {
         static let bookRowHeight: CGFloat = 48
         static let bookRowCornerRadius: CGFloat = 14
         static let bookCheck: CGFloat = 14
-        static let serviceChipMinWidth: CGFloat = 140
+        static let choiceChipMinWidth: CGFloat = 140
         static let actionRowHeight: CGFloat = 56
         static let actionRowCornerRadius: CGFloat = 16
         static let actionTitle: CGFloat = 16
@@ -47,6 +47,13 @@ enum ScheduleMetrics {
         static let dayScrollerSelectedScale: CGFloat = 1.15
         static let dayLensHeight: CGFloat = 68
         static let dayLensCornerRadius: CGFloat = 20
+        static let tabHeight: CGFloat = 40
+        static let tabTitle: CGFloat = 15
+        static let timeFieldHeight: CGFloat = 56
+        static let timeFieldCornerRadius: CGFloat = 14
+        static let timeFieldCaption: CGFloat = 12
+        static let timeFieldValue: CGFloat = 18
+        static let planHint: CGFloat = 15
     }
 
     enum Spacing {
@@ -77,5 +84,8 @@ enum ScheduleMetrics {
         static let sendButtonSpacing: CGFloat = 10
         static let dayScrollerSpacing: CGFloat = 8
         static let dayScrollerVerticalInset: CGFloat = 6
+        static let tabTrackPadding: CGFloat = 3
+        static let timeFieldSpacing: CGFloat = 8
+        static let timeFieldLineSpacing: CGFloat = 2
     }
 }

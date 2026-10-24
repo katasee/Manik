@@ -20,16 +20,7 @@ struct TimeChip: View {
             }
             .foregroundStyle(time.isSelected ? Color.onPrimary : Color.ink)
             .frame(maxWidth: .infinity, minHeight: ScheduleMetrics.Size.chipHeight)
-            .background {
-                if time.isSelected {
-                    Capsule()
-                        .fill(Color.primaryFill)
-                        .brandShadow()
-                } else {
-                    Color.clear
-                        .raisedSurface(.capsule)
-                }
-            }
+            .selectableSurface(isSelected: time.isSelected, in: .capsule)
             .contentShape(.capsule)
         }
         .buttonStyle(.plain)

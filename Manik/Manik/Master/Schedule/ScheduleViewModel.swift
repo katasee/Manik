@@ -11,6 +11,8 @@ final class ScheduleViewModel {
     private var slots: [Slot] = []
     private var directory = ClientDirectory(clients: [], isLoaded: false)
     private var services: [Service] = []
+    private let templates = ScheduleViewModel.inMemoryTemplates
+    private var plans: [PlanEvent] = []
 
     private let slotRepository: SlotRepository
     private let clientRepository: ClientRepository
@@ -34,19 +36,27 @@ final class ScheduleViewModel {
         self.serviceRepository = serviceRepository
     }
 
-    func items(now: Date) -> [SlotItem] {
-        let day = DateFormat.date.string(from: selectedDate)
+    func items(now: Date) -> [ScheduleItem] {
+        ScheduleDayItems.make(
+            day: DateFormat.date.string(from: selectedDate),
+            slots: slots,
+            plans: plans,
+            clientName: directory.name(for:),
+            now: now
+        )
+    }
 
-        return slots
-            .filter { $0.date == day }
-            .sorted(by: Slot.chronologically)
-            .map { slot in
-                SlotItem(
-                    slot: slot,
-                    clientName: slot.clientId.map(directory.name(for:)) ?? "",
-                    now: now
-                )
-            }
+    func addPlans(_ newPlans: [PlanEvent]) {
+        plans += newPlans.map { plan in
+            var added = plan
+            added.id = UUID().uuidString
+
+            return added
+        }
+    }
+
+    func deletePlan(id: String) {
+        plans.removeAll { $0.id == id }
     }
 
     func observeSlots() async {
@@ -96,6 +106,15 @@ final class ScheduleViewModel {
             existing: slots,
             now: now,
             slotRepository: slotRepository
+        )
+    }
+
+    func makeAddPlanViewModel(now: Date = .now) -> AddPlanViewModel {
+        AddPlanViewModel(
+            month: selectedDate,
+            templates: templates,
+            plannedDays: Set(plans.map(\.date)),
+            now: now
         )
     }
 
@@ -152,4 +171,11 @@ final class ScheduleViewModel {
             now: now
         )
     }
+
+    private static let inMemoryTemplates = [
+        EventTemplate(id: "boxing", emoji: "🥊", name: "Бокс", isActive: true),
+        EventTemplate(id: "run", emoji: "🏃‍♀️", name: "Біг", isActive: true),
+        EventTemplate(id: "dentist", emoji: "🦷", name: "Стоматолог", isActive: true),
+        EventTemplate(id: "yoga", emoji: "🧘‍♀️", name: "Йога", isActive: false)
+    ]
 }

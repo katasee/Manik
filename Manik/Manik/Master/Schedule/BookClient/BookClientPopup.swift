@@ -74,7 +74,7 @@ struct BookClientPopup: View {
             if viewModel.services.isEmpty == false {
                 SectionLabel(titleKey: "schedule.book.service")
 
-                BookServiceChips(chips: viewModel.services, onToggle: viewModel.toggleService)
+                ChoiceChips(chips: viewModel.services, onToggle: viewModel.toggleService)
             }
         }
     }

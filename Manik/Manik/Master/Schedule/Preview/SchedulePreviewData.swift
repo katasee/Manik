@@ -9,6 +9,40 @@ enum SchedulePreviewData {
         Slot(id: "slot-1600", date: today, time: "16:00")
     ]
 
+    static let templates: [EventTemplate] = [
+        EventTemplate(id: "tpl-boxing", emoji: "🥊", name: "Бокс", isActive: true),
+        EventTemplate(id: "tpl-run", emoji: "🏃‍♀️", name: "Біг", isActive: true),
+        EventTemplate(id: "tpl-dentist", emoji: "🦷", name: "Стоматолог", isActive: true),
+        EventTemplate(id: "tpl-yoga", emoji: "🧘‍♀️", name: "Йога", isActive: false)
+    ]
+
+    static let plans: [PlanEvent] = [
+        PlanEvent(date: today, startTime: "07:30", endTime: "08:30", templateId: "tpl-run", emoji: "🏃‍♀️", name: "Біг"),
+        PlanEvent(date: today, startTime: "13:00", endTime: "14:30", templateId: "tpl-boxing", emoji: "🥊", name: "Бокс")
+    ]
+
+    static var planItems: [PlanItem] {
+        plans.enumerated().map { index, plan in
+            var stored = plan
+            stored.id = "plan-\(index)"
+
+            return PlanItem(plan: stored, now: noon)
+        }
+    }
+
+    @MainActor
+    static var schedule: ScheduleViewModel {
+        let viewModel = ScheduleViewModel(
+            slotRepository: FakeSlotRepository(slots: slots),
+            clientRepository: FakeClientRepository(clients: ClientsPreviewData.clients),
+            serviceRepository: FakeServiceRepository(services: ServicesPreviewData.services)
+        )
+
+        viewModel.addPlans(plans)
+
+        return viewModel
+    }
+
     static let dayStates: [MonthDay] = [
         MonthDay(id: "past", numberText: "12", isEnabled: false, isToday: false, isSelected: false, hasSlots: true),
         MonthDay(id: "today", numberText: "17", isEnabled: true, isToday: true, isSelected: false, hasSlots: false),
@@ -34,9 +68,9 @@ enum SchedulePreviewData {
         BookClientOption(id: "client-kate", title: "Катя", initial: "К", isSelected: false)
     ]
 
-    static let serviceChips: [BookServiceChip] = [
-        BookServiceChip(id: "svc-classic", title: "Класичний манікюр · 500 zł", isSelected: true),
-        BookServiceChip(id: "svc-hybrid", title: "Манікюр гібридний (гель-лак) · 800 zł", isSelected: false)
+    static let serviceChips: [ChoiceChip] = [
+        ChoiceChip(id: "svc-classic", title: "Класичний манікюр · 500 zł", isSelected: true),
+        ChoiceChip(id: "svc-hybrid", title: "Манікюр гібридний (гель-лак) · 800 zł", isSelected: false)
     ]
 
     @MainActor
@@ -77,10 +111,27 @@ enum SchedulePreviewData {
             slotRepository: FakeSlotRepository(slots: slots)
         )
 
-        viewModel.toggleWeekday(MonthGrid.column(of: .now))
+        viewModel.days.toggleWeekday(MonthGrid.column(of: .now))
         viewModel.toggleTime("12:00")
         viewModel.toggleTime("14:00")
         viewModel.addCustomTime(ClockTime(minutesOfDay: 17 * 60 + 30))
+
+        return viewModel
+    }
+
+    @MainActor
+    static var addPlan: AddPlanViewModel {
+        let viewModel = AddPlanViewModel(
+            month: .now,
+            templates: templates,
+            plannedDays: [today],
+            now: .now
+        )
+
+        viewModel.days.toggleWeekday(MonthGrid.column(of: .now))
+        viewModel.selectTemplate("tpl-boxing")
+        viewModel.end = ClockTime(minutesOfDay: 10 * 60)
+        viewModel.editing = .end
 
         return viewModel
     }

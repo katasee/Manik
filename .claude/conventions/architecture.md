@@ -17,8 +17,8 @@
   reads, and `Block`, which since M-33.1 only Статистика reads (it goes in M-38). `Models/` is the
   **domain layer** — the M of MVVM — not "files that contain a struct": it also holds derived properties of
   domain types (`Slot/Slot+StartDate.swift`, `Slot/Slot+Past.swift`) and domain
-  configuration with no fields at all (`WorkHours.swift`: the Заповнити місяць hour chips and the
-  "Свій час" wheel range). **A domain rule that two features must
+  configuration with no fields at all (`WorkHours.swift`: the Заповнити місяць hour chips, the
+  "Свій час" wheel range and minute step, and a new plan's default start and length). **A domain rule that two features must
   agree on lives here too, even when it is one line.** `Block/Block+Completed.swift`
   (`isCompleted(now:)` — `confirmed` and already ended) is read by both the master's
   `StatsCalculator` and the client's `AccountStats` (the client cabinet, removed in M-30 — the

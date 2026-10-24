@@ -72,7 +72,7 @@ final class BookingActionsViewModel: Identifiable {
         serviceChoice.chips.isEmpty == false
     }
 
-    var services: [BookServiceChip] {
+    var services: [ChoiceChip] {
         serviceChoice.chips
     }
 

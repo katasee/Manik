@@ -1,7 +1,7 @@
 import SwiftUI
 
 private enum SchedulePopup: Identifiable {
-    case fillMonth(FillMonthViewModel)
+    case fillMonth(FillMonthViewModel, AddPlanViewModel)
     case jumpToDate(JumpToDateViewModel)
     case sendSchedule(SendScheduleViewModel)
     case bookClient(BookClientViewModel)
@@ -9,7 +9,7 @@ private enum SchedulePopup: Identifiable {
 
     var id: ObjectIdentifier {
         switch self {
-        case .fillMonth(let viewModel): viewModel.id
+        case .fillMonth(let viewModel, _): viewModel.id
         case .jumpToDate(let viewModel): viewModel.id
         case .sendSchedule(let viewModel): viewModel.id
         case .bookClient(let viewModel): viewModel.id
@@ -100,8 +100,13 @@ struct ScheduleView: View {
     @ViewBuilder
     private func popupView(_ popup: SchedulePopup) -> some View {
         switch popup {
-        case .fillMonth(let fillMonth):
-            FillMonthPopup(viewModel: fillMonth, onDismiss: closePopup)
+        case .fillMonth(let fillMonth, let addPlan):
+            FillMonthPopup(
+                viewModel: fillMonth,
+                addPlan: addPlan,
+                onAddPlans: viewModel.addPlans,
+                onDismiss: closePopup
+            )
         case .jumpToDate(let jumpToDate):
             JumpToDatePopup(
                 viewModel: jumpToDate,
@@ -122,7 +127,7 @@ struct ScheduleView: View {
         }
     }
 
-    private func content(_ items: [SlotItem]) -> some View {
+    private func content(_ items: [ScheduleItem]) -> some View {
         ZStack {
             if items.isEmpty == false {
                 list(items)
@@ -146,24 +151,15 @@ struct ScheduleView: View {
         viewModel.hasFailed ? "schedule.loadFailed.message" : "schedule.empty.message"
     }
 
-    private func list(_ items: [SlotItem]) -> some View {
+    private func list(_ items: [ScheduleItem]) -> some View {
         ScrollView {
             LazyVStack(spacing: ScheduleMetrics.Spacing.rowSpacing) {
                 ForEach(items) { item in
-                    SwipeToDelete(
-                        id: item.id,
-                        openId: $openRowId,
-                        cornerRadius: ScheduleMetrics.Size.rowCornerRadius,
-                        onDelete: { requestDelete(item) }
-                    ) {
-                        ScheduleSlotRow(
-                            item: item,
-                            onBook: { openBookClient(item) },
-                            onOpenActions: { openBookingActions(item) }
-                        )
-                        .accessibilityAction(named: Text("schedule.action.deleteSlot")) {
-                            requestDelete(item)
-                        }
+                    switch item {
+                    case .slot(let slot):
+                        slotRow(slot)
+                    case .plan(let plan):
+                        planRow(plan)
                     }
                 }
             }
@@ -174,12 +170,44 @@ struct ScheduleView: View {
         .scrollIndicators(.hidden)
     }
 
+    private func slotRow(_ item: SlotItem) -> some View {
+        SwipeToDelete(
+            id: item.id,
+            openId: $openRowId,
+            cornerRadius: ScheduleMetrics.Size.rowCornerRadius,
+            onDelete: { requestDelete(item) }
+        ) {
+            ScheduleSlotRow(
+                item: item,
+                onBook: { openBookClient(item) },
+                onOpenActions: { openBookingActions(item) }
+            )
+            .accessibilityAction(named: Text("schedule.action.deleteSlot")) {
+                requestDelete(item)
+            }
+        }
+    }
+
+    private func planRow(_ item: PlanItem) -> some View {
+        SwipeToDelete(
+            id: item.id,
+            openId: $openRowId,
+            cornerRadius: ScheduleMetrics.Size.rowCornerRadius,
+            onDelete: { deletePlan(item) }
+        ) {
+            SchedulePlanRow(item: item)
+                .accessibilityAction(named: Text("schedule.action.deletePlan")) {
+                    deletePlan(item)
+                }
+        }
+    }
+
     private func closeOpenRow() {
         openRowId = nil
     }
 
     private func openFillMonth() {
-        open(.fillMonth(viewModel.makeFillMonthViewModel()))
+        open(.fillMonth(viewModel.makeFillMonthViewModel(), viewModel.makeAddPlanViewModel()))
     }
 
     private func openSendSchedule() {
@@ -235,16 +263,14 @@ struct ScheduleView: View {
     private func delete(_ item: SlotItem) {
         viewModel.delete(id: item.id)
     }
+
+    private func deletePlan(_ item: PlanItem) {
+        viewModel.deletePlan(id: item.id)
+    }
 }
 
 #if DEBUG
 #Preview {
-    ScheduleView(
-        viewModel: ScheduleViewModel(
-            slotRepository: FakeSlotRepository(slots: SchedulePreviewData.slots),
-            clientRepository: FakeClientRepository(clients: ClientsPreviewData.clients),
-            serviceRepository: FakeServiceRepository(services: ServicesPreviewData.services)
-        )
-    )
+    ScheduleView(viewModel: SchedulePreviewData.schedule)
 }
 #endif
