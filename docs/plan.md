@@ -2041,6 +2041,32 @@ this file is just "what's done, what's next," not a design doc.
     the row, tile, grid and form keep theirs on `PlansPreviewData`.
   - Verified: `xcodebuild` after every task, `swift-concurrency-pro` review (no findings);
     simulator pass by the user (Console fields, offline, relaunch, account deletion).
+- **M-37.3 — "Своя справа" (UI)** (branch `feature/pr-37.3-Own-Plans-UI`; design in the M-37 spec,
+  section "M-37.3…M-37.6"). Розклад's "+" popup has a "Вікна / Мої справи" switch at the top (it
+  replaced the "Заповнити місяць" title). On "Мої справи" the master picks one or several days
+  (same calendar and weekday-letter toggle as "Вікна"), a template chip and "Початок" / "Кінець"
+  on a `TimeWheel`; "Додати" puts one plan per day into the day list, among the windows by start
+  time, swipe-deletable. A tap on a plan does nothing yet (actions are M-37.5).
+  - Pure UI (user, mid-PR): the first cut observed the merged `EventTemplateRepository` and added
+    a fake for previews; the user ruled that reading an existing repository is logic too. So
+    `ScheduleViewModel` keeps plans in memory and offers a fixed `inMemoryTemplates` list; M-37.4
+    swaps both for repositories.
+  - User calls during the PR: the plan row looks like a booking card (no wine tint); the button
+    is plain "Додати" (no count); no template is preselected, and picking one scrolls the popup
+    to the hours; the end moves to start + 1h whenever the start reaches it (capped at the last
+    wheel value, `WorkHours.latestTime`); the switch slides a Liquid Glass lens
+    (`matchedGeometryEffect`, `.glassEffect` on iOS 26, a raised capsule on 18).
+  - Model: `PlanEvent` (`date`, `startTime`, `endTime`, `templateId` + an `emoji`/`name`
+    snapshot, as `Slot` copies its service); past once it has ended (`isPast(now:)`).
+  - Reuse: the calendar state of "Заповнити місяць" moved into `MonthDaySelection` +
+    `MonthDayPicker` (header + grid), shared by both tabs; `BookServiceChips` became the generic
+    `ChoiceChips` (`ChoiceChips/`), now used for services and templates; the selected-vs-raised
+    look is one modifier, `.selectableSurface(isSelected:in:)` (chips, time chips, time fields,
+    emoji grid); `TimeWheel` takes `minuteStep` (`WorkHours.minuteStep`) instead of a private 15.
+  - The day list is `[ScheduleItem]` (`.slot` / `.plan`) built by `ScheduleDayItems.make`, sorted
+    by `(time, slot-before-plan, id)`.
+  - Verified: `xcodebuild` after every task, `swiftui-pro` on the plan and on the code, a
+    clean-code/SOLID pass; simulator pass by the user.
 
 ## Screens (in order)
 
@@ -2214,11 +2240,17 @@ those items are referred to by name, so the list can grow without renumbering an
       template ("Мої справи") is an emoji and a name only — the time is chosen on the date.
       1. ~~**M-37.1 "Мої справи" (UI)**~~ — **done** (under "Done"). Pure UI: in-memory state, no
          repository.
-      2. ~~**M-37.2 "Мої справи" (logic)**~~ — **done** (under "Done"). Next is M-37.3.
-      3. **M-37.3 / M-37.4 "Своя справа" (UI / logic)** — a template on a date, start–end, in
-         Розклад; `events`.
-      4. **M-37.5 / M-37.6 Weekly repeat (UI / logic).**
-      5. **M-37.7 / M-37.8 Conflicts with free windows (UI / logic).**
+      2. ~~**M-37.2 "Мої справи" (logic)**~~ — **done** (under "Done").
+      3. ~~**M-37.3 "Своя справа" (UI)**~~ — **done** (under "Done"). "Своя справа" was split in
+         two steps on 2026-10-24 (user: the UI PR alone was 700–900 lines), which renumbered
+         everything below.
+      4. **M-37.4 "Своя справа" (logic)** — next. `EventRepository` + Firestore, `events` in
+         `firestore.rules` and `collections`; `ScheduleViewModel` observes `events` and the real
+         `EventTemplateRepository` instead of `inMemoryTemplates`.
+      5. **M-37.5 / M-37.6 Plan actions (UI / logic)** — tap a plan: "Змінити" (another
+         template), "Перенести" (day + start/end), "Видалити".
+      6. **M-37.7 / M-37.8 Weekly repeat (UI / logic).**
+      7. **M-37.9 / M-37.10 Conflicts with free windows (UI / logic).**
    9. **M-38 Statistics on slots** — and delete `Block`/`blocks` (kept for Статистика since M-33.1).
 
 ## Backlog and tech debt (unordered)

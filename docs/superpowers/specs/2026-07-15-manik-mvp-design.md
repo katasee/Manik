@@ -38,8 +38,9 @@ clients/{autoId}         name?, instagram? (lowercased, no "@"), phone? (+48 + 9
                          createdAt, lastBookedAt?          — name or instagram required
 slots/{yyyy-MM-dd_HHmm}  date, time, clientId?, serviceId?, serviceName?, servicePrice?
                          — no client = free window; id from date+time, so no duplicates
-events/{autoId}          title, startTime, endTime, date? | weekdays[] + fromDate, skippedDates[]
-eventTemplates/{autoId}  title, startTime, endTime, weekdays[]            — "Мої справи"
+events/{autoId}          date, startTime, endTime, templateId + emoji/name snapshot
+                         (weekdays[] + fromDate, skippedDates[] with the weekly repeat)
+eventTemplates/{autoId}  emoji, name, isActive                            — "Мої справи"
 services/{autoId}        name, price (whole PLN), isFavorite?
 ```
 
@@ -77,8 +78,9 @@ Three tabs: **Розклад / Клієнтки / Статистика**. "Мо�
    the old window becomes free, Розклад jumps to the new day. A deleted client keeps only the
    actions on the window. Where the recipient is known,
    "Надіслати @нік" copies the message and opens her chat; the master pastes and sends.
-6. **Personal plans** — "Своя справа" (boxing, gym): title, start–end, one date or weekly on chosen
-   days, filled from the "Мої справи" list in one tap. A free window that overlaps a plan (assuming
+6. **Personal plans** — "Своя справа" (boxing, gym): a "Мої справи" template (emoji + name),
+   start–end, on one or several picked days (the "Мої справи" tab of Розклад's "+") or weekly on
+   chosen days; shown in the day list like a booking, tap → change / move / delete. A free window that overlaps a plan (assuming
    a 60-minute visit) is flagged and left out of what is published; it is not deleted.
 
 ## Statistics (calendar month, navigable back)
