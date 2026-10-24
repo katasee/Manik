@@ -73,21 +73,7 @@ struct MyServicesView: View {
     @ViewBuilder
     private var sectionHeader: some View {
         if viewModel.services.isEmpty == false {
-            HStack(spacing: ServicesMetrics.Spacing.sectionSpacing) {
-                Text("services.section.all")
-                    .font(.elmsSans(.medium, 13))
-                    .textCase(.uppercase)
-                    .tracking(ServicesMetrics.Tracking.sectionLabel)
-                    .foregroundStyle(Color.textSecondary)
-
-                Text(verbatim: "·")
-                    .font(.elmsSans(.medium, 13))
-                    .foregroundStyle(Color.textSecondary)
-
-                Text(viewModel.services.count.formatted())
-                    .font(.elmsSans(.bold, 13))
-                    .foregroundStyle(Color.ink)
-            }
+            SectionLabel(titleKey: "services.section.all", count: viewModel.services.count)
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, ServicesMetrics.Spacing.horizontalPadding)
             .padding(.top, ServicesMetrics.Spacing.sectionTopPadding)
