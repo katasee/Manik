@@ -9,6 +9,10 @@ enum PlansMetrics {
         static let pickedTile: CGFloat = 56
         static let pickedTileCornerRadius: CGFloat = 18
         static let pickedGlyph: CGFloat = 28
+        static let gridCell: CGFloat = 44
+        static let gridCellCornerRadius: CGFloat = 14
+        static let gridGlyph: CGFloat = 22
+        static let gridVisibleHeight: CGFloat = 178
     }
 
     enum Spacing {
@@ -20,6 +24,15 @@ enum PlansMetrics {
         static let rowContentSpacing: CGFloat = 14
         static let rowHorizontalPadding: CGFloat = 14
         static let rowVerticalPadding: CGFloat = 12
+        static let titleSpacing: CGFloat = 4
+        static let nameRowSpacing: CGFloat = 12
+        static let nameLabelSpacing: CGFloat = 6
+        static let gridSpacing: CGFloat = 8
+        static let gridShadowInset: CGFloat = 6
+    }
+
+    enum Grid {
+        static let columns = 5
     }
 
     enum Opacity {

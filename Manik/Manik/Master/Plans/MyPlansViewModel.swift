@@ -10,6 +10,18 @@ final class MyPlansViewModel {
         self.templates = templates.sortedByName()
     }
 
+    func save(_ template: EventTemplate) {
+        if let id = template.id, let index = templates.firstIndex(where: { $0.id == id }) {
+            templates[index] = template
+        } else {
+            var added = template
+            added.id = UUID().uuidString
+            templates.append(added)
+        }
+
+        templates = templates.sortedByName()
+    }
+
     func toggleActive(_ template: EventTemplate) {
         guard let index = templates.firstIndex(where: { $0.id == template.id }) else { return }
 

@@ -4,6 +4,7 @@ struct MyPlansView: View {
     @Environment(\.dismiss) private var dismiss
 
     @State private var viewModel: MyPlansViewModel
+    @State private var formMode: PlanFormMode?
     @State private var openRowId: String?
 
     init(viewModel: MyPlansViewModel) {
@@ -29,6 +30,14 @@ struct MyPlansView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color.background)
         .toolbar(.hidden, for: .navigationBar)
+        .fullScreenCover(item: $formMode) { mode in
+            PlanFormPopup(
+                viewModel: PlanFormViewModel(mode: mode),
+                onSave: viewModel.save,
+                onDismiss: dismissForm
+            )
+            .presentationBackground(.clear)
+        }
     }
 
     @ViewBuilder
@@ -75,12 +84,25 @@ struct MyPlansView: View {
     }
 
     private func addTemplate() {
+        withoutPresentationAnimation {
+            formMode = .add
+        }
     }
 
     private func editTemplate(_ template: EventTemplate) {
         guard openRowId == nil else {
             openRowId = nil
             return
+        }
+
+        withoutPresentationAnimation {
+            formMode = .edit(template)
+        }
+    }
+
+    private func dismissForm() {
+        withoutPresentationAnimation {
+            formMode = nil
         }
     }
 
