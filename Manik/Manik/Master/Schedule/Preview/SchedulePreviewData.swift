@@ -120,6 +120,23 @@ enum SchedulePreviewData {
     }
 
     @MainActor
+    static var addPlan: AddPlanViewModel {
+        let viewModel = AddPlanViewModel(
+            month: .now,
+            templates: templates,
+            plannedDays: [today],
+            now: .now
+        )
+
+        viewModel.days.toggleWeekday(MonthGrid.column(of: .now))
+        viewModel.selectTemplate("tpl-boxing")
+        viewModel.end = ClockTime(minutesOfDay: 10 * 60)
+        viewModel.editing = .end
+
+        return viewModel
+    }
+
+    @MainActor
     static var jumpToDate: JumpToDateViewModel {
         JumpToDateViewModel(
             selectedDate: .now,

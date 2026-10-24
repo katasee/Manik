@@ -7,17 +7,17 @@ struct SchedulePlanRow: View {
         HStack(spacing: 0) {
             Text(verbatim: item.timeText)
                 .font(.elmsSans(.semiBold, ScheduleMetrics.Size.rowTime))
-                .foregroundStyle(Color.wine)
+                .foregroundStyle(Color.ink)
                 .frame(width: ScheduleMetrics.Size.rowTimeWidth, alignment: .leading)
 
             VStack(alignment: .leading, spacing: ScheduleMetrics.Spacing.rowLineSpacing) {
                 Text(verbatim: item.title)
                     .font(.elmsSans(.semiBold, ScheduleMetrics.Size.rowName))
-                    .foregroundStyle(Color.wine)
+                    .foregroundStyle(Color.ink)
 
                 Text("schedule.plan.until \(item.endText)")
                     .font(.elmsSans(.regular, ScheduleMetrics.Size.rowService))
-                    .foregroundStyle(Color.wine)
+                    .foregroundStyle(Color.textSecondary)
             }
             .lineLimit(1)
 
@@ -25,11 +25,7 @@ struct SchedulePlanRow: View {
         }
         .padding(.horizontal, ScheduleMetrics.Spacing.rowHorizontalPadding)
         .frame(maxWidth: .infinity, minHeight: ScheduleMetrics.Size.bookedRowHeight)
-        .cardSurface(
-            fill: .wineSoft,
-            padding: 0,
-            cornerRadius: ScheduleMetrics.Size.rowCornerRadius
-        )
+        .cardSurface(padding: 0, cornerRadius: ScheduleMetrics.Size.rowCornerRadius)
         .opacity(item.isPast ? ScheduleMetrics.Size.pastOpacity : 1)
         .accessibilityElement(children: .combine)
     }

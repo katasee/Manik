@@ -2,12 +2,18 @@ import SwiftUI
 
 struct FillMonthPopup: View {
     @Bindable var viewModel: FillMonthViewModel
+    let addPlan: AddPlanViewModel
+    let onAddPlans: ([PlanEvent]) -> Void
     let onDismiss: () -> Void
 
+    @State private var tab = FillMonthTab.slots
     @State private var contentHeight: CGFloat?
+    @State private var scrollPosition = ScrollPosition()
 
     var body: some View {
         PopupContainer(dismissLabel: "common.action.cancel", onDismiss: onDismiss) { dismiss in
+            FillMonthTabs(selection: $tab)
+
             ScrollView {
                 sections
                     .padding(ScheduleMetrics.Spacing.scrollShadowInset)
@@ -18,6 +24,8 @@ struct FillMonthPopup: View {
                     }
             }
             .frame(maxHeight: contentHeight)
+            .scrollPosition($scrollPosition)
+            .onChange(of: addPlan.selectedTemplateId, scrollToTime)
             .scrollBounceBehavior(.basedOnSize)
             .scrollIndicators(.hidden)
             .padding(-ScheduleMetrics.Spacing.scrollShadowInset)
@@ -26,36 +34,59 @@ struct FillMonthPopup: View {
         }
     }
 
+    @ViewBuilder
     private var sections: some View {
-        VStack(alignment: .leading, spacing: PopupContainerLayout.rowSpacing) {
-            Text("schedule.fill.title")
-                .font(.elmsSans(.bold, ScheduleMetrics.Size.fillTitle))
-                .foregroundStyle(Color.ink)
-                .accessibilityAddTraits(.isHeader)
+        switch tab {
+        case .slots:
+            VStack(alignment: .leading, spacing: PopupContainerLayout.rowSpacing) {
+                MonthDayPicker(selection: $viewModel.days)
 
-            MonthDayPicker(selection: $viewModel.days)
-
-            FillMonthHours(viewModel: viewModel)
+                FillMonthHours(viewModel: viewModel)
+            }
+        case .plans:
+            AddPlanSection(viewModel: addPlan)
         }
     }
 
+    @ViewBuilder
     private func actions(dismiss: @escaping () -> Void) -> some View {
         HStack {
             PopupDismissButton(titleKey: "common.action.cancel", action: dismiss)
 
             Spacer()
 
-            CapsuleButton(
-                titleKey: "schedule.fill.add \(viewModel.newSlotCount)",
-                role: .primary,
-                isEnabled: viewModel.newSlotCount > 0,
-                action: { add(then: dismiss) }
-            )
+            switch tab {
+            case .slots:
+                CapsuleButton(
+                    titleKey: "schedule.fill.add \(viewModel.newSlotCount)",
+                    role: .primary,
+                    isEnabled: viewModel.newSlotCount > 0,
+                    action: { add(then: dismiss) }
+                )
+            case .plans:
+                CapsuleButton(
+                    titleKey: "schedule.plan.add",
+                    role: .primary,
+                    isEnabled: addPlan.canAdd,
+                    action: { addPlans(then: dismiss) }
+                )
+            }
         }
     }
 
     private func add(then dismiss: () -> Void) {
         viewModel.add()
+        dismiss()
+    }
+
+    private func scrollToTime() {
+        withAnimation {
+            scrollPosition.scrollTo(edge: .bottom)
+        }
+    }
+
+    private func addPlans(then dismiss: () -> Void) {
+        onAddPlans(addPlan.makePlans())
         dismiss()
     }
 }
@@ -64,7 +95,12 @@ struct FillMonthPopup: View {
 #Preview {
     Color.background
         .overlay {
-            FillMonthPopup(viewModel: SchedulePreviewData.fillMonth, onDismiss: {})
+            FillMonthPopup(
+                viewModel: SchedulePreviewData.fillMonth,
+                addPlan: SchedulePreviewData.addPlan,
+                onAddPlans: { _ in },
+                onDismiss: {}
+            )
         }
 }
 #endif

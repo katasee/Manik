@@ -131,6 +131,15 @@ final class ScheduleViewModel {
         )
     }
 
+    func makeAddPlanViewModel(now: Date = .now) -> AddPlanViewModel {
+        AddPlanViewModel(
+            month: selectedDate,
+            templates: templates,
+            plannedDays: Set(plans.map(\.date)),
+            now: now
+        )
+    }
+
     func makeBookClientViewModel(slotId: String) -> BookClientViewModel? {
         guard let slot = slots.first(where: { $0.id == slotId }), slot.isBooked == false else { return nil }
 

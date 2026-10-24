@@ -1,7 +1,7 @@
 import SwiftUI
 
 private enum SchedulePopup: Identifiable {
-    case fillMonth(FillMonthViewModel)
+    case fillMonth(FillMonthViewModel, AddPlanViewModel)
     case jumpToDate(JumpToDateViewModel)
     case sendSchedule(SendScheduleViewModel)
     case bookClient(BookClientViewModel)
@@ -9,7 +9,7 @@ private enum SchedulePopup: Identifiable {
 
     var id: ObjectIdentifier {
         switch self {
-        case .fillMonth(let viewModel): viewModel.id
+        case .fillMonth(let viewModel, _): viewModel.id
         case .jumpToDate(let viewModel): viewModel.id
         case .sendSchedule(let viewModel): viewModel.id
         case .bookClient(let viewModel): viewModel.id
@@ -100,8 +100,13 @@ struct ScheduleView: View {
     @ViewBuilder
     private func popupView(_ popup: SchedulePopup) -> some View {
         switch popup {
-        case .fillMonth(let fillMonth):
-            FillMonthPopup(viewModel: fillMonth, onDismiss: closePopup)
+        case .fillMonth(let fillMonth, let addPlan):
+            FillMonthPopup(
+                viewModel: fillMonth,
+                addPlan: addPlan,
+                onAddPlans: viewModel.addPlans,
+                onDismiss: closePopup
+            )
         case .jumpToDate(let jumpToDate):
             JumpToDatePopup(
                 viewModel: jumpToDate,
@@ -202,7 +207,7 @@ struct ScheduleView: View {
     }
 
     private func openFillMonth() {
-        open(.fillMonth(viewModel.makeFillMonthViewModel()))
+        open(.fillMonth(viewModel.makeFillMonthViewModel(), viewModel.makeAddPlanViewModel()))
     }
 
     private func openSendSchedule() {
