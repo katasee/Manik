@@ -136,6 +136,14 @@
   opened its popup. A tap gesture fails as soon as the finger moves. Add
   `.accessibilityAddTraits(.isButton)` so VoiceOver still reads it as a button (`ScheduleSlotRow`,
   and Мої послуги's `ServiceRow`, which already did this).
+- **A scroll position that depends on a measured size is set after the measurement, by command**
+  (found on the simulator, M-36.1 fix). `RescheduleDayScroller` centres a day with side margins
+  computed from its width; an initial id given to `scrollPosition(id:)` before
+  `onGeometryChange` reported the width was applied with zero margins and clamped, and the bound
+  state then disagreed with the screen. Hold a `ScrollPosition`, call `scrollTo(id:anchor:)` the
+  first time the width is known, and scroll on a tap with `scrollTo` too — assigning a bound id
+  that already equals the state is no change and scrolls nothing. Read the centred item back with
+  `viewID(type:)`.
 - **Haptics fire imperatively on the tap, not through `.sensoryFeedback`** (found on a device in
   M-35.2). The modifier prepares a feedback generator when its view *appears*, and the first one
   per launch connects to the system haptics service on the main thread — the "Надіслати графік"

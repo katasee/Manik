@@ -30,19 +30,8 @@ struct RescheduleDayScroller: View {
     let days: [Date]
     let markedDays: Set<String>
 
-    @State private var scrolledDay: Date?
+    @State private var position = ScrollPosition(idType: Date.self)
     @State private var width: CGFloat = 0
-
-    init(
-        selectedDate: Binding<Date>,
-        days: [Date],
-        markedDays: Set<String>
-    ) {
-        _selectedDate = selectedDate
-        self.days = days
-        self.markedDays = markedDays
-        _scrolledDay = State(initialValue: selectedDate.wrappedValue)
-    }
 
     private var sideMargin: CGFloat {
         max(0, (width - ScheduleMetrics.Size.dayScrollerCell) / 2)
@@ -72,7 +61,7 @@ struct RescheduleDayScroller: View {
         .contentMargins(.horizontal, sideMargin, for: .scrollContent)
         .scrollIndicators(.hidden)
         .scrollTargetBehavior(.viewAligned)
-        .scrollPosition(id: $scrolledDay, anchor: .center)
+        .scrollPosition($position, anchor: .center)
         .fixedSize(horizontal: false, vertical: true)
         .background {
             RescheduleLens()
@@ -80,9 +69,9 @@ struct RescheduleDayScroller: View {
         .onGeometryChange(for: CGFloat.self) { proxy in
             proxy.size.width
         } action: { newWidth in
-            width = newWidth
+            resize(to: newWidth)
         }
-        .onChange(of: scrolledDay, selectCentered)
+        .onChange(of: position, selectCentered)
     }
 
     private nonisolated static func magnification(of proxy: GeometryProxy) -> CGFloat {
@@ -95,15 +84,25 @@ struct RescheduleDayScroller: View {
         return 1 + (ScheduleMetrics.Size.dayScrollerSelectedScale - 1) * closeness
     }
 
-    private func selectCentered() {
-        guard let scrolledDay else { return }
+    private func resize(to newWidth: CGFloat) {
+        let isFirstLayout = width == 0
 
-        selectedDate = scrolledDay
+        width = newWidth
+
+        if isFirstLayout {
+            position.scrollTo(id: selectedDate, anchor: .center)
+        }
+    }
+
+    private func selectCentered() {
+        guard let day = position.viewID(type: Date.self) else { return }
+
+        selectedDate = day
     }
 
     private func scroll(to day: Date) {
         withAnimation {
-            scrolledDay = day
+            position.scrollTo(id: day, anchor: .center)
         }
     }
 }
