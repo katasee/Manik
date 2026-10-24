@@ -11,6 +11,8 @@ final class ScheduleViewModel {
     private var slots: [Slot] = []
     private var directory = ClientDirectory(clients: [], isLoaded: false)
     private var services: [Service] = []
+    private let templates = ScheduleViewModel.inMemoryTemplates
+    private var plans: [PlanEvent] = []
 
     private let slotRepository: SlotRepository
     private let clientRepository: ClientRepository
@@ -34,19 +36,49 @@ final class ScheduleViewModel {
         self.serviceRepository = serviceRepository
     }
 
-    func items(now: Date) -> [SlotItem] {
+    func items(now: Date) -> [ScheduleItem] {
         let day = DateFormat.date.string(from: selectedDate)
 
-        return slots
+        let slotRows = slots
             .filter { $0.date == day }
-            .sorted(by: Slot.chronologically)
             .map { slot in
-                SlotItem(
-                    slot: slot,
-                    clientName: slot.clientId.map(directory.name(for:)) ?? "",
-                    now: now
+                (
+                    key: (slot.time, 0, slot.id ?? ""),
+                    item: ScheduleItem.slot(
+                        SlotItem(
+                            slot: slot,
+                            clientName: slot.clientId.map(directory.name(for:)) ?? "",
+                            now: now
+                        )
+                    )
                 )
             }
+
+        let planRows = plans
+            .filter { $0.date == day }
+            .map { plan in
+                (
+                    key: (plan.startTime, 1, plan.id ?? ""),
+                    item: ScheduleItem.plan(PlanItem(plan: plan, now: now))
+                )
+            }
+
+        return (slotRows + planRows)
+            .sorted { $0.key < $1.key }
+            .map(\.item)
+    }
+
+    func addPlans(_ newPlans: [PlanEvent]) {
+        plans += newPlans.map { plan in
+            var added = plan
+            added.id = UUID().uuidString
+
+            return added
+        }
+    }
+
+    func deletePlan(id: String) {
+        plans.removeAll { $0.id == id }
     }
 
     func observeSlots() async {
@@ -152,4 +184,11 @@ final class ScheduleViewModel {
             now: now
         )
     }
+
+    private static let inMemoryTemplates = [
+        EventTemplate(id: "boxing", emoji: "🥊", name: "Бокс", isActive: true),
+        EventTemplate(id: "run", emoji: "🏃‍♀️", name: "Біг", isActive: true),
+        EventTemplate(id: "dentist", emoji: "🦷", name: "Стоматолог", isActive: true),
+        EventTemplate(id: "yoga", emoji: "🧘‍♀️", name: "Йога", isActive: false)
+    ]
 }

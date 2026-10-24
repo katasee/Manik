@@ -2055,6 +2055,22 @@
         }
       }
     },
+    "schedule.action.deletePlan" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete plan"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Видалити справу"
+          }
+        }
+      }
+    },
     "schedule.action.sendSchedule" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2627,6 +2643,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Не вдалося завантажити вікна"
+          }
+        }
+      }
+    },
+    "schedule.plan.until %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "until %@"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "до %@"
           }
         }
       }
