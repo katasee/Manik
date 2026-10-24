@@ -2162,8 +2162,16 @@ those items are referred to by name, so the list can grow without renumbering an
          the actions popup, not a new `SchedulePopup` case.
       3. ~~**M-36.2 "Надіслати @нік"**~~ — **done** (under "Done"). M-36 is finished; next is
          M-37.
-   8. **M-37 Personal plans** — `events` + `eventTemplates` (Мої справи), weekly repeat, conflict
-      warnings. Add both to `FirestoreUserDataRepository.collections`.
+   8. **M-37 Personal plans** — design in `docs/superpowers/specs/2026-10-24-m37-personal-plans-design.md`.
+      Every step is a UI PR, then a logic PR, numbered consecutively (user, 2026-10-24). A
+      template ("Мої справи") is an emoji and a name only — the time is chosen on the date.
+      1. **M-37.1 "Мої справи" (UI)** — the list (link in Статистика under "Мої послуги"), the
+         form popup with the emoji grid; model, repository protocol and fake included.
+      2. **M-37.2 "Мої справи" (logic)** — `eventTemplates` in Firestore, rules, `collections`.
+      3. **M-37.3 / M-37.4 "Своя справа" (UI / logic)** — a template on a date, start–end, in
+         Розклад; `events`.
+      4. **M-37.5 / M-37.6 Weekly repeat (UI / logic).**
+      5. **M-37.7 / M-37.8 Conflicts with free windows (UI / logic).**
    9. **M-38 Statistics on slots** — and delete `Block`/`blocks` (kept for Статистика since M-33.1).
 
 ## Backlog and tech debt (unordered)
