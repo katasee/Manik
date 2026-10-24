@@ -15,11 +15,11 @@ final class FirestoreEventRepository: EventRepository {
 
     func add(_ events: [PlanEvent]) throws {
         let collection = try db.userCollection("events")
+        let encoder = Firestore.Encoder()
         let batch = db.batch()
 
         for event in events {
-            let encoded = try Firestore.Encoder().encode(event)
-            batch.setData(encoded, forDocument: collection.document())
+            batch.setData(try encoder.encode(event), forDocument: collection.document())
         }
 
         batch.commit(completion: nil)
