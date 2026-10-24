@@ -47,8 +47,9 @@
   face value) — the async-operations warning is a genuine compiler diagnostic about the code as
   written and won't go away on its own.
 - **The deliberate fire-and-forget writes are `FirestoreClientRepository`'s `add`, `update` and
-  `delete`, and `FirestoreSlotRepository`'s `add`, `book`, `clearBooking` and `delete`** (user
-  decisions: `add` in M-32.4, `update`/`delete` in M-32.5, slots in M-33.2 and booking in M-34.1,
+  `delete`, `FirestoreSlotRepository`'s `add`, `book`, `clearBooking` and `delete`, and
+  `FirestoreEventTemplateRepository`'s `add`, `update` and `delete`** (user decisions: `add` in
+  M-32.4, `update`/`delete` in M-32.5, slots in M-33.2, booking in M-34.1 and templates in M-37.2,
   where the protocol itself declares them plain `throws`). Awaiting a write waits
   for the *server* acknowledgement, so offline the client popups spun forever with Cancel disabled,
   although the change was already in the local cache and on screen. They now pass
@@ -110,8 +111,8 @@
 - In `firestore.rules`, **`write` means create + update + delete**, and on a delete
   `request.resource` is `null`. Any rule that validates incoming fields must therefore be attached
   to `create, update` with `delete` allowed separately — `allow write: if isOwner(uid) &&
-  hasValidServiceFormat()` silently breaks deletion. `services`, `blocks` and `clients` are all split
-  this way.
+  hasValidServiceFormat()` silently breaks deletion. `services`, `blocks`, `clients`, `slots` and
+  `eventTemplates` are all split this way.
 - Block state machine: `available → pending → confirmed`, with cancel/decline both returning to
   `available`. A block carries `offeredServiceIds: [String]` (services the master allows for that
   time slot) and `bookedServiceId: String?` (the one the client actually picked at booking time).

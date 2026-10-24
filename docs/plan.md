@@ -1399,7 +1399,7 @@ this file is just "what's done, what's next," not a design doc.
     simulator 2026-10-10: deleting `users/{uid}` in the Console, then signing in, recreated it and
     opened the cabinet.)
   - **`FirestoreUserDataRepository.collections` is the registry of per-master collections**
-    (`services`, `blocks` today). Account deletion wipes only what is listed — every PR that adds a
+    (`services`, `blocks`, `clients`, `slots`, `eventTemplates` today). Account deletion wipes only what is listed — every PR that adds a
     collection under `users/{uid}/` must add it here (M-32 `clients`, M-33 `slots`, M-37 `events`,
     `eventTemplates`).
   - **Rules**: `isVerifiedOwner(uid)` (owner + `request.auth.token.email_verified`) on everything,
@@ -2023,6 +2023,24 @@ this file is just "what's done, what's next," not a design doc.
     measure first).
   - Verified: `xcodebuild` after every task, `swiftui-pro` on the plan; simulator passes by the
     user.
+- **M-37.2 — "Мої справи" (logic)** (branch `worktree-pr-37.2-My-Plans-Logic`, on top of M-37.1).
+  Templates now live in `users/{uid}/eventTemplates` and survive "back", relaunch and reinstall.
+  - `EventTemplateRepository` (plain-`throws` writes, as `SlotRepository`) +
+    `FirestoreEventTemplateRepository` on `FirestoreClientRepository`'s pattern: `listening` for
+    the stream, `completion: nil` writes, so add / edit / toggle / delete show at once offline
+    and never spin. `"eventTemplates"` joined `FirestoreUserDataRepository.collections`.
+  - Rules: `hasValidEventTemplateFormat()` — `keys().hasOnly(['emoji', 'name', 'isActive'])`,
+    both strings non-empty, `isActive is bool`; `delete` split out as for the other collections.
+    Published by hand in the Console.
+  - `MyPlansViewModel` lost `init(templates:)`: the array is filled only by the stream (sorted by
+    name, `hasLoaded` / `hasFailed`), and `save` / `toggleActive` / `delete` only write — the
+    listener's local snapshot brings each change back, so the list has one source of truth.
+    `PlansFailure` (`.save` / `.delete`) drives the alert; a failed listener shows
+    `plans.loadFailed.*` instead of the empty state. The form did not change.
+  - No fake repository (user: checked on the simulator), so `MyPlansView`'s `#Preview` is gone;
+    the row, tile, grid and form keep theirs on `PlansPreviewData`.
+  - Verified: `xcodebuild` after every task, `swift-concurrency-pro` review (no findings);
+    simulator pass by the user (Console fields, offline, relaunch, account deletion).
 
 ## Screens (in order)
 
@@ -2196,11 +2214,7 @@ those items are referred to by name, so the list can grow without renumbering an
       template ("Мої справи") is an emoji and a name only — the time is chosen on the date.
       1. ~~**M-37.1 "Мої справи" (UI)**~~ — **done** (under "Done"). Pure UI: in-memory state, no
          repository.
-      2. **M-37.2 "Мої справи" (logic)** — `EventTemplateRepository` + fake +
-         `FirestoreEventTemplateRepository` (all moved here from M-37.1), `eventTemplates` in
-         Firestore, rules (three keys: `emoji`, `name`, `isActive`), `collections`; observation,
-         `hasLoaded` and failure alerts in `MyPlansViewModel` — only its `save` / `toggleActive` /
-         `delete` bodies change, the views and the form stay.
+      2. ~~**M-37.2 "Мої справи" (logic)**~~ — **done** (under "Done"). Next is M-37.3.
       3. **M-37.3 / M-37.4 "Своя справа" (UI / logic)** — a template on a date, start–end, in
          Розклад; `events`.
       4. **M-37.5 / M-37.6 Weekly repeat (UI / logic).**
