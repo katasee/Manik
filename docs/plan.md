@@ -1994,6 +1994,35 @@ this file is just "what's done, what's next," not a design doc.
     exhaustive `switch` beside `url(message:)` — not a filter in a view.
   - Verified: throwaway `swiftc` check of `RescheduleMessage` (3/3), `xcodebuild` after every
     task, `swiftui-pro` on the plan; simulator passes by the user.
+- **M-37.1 — "Мої справи" (UI)** (branch `feature/pr-37.1-My-Plans-UI`; design in
+  `docs/superpowers/specs/2026-10-24-m37-personal-plans-design.md`). A "Мої справи" link in
+  Статистика under "Мої послуги" opens the list of plan templates — an emoji and a name. "+" and a
+  row tap open the form popup ("Нова справа" / "Змінити справу": name field, 24-emoji grid); swipe
+  deletes; tapping a row's emoji switches the template on/off like the star in "Мої послуги"
+  (user — reverses the spec's "no star" non-goal; an inactive template will not be offered in
+  M-37.3). No delete button in the form (user).
+  - Pure UI (user, mid-PR): the first plan landed `EventTemplateRepository`, a fake and a shared
+    `FakeStore` here; the user preferred a UI-only PR checked on the simulator, so
+    `MyPlansViewModel` keeps the templates in memory and all of that moved to M-37.2. Nothing
+    persists past "back" until then.
+  - The form only describes the result: `PlanFormViewModel.makeTemplate() -> EventTemplate?`, the
+    popup hands it to `onSave`, and `MyPlansViewModel.save(_:)` adds (no `id`) or replaces — so
+    the form has no repository, no `isSaving`, no `Task`, and M-37.2 does not touch it.
+  - `EventTemplate.isActive` is a plain `Bool`, not `Bool?` + accessor like `Service`: a new
+    collection has no documents without the field.
+  - Reuse: `Named` (`Models/Named.swift`) with the one `sortedByName()` for `Service` and
+    `EventTemplate` (`Service+Order.swift` deleted); `SectionLabel` gained an optional `count`,
+    and "Мої послуги" dropped its own section header for it (its header now has `SectionLabel`'s
+    12pt semiBold look); `PlanEmojiTile` is the one emoji tile for the row (with the grey inactive
+    state) and the form — it moves to UICommons when Розклад shows it in M-37.3. Merging
+    `PlanFormMode` with `ServiceFormMode` was weighed and rejected (user): same shape, different
+    keys and modes.
+  - Emoji grid: 5 fixed columns (6 were under 44pt on iPhone SE) in a scroll of 3½ rows, no
+    indicator (user), padding inside the scroll so cell shadows are not clipped; it opens on the
+    picked emoji (`ScrollPosition.scrollTo` in `onAppear` — the height is fixed, nothing to
+    measure first).
+  - Verified: `xcodebuild` after every task, `swiftui-pro` on the plan; simulator passes by the
+    user.
 
 ## Screens (in order)
 
@@ -2165,9 +2194,13 @@ those items are referred to by name, so the list can grow without renumbering an
    8. **M-37 Personal plans** — design in `docs/superpowers/specs/2026-10-24-m37-personal-plans-design.md`.
       Every step is a UI PR, then a logic PR, numbered consecutively (user, 2026-10-24). A
       template ("Мої справи") is an emoji and a name only — the time is chosen on the date.
-      1. **M-37.1 "Мої справи" (UI)** — the list (link in Статистика under "Мої послуги"), the
-         form popup with the emoji grid; model, repository protocol and fake included.
-      2. **M-37.2 "Мої справи" (logic)** — `eventTemplates` in Firestore, rules, `collections`.
+      1. ~~**M-37.1 "Мої справи" (UI)**~~ — **done** (under "Done"). Pure UI: in-memory state, no
+         repository.
+      2. **M-37.2 "Мої справи" (logic)** — `EventTemplateRepository` + fake +
+         `FirestoreEventTemplateRepository` (all moved here from M-37.1), `eventTemplates` in
+         Firestore, rules (three keys: `emoji`, `name`, `isActive`), `collections`; observation,
+         `hasLoaded` and failure alerts in `MyPlansViewModel` — only its `save` / `toggleActive` /
+         `delete` bodies change, the views and the form stay.
       3. **M-37.3 / M-37.4 "Своя справа" (UI / logic)** — a template on a date, start–end, in
          Розклад; `events`.
       4. **M-37.5 / M-37.6 Weekly repeat (UI / logic).**
