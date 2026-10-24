@@ -15,6 +15,13 @@ enum ClientContact: Hashable, Identifiable {
         }
     }
 
+    var canCarryMessage: Bool {
+        switch self {
+        case .instagramProfile, .sms: true
+        case .call: false
+        }
+    }
+
     func url(message: String) -> URL? {
         guard case .sms(let phone) = self else { return url }
 
