@@ -1669,6 +1669,38 @@
         }
       }
     },
+    "plans.alert.deleteFailed" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could not delete the plan"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не вдалося видалити справу"
+          }
+        }
+      }
+    },
+    "plans.alert.saveFailed" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could not save the plan"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не вдалося зберегти справу"
+          }
+        }
+      }
+    },
     "plans.edit.title" : {
       "localizations" : {
         "en" : {
@@ -1777,6 +1809,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Емодзі й назва — час обереш у календарі"
+          }
+        }
+      }
+    },
+    "plans.loadFailed.message" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check your connection and open this screen again."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Перевірте з'єднання й відкрийте екран ще раз."
+          }
+        }
+      }
+    },
+    "plans.loadFailed.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't load your plans"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не вдалося завантажити справи"
           }
         }
       }
