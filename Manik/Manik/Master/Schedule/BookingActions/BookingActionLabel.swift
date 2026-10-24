@@ -9,6 +9,7 @@ struct BookingActionLabel: View {
     let titleKey: LocalizedStringKey
     let systemImage: String
     var role = BookingActionRole.regular
+    var isChecked = false
 
     var body: some View {
         HStack(spacing: ScheduleMetrics.Spacing.actionContentSpacing) {
@@ -27,6 +28,12 @@ struct BookingActionLabel: View {
                 .foregroundStyle(role == .destructive ? Color.destructive : Color.ink)
 
             Spacer(minLength: 0)
+
+            if isChecked {
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.elmsSans(.medium, ScheduleMetrics.Size.actionIcon))
+                    .foregroundStyle(Color.freeSlot)
+            }
         }
         .padding(.horizontal, ScheduleMetrics.Spacing.actionRowPadding)
         .frame(minHeight: ScheduleMetrics.Size.actionRowHeight)
@@ -39,6 +46,11 @@ struct BookingActionLabel: View {
 #Preview {
     VStack(spacing: ScheduleMetrics.Spacing.actionSpacing) {
         BookingActionLabel(titleKey: "schedule.actions.write", systemImage: "bubble.left")
+        BookingActionLabel(
+            titleKey: "clients.contact.sms",
+            systemImage: "message",
+            isChecked: true
+        )
         BookingActionLabel(
             titleKey: "schedule.actions.cancelBooking",
             systemImage: "xmark.circle",

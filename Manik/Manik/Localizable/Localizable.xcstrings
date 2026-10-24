@@ -2328,6 +2328,23 @@
         }
       }
     },
+    "schedule.reschedule.copied" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Message copied"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Повідомлення скопійовано"
+          }
+        }
+      }
+    },
     "schedule.reschedule.freeWindows %@" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2341,6 +2358,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Вільні вікна · %@"
+          }
+        }
+      }
+    },
+    "schedule.reschedule.message %@ %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your appointment is moved to %1$@, %2$@. See you!"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Перенесла запис на %1$@, %2$@. До зустрічі"
           }
         }
       }

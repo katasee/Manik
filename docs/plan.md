@@ -1955,6 +1955,33 @@ this file is just "what's done, what's next," not a design doc.
   - Verified: `xcodebuild`; throwaway `swiftc` checks of the repository fake, `RescheduleChoice` and
     the view model; simulator passes by the user on the scroller and lens.
 
+- **M-36.2 — "Надіслати @нік"** (branch `feature/pr-36.2-Reschedule-Message`; design in the
+  "M-36.2" section of `docs/superpowers/specs/2026-10-21-m36-reschedule-design.md`). After
+  "Перенести" the actions popup no longer closes: a last step shows "Перенесла запис на 24.10,
+  14:00. До зустрічі" (user's wording), already on the pasteboard, the client's Instagram / SMS and
+  "Готово". Розклад jumps to the new day however the popup is closed — `pendingDayId` is set when
+  "Перенести" is tapped, before the step appears.
+  - `RescheduleMessage.text(date:time:)`: the words are in the String Catalog
+    (`schedule.reschedule.message %@ %@`, positional `%1$@`/`%2$@` so a language can reorder), the
+    day and time always the fixed `DateFormat.messageDay`/`messageTime` (`1.11, 9:00` on any
+    device). A part that does not parse is used verbatim, so the result is not optional.
+  - The step is a fourth `BookingActionsMode`, `.rescheduled(message:)` — the text travels in the
+    case, no second property to keep in sync (named after the state, so `.reschedule` →
+    `.rescheduled` reads as the sequence; a nested `.reschedule(stage)` was weighed and rejected as
+    extra structure for two states). `reschedule()` sets it after the repository call.
+  - `RescheduleNotifyStep` copies the text in `.onAppear` — the step that says "Повідомлення
+    скопійовано" is the one that copies; `onAppear` does not fire again on returning from
+    Instagram, so the master's own clipboard is not overwritten. "Готово" sits on the right.
+  - `ClientMessageContacts` (`Master/Schedule/`): the contacts list both popups use — filter, the
+    "no contacts" plate, the buttons, `openURL` from the environment. "Надіслати графік"'s contacts
+    step now uses it. A tapped contact gets a green `checkmark.circle.fill` (`Color.freeSlot`,
+    `BookingActionLabel(isChecked:)`), remembered while the step is open (user request: see who was
+    already written to after coming back).
+  - `ClientContact.canCarryMessage` is the domain rule "a text can go here" (`.call` cannot), an
+    exhaustive `switch` beside `url(message:)` — not a filter in a view.
+  - Verified: throwaway `swiftc` check of `RescheduleMessage` (3/3), `xcodebuild` after every
+    task, `swiftui-pro` on the plan; simulator passes by the user.
+
 ## Screens (in order)
 
 This is the actual work queue, and the only numbered list here. The ordering follows the **data
@@ -2120,8 +2147,8 @@ those items are referred to by name, so the list can grow without renumbering an
       1. ~~**M-36.0 One popup state in Розклад**~~ — **done** (under "Done").
       2. ~~**M-36.1 Reschedule a booking**~~ — **done** (under "Done"). The step ended up a mode of
          the actions popup, not a new `SchedulePopup` case.
-      3. **M-36.2 "Надіслати @нік"** — after "Перенести", open the client's Instagram / SMS with a
-         ready message about the new day and time (reuse the "Надіслати графік" contacts step).
+      3. ~~**M-36.2 "Надіслати @нік"**~~ — **done** (under "Done"). M-36 is finished; next is
+         M-37.
    8. **M-37 Personal plans** — `events` + `eventTemplates` (Мої справи), weekly repeat, conflict
       warnings. Add both to `FirestoreUserDataRepository.collections`.
    9. **M-38 Statistics on slots** — and delete `Block`/`blocks` (kept for Статистика since M-33.1).
@@ -2137,6 +2164,22 @@ numbering drifts every time an item is added or closed (it already did once: PR9
   today). The pivot spec's layout A: the same lines as the M-35 text, 9:16, rendered with
   `ImageRenderer` at 1080×1920 in the app's fonts and colours, shared with `ShareLink`. Natural
   place: a third step or button in the "Надіслати графік" popup.
+
+- **Error handling pass over the whole app** (requested 2026-10-24, after M-36.2's review). Walk
+  every write and listener and decide, case by case, what the master sees when it fails — today
+  most failures are silent. Known spots: the slot writes in Розклад ("Записати", "Змінити
+  послугу", "Скасувати запис", "Перенести", delete) are `try?` — "Перенести" only skips its
+  message step on a thrown error (M-36.2), the others just close the popup; the fire-and-forget
+  writes (`data-layer.md`) never see a server rejection at all; `observeServices`/`observeBlocks`
+  swallow listener errors. Agree one pattern (an alert, an inline line in the popup, or a shared
+  error banner) and apply it everywhere in one PR, rather than per screen.
+
+- **Editor for the texts sent to clients** (requested 2026-10-24, during M-36.2). The master's
+  own wording of the messages the app copies for her — today the reschedule message ("Перенесла
+  запис на 24.10, 14:00. До зустрічі") is fixed in the String Catalog. Likely a Profile screen
+  item with a template and placeholders for the day and time, stored under `users/{uid}/` (add it
+  to `FirestoreUserDataRepository.collections` if it is a new collection). Decide in its design
+  whether the "Надіслати графік" text joins it.
 
 - **"Надіслати прайс"** (moved out of M-35 on 2026-10-18). The price list as text (and later an
   image) from Мої послуги, copied or sent like the schedule — reuse the popup's recipient and

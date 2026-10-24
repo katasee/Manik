@@ -83,6 +83,12 @@ leave the changes in the working tree and say what is ready to commit. Read-only
 `diff`, `log`) is fine. If a skill's workflow says to commit after a step, skip that step and
 mention it instead.
 
+**At the end of every PR, give the user a short PR description, entirely in English** — including
+screen and button names ("Reschedule", "Send schedule", "Schedule"), which are translated here
+rather than quoted in Ukrainian as in `docs/plan.md`: the description is read on GitHub, not
+grepped against the String Catalog. A Markdown block ready to paste: a one-line title, what the
+user gets, the key changes as bullets, how it was verified. No attribution line.
+
 ## Conventions
 
 Detailed conventions live in topic files — all still load at launch:
