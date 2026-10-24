@@ -11,12 +11,14 @@ final class ScheduleViewModel {
     private var slots: [Slot] = []
     private var directory = ClientDirectory(clients: [], isLoaded: false)
     private var services: [Service] = []
-    private let templates = ScheduleViewModel.inMemoryTemplates
+    private var templates: [EventTemplate] = []
     private var plans: [PlanEvent] = []
 
     private let slotRepository: SlotRepository
     private let clientRepository: ClientRepository
     private let serviceRepository: ServiceRepository
+    private let templateRepository: EventTemplateRepository
+    private let eventRepository: EventRepository
 
     var monthTitle: String {
         DateFormat.monthYear.string(from: selectedDate).capitalized
@@ -29,11 +31,15 @@ final class ScheduleViewModel {
     init(
         slotRepository: SlotRepository = FirestoreSlotRepository(),
         clientRepository: ClientRepository = FirestoreClientRepository(),
-        serviceRepository: ServiceRepository = FirestoreServiceRepository()
+        serviceRepository: ServiceRepository = FirestoreServiceRepository(),
+        templateRepository: EventTemplateRepository = FirestoreEventTemplateRepository(),
+        eventRepository: EventRepository = FirestoreEventRepository()
     ) {
         self.slotRepository = slotRepository
         self.clientRepository = clientRepository
         self.serviceRepository = serviceRepository
+        self.templateRepository = templateRepository
+        self.eventRepository = eventRepository
     }
 
     func items(now: Date) -> [ScheduleItem] {
@@ -47,16 +53,11 @@ final class ScheduleViewModel {
     }
 
     func addPlans(_ newPlans: [PlanEvent]) {
-        plans += newPlans.map { plan in
-            var added = plan
-            added.id = UUID().uuidString
-
-            return added
-        }
+        try? eventRepository.add(newPlans)
     }
 
     func deletePlan(id: String) {
-        plans.removeAll { $0.id == id }
+        try? eventRepository.delete(id: id)
     }
 
     func observeSlots() async {
@@ -71,6 +72,26 @@ final class ScheduleViewModel {
             slots = []
             hasFailed = true
             hasLoaded = true
+        }
+    }
+
+    func observePlans() async {
+        do {
+            for try await updatedPlans in eventRepository.observeEvents() {
+                plans = updatedPlans
+            }
+        } catch {
+            plans = []
+        }
+    }
+
+    func observeTemplates() async {
+        do {
+            for try await updatedTemplates in templateRepository.observeTemplates() {
+                templates = updatedTemplates
+            }
+        } catch {
+            templates = []
         }
     }
 
@@ -171,11 +192,4 @@ final class ScheduleViewModel {
             now: now
         )
     }
-
-    private static let inMemoryTemplates = [
-        EventTemplate(id: "boxing", emoji: "🥊", name: "Бокс", isActive: true),
-        EventTemplate(id: "run", emoji: "🏃‍♀️", name: "Біг", isActive: true),
-        EventTemplate(id: "dentist", emoji: "🦷", name: "Стоматолог", isActive: true),
-        EventTemplate(id: "yoga", emoji: "🧘‍♀️", name: "Йога", isActive: false)
-    ]
 }
