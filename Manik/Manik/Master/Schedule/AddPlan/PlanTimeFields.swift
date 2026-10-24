@@ -20,9 +20,17 @@ struct PlanTimeFields: View {
             }
 
             if viewModel.editing == .start {
-                TimeWheel(time: $viewModel.start, hours: WorkHours.customHours)
+                TimeWheel(
+                    time: $viewModel.start,
+                    hours: WorkHours.customHours,
+                    minuteStep: WorkHours.minuteStep
+                )
             } else {
-                TimeWheel(time: $viewModel.end, hours: WorkHours.customHours)
+                TimeWheel(
+                    time: $viewModel.end,
+                    hours: WorkHours.customHours,
+                    minuteStep: WorkHours.minuteStep
+                )
             }
         }
         .onChange(of: viewModel.start) {

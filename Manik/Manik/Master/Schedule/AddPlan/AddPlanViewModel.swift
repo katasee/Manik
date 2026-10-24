@@ -88,7 +88,7 @@ final class AddPlanViewModel {
     }
 
     private static let defaultLength = 60
-    private static let latestEnd = WorkHours.customHours.upperBound * 60 + 45
+    private static let latestEnd = (WorkHours.customHours.upperBound + 1) * 60 - WorkHours.minuteStep
 
     private var selectedTemplate: EventTemplate? {
         templates.first { $0.id == selectedTemplateId }

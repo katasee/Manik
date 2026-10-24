@@ -1,8 +1,10 @@
 import SwiftUI
 
-enum FillMonthTab: CaseIterable {
+enum FillMonthTab: CaseIterable, Identifiable {
     case slots
     case plans
+
+    var id: Self { self }
 
     var titleKey: LocalizedStringKey {
         switch self {
@@ -33,7 +35,7 @@ struct FillMonthTabs: View {
 
     var body: some View {
         HStack(spacing: ScheduleMetrics.Spacing.tabTrackPadding) {
-            ForEach(FillMonthTab.allCases, id: \.self) { tab in
+            ForEach(FillMonthTab.allCases) { tab in
                 Button {
                     select(tab)
                 } label: {

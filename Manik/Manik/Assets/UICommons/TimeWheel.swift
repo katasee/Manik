@@ -3,11 +3,11 @@ import SwiftUI
 struct TimeWheel: View {
     @Binding var time: ClockTime
     let hours: ClosedRange<Int>
+    let minuteStep: Int
 
     private enum Layout {
         static let wheelHeight: CGFloat = 150
         static let font: CGFloat = 20
-        static let minuteStep = 15
     }
 
     var body: some View {
@@ -40,14 +40,18 @@ struct TimeWheel: View {
     }
 
     private var minuteOptions: [Int] {
-        Array(stride(from: 0, to: 60, by: Layout.minuteStep))
+        Array(stride(from: 0, to: 60, by: minuteStep))
     }
 }
 
 #Preview {
     @Previewable @State var time = ClockTime(minutesOfDay: 11 * 60 + 30)
 
-    TimeWheel(time: $time, hours: 8...21)
+    TimeWheel(
+        time: $time,
+        hours: 8...21,
+        minuteStep: 15
+    )
         .padding()
         .background(Color.background)
 }

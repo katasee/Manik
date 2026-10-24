@@ -16,7 +16,11 @@ struct CustomTimePopup: View {
                 .foregroundStyle(Color.ink)
                 .accessibilityAddTraits(.isHeader)
 
-            TimeWheel(time: $time, hours: WorkHours.customHours)
+            TimeWheel(
+                time: $time,
+                hours: WorkHours.customHours,
+                minuteStep: WorkHours.minuteStep
+            )
 
             HStack {
                 PopupDismissButton(titleKey: "common.action.cancel", action: dismiss)
