@@ -1955,6 +1955,19 @@ this file is just "what's done, what's next," not a design doc.
   - Verified: `xcodebuild`; throwaway `swiftc` checks of the repository fake, `RescheduleChoice` and
     the view model; simulator passes by the user on the scroller and lens.
 
+- **M-36.1 fix — Reschedule day scroller start position** (branch
+  `fix/pr-36.1-RescheduleDayScroller`; found by the user during M-36.2). With a booking near the
+  start of the day list (today, tomorrow) the scroller opened on today while the state said the
+  booking's day, and tapping the neighbouring day did nothing until the list was scrolled by hand.
+  Two causes: the initial id was handed to `scrollPosition(id:)` from `init` (an M-36.1 review
+  change from `onAppear`), before `onGeometryChange` knew the width, so the centring ran with zero
+  side margins and was clamped to the leading edge; and a tap assigned the id the state already
+  held, which SwiftUI does not treat as a change. Now `ScrollPosition`: the first
+  `scrollTo(id:anchor:)` runs once the width is first known (`resize(to:)`), a tap calls
+  `scrollTo` (a command, it scrolls even to the "same" id), and `viewID(type:)` feeds
+  `selectedDate`. Rule added to `architecture.md`. Verified: `xcodebuild`, temporary `print`s that
+  showed `tap 2026-10-25 current 2026-10-25`, simulator pass by the user.
+
 - **M-36.2 — "Надіслати @нік"** (branch `feature/pr-36.2-Reschedule-Message`; design in the
   "M-36.2" section of `docs/superpowers/specs/2026-10-21-m36-reschedule-design.md`). After
   "Перенести" the actions popup no longer closes: a last step shows "Перенесла запис на 24.10,
