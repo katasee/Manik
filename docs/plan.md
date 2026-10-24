@@ -2138,6 +2138,13 @@ numbering drifts every time an item is added or closed (it already did once: PR9
   `ImageRenderer` at 1080×1920 in the app's fonts and colours, shared with `ShareLink`. Natural
   place: a third step or button in the "Надіслати графік" popup.
 
+- **Editor for the texts sent to clients** (requested 2026-10-24, during M-36.2). The master's
+  own wording of the messages the app copies for her — today the reschedule message ("Перенесла
+  запис на 24.10, 14:00. До зустрічі") is fixed in the String Catalog. Likely a Profile screen
+  item with a template and placeholders for the day and time, stored under `users/{uid}/` (add it
+  to `FirestoreUserDataRepository.collections` if it is a new collection). Decide in its design
+  whether the "Надіслати графік" text joins it.
+
 - **"Надіслати прайс"** (moved out of M-35 on 2026-10-18). The price list as text (and later an
   image) from Мої послуги, copied or sent like the schedule — reuse the popup's recipient and
   contacts steps.

@@ -5,6 +5,7 @@ enum BookingActionsMode {
     case actions
     case changeService
     case reschedule
+    case rescheduled(message: String)
 }
 
 @MainActor
@@ -42,7 +43,7 @@ final class BookingActionsViewModel: Identifiable {
     var title: String {
         switch mode {
         case .reschedule: String(localized: "schedule.reschedule.title")
-        case .actions, .changeService: clientName
+        case .actions, .changeService, .rescheduled: clientName
         }
     }
 
@@ -50,6 +51,8 @@ final class BookingActionsViewModel: Identifiable {
         switch mode {
         case .reschedule:
             return "\(clientName) · \(SlotWhen.text(for: slot))"
+        case .rescheduled:
+            return String(localized: "schedule.reschedule.copied")
         case .actions, .changeService:
             let service = slot.serviceName ?? String(localized: "service.none")
 
@@ -157,6 +160,8 @@ final class BookingActionsViewModel: Identifiable {
             toDate: target.date,
             time: target.time
         )
+
+        mode = .rescheduled(message: RescheduleMessage.text(date: target.date, time: target.time))
 
         return target.date
     }

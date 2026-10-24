@@ -2328,6 +2328,23 @@
         }
       }
     },
+    "schedule.reschedule.copied" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Message copied"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Повідомлення скопійовано"
+          }
+        }
+      }
+    },
     "schedule.reschedule.freeWindows %@" : {
       "extractionState" : "manual",
       "localizations" : {

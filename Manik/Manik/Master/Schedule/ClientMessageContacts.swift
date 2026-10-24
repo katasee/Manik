@@ -6,6 +6,8 @@ struct ClientMessageContacts: View {
     let contacts: [ClientContact]
     let message: String
 
+    @State private var openedContacts: Set<ClientContact> = []
+
     var body: some View {
         let messageContacts = contacts.filter(\.canCarryMessage)
 
@@ -19,7 +21,11 @@ struct ClientMessageContacts: View {
                     Button {
                         open(contact)
                     } label: {
-                        BookingActionLabel(titleKey: item.titleKey, systemImage: item.systemImage)
+                        BookingActionLabel(
+                            titleKey: item.titleKey,
+                            systemImage: item.systemImage,
+                            isChecked: openedContacts.contains(contact)
+                        )
                     }
                     .buttonStyle(.plain)
                 }
@@ -29,6 +35,10 @@ struct ClientMessageContacts: View {
 
     private func open(_ contact: ClientContact) {
         guard let url = contact.url(message: message) else { return }
+
+        withAnimation {
+            _ = openedContacts.insert(contact)
+        }
 
         openURL(url)
     }

@@ -44,6 +44,12 @@ struct BookingActionsPopup: View {
                 )
             case .reschedule:
                 RescheduleStep(viewModel: viewModel, onConfirm: { reschedule(then: dismiss) })
+            case .rescheduled(let message):
+                RescheduleNotifyStep(
+                    message: message,
+                    contacts: viewModel.contacts,
+                    onDone: dismiss
+                )
             }
         }
     }
@@ -65,11 +71,12 @@ struct BookingActionsPopup: View {
     }
 
     private func reschedule(then dismiss: () -> Void) {
-        if let dayId = viewModel.reschedule() {
-            onRescheduled(dayId)
+        guard let dayId = viewModel.reschedule() else {
+            dismiss()
+            return
         }
 
-        dismiss()
+        onRescheduled(dayId)
     }
 
     private func saveService(then dismiss: () -> Void) {
