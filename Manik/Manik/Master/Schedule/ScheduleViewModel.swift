@@ -56,6 +56,10 @@ final class ScheduleViewModel {
         try? eventRepository.add(newPlans)
     }
 
+    func updatePlan(_ plan: PlanEvent) {
+        try? eventRepository.update(plan)
+    }
+
     func deletePlan(id: String) {
         try? eventRepository.delete(id: id)
     }
@@ -165,6 +169,17 @@ final class ScheduleViewModel {
             slots: slots,
             now: now,
             slotRepository: slotRepository
+        )
+    }
+
+    func makePlanActionsViewModel(planId: String, now: Date = .now) -> PlanActionsViewModel? {
+        guard let plan = plans.first(where: { $0.id == planId }) else { return nil }
+
+        return PlanActionsViewModel(
+            plan: plan,
+            templates: templates,
+            plannedDays: Set(plans.map(\.date)),
+            now: now
         )
     }
 

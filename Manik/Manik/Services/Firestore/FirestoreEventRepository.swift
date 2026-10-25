@@ -25,6 +25,18 @@ final class FirestoreEventRepository: EventRepository {
         batch.commit(completion: nil)
     }
 
+    func update(_ event: PlanEvent) throws {
+        guard let id = event.id else {
+            throw NSError(
+                domain: "EventRepository",
+                code: 400,
+                userInfo: [NSLocalizedDescriptionKey: "Cannot update a plan without an id"]
+            )
+        }
+        let encoded = try Firestore.Encoder().encode(event)
+        try db.userCollection("events").document(id).updateData(encoded, completion: nil)
+    }
+
     func delete(id: String) throws {
         try db.userCollection("events").document(id).delete(completion: nil)
     }

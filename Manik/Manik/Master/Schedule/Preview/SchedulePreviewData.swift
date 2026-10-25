@@ -117,10 +117,23 @@ enum SchedulePreviewData {
 
         viewModel.days.toggleWeekday(MonthGrid.column(of: .now))
         viewModel.selectTemplate("tpl-boxing")
-        viewModel.end = ClockTime(minutesOfDay: 10 * 60)
-        viewModel.editing = .end
+        viewModel.times.end = ClockTime(minutesOfDay: 10 * 60)
+        viewModel.times.editing = .end
 
         return viewModel
+    }
+
+    @MainActor
+    static var planActions: PlanActionsViewModel {
+        var plan = plans[1]
+        plan.id = "plan-1"
+
+        return PlanActionsViewModel(
+            plan: plan,
+            templates: templates,
+            plannedDays: Set(plans.map(\.date)),
+            now: .now
+        )
     }
 
     @MainActor

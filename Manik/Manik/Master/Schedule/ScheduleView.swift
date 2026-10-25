@@ -6,6 +6,7 @@ private enum SchedulePopup: Identifiable {
     case sendSchedule(SendScheduleViewModel)
     case bookClient(BookClientViewModel)
     case bookingActions(BookingActionsViewModel)
+    case planActions(PlanActionsViewModel)
 
     var id: ObjectIdentifier {
         switch self {
@@ -14,6 +15,7 @@ private enum SchedulePopup: Identifiable {
         case .sendSchedule(let viewModel): viewModel.id
         case .bookClient(let viewModel): viewModel.id
         case .bookingActions(let viewModel): viewModel.id
+        case .planActions(let viewModel): viewModel.id
         }
     }
 }
@@ -131,6 +133,16 @@ struct ScheduleView: View {
                 onRescheduled: { pendingDayId = $0 },
                 onDismiss: closePopup
             )
+        case .planActions(let planActions):
+            PlanActionsPopup(
+                viewModel: planActions,
+                onUpdate: { plan in
+                    viewModel.updatePlan(plan)
+                    pendingDayId = plan.date
+                },
+                onDelete: viewModel.deletePlan(id:),
+                onDismiss: closePopup
+            )
         }
     }
 
@@ -203,7 +215,7 @@ struct ScheduleView: View {
             cornerRadius: ScheduleMetrics.Size.rowCornerRadius,
             onDelete: { deletePlan(item) }
         ) {
-            SchedulePlanRow(item: item)
+            SchedulePlanRow(item: item, onOpenActions: { openPlanActions(item) })
                 .accessibilityAction(named: Text("schedule.action.deletePlan")) {
                     deletePlan(item)
                 }
@@ -232,6 +244,10 @@ struct ScheduleView: View {
 
     private func openBookingActions(_ item: SlotItem) {
         open(viewModel.makeBookingActionsViewModel(slotId: item.id).map(SchedulePopup.bookingActions))
+    }
+
+    private func openPlanActions(_ item: PlanItem) {
+        open(viewModel.makePlanActionsViewModel(planId: item.id).map(SchedulePopup.planActions))
     }
 
     private func open(_ popup: SchedulePopup?) {

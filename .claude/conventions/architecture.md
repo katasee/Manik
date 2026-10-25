@@ -133,9 +133,9 @@
 - **A row inside `SwipeToDelete` is tapped with `.onTapGesture`, not a `Button`** (found on a
   device in M-34.2). A `Button` fires on release whenever the finger is still over it, however
   far it moved — and a swiped row moves with the finger, so every swipe also "tapped" the row and
-  opened its popup. A tap gesture fails as soon as the finger moves. Add
-  `.accessibilityAddTraits(.isButton)` so VoiceOver still reads it as a button (`ScheduleSlotRow`,
-  and Мої послуги's `ServiceRow`, which already did this).
+  opened its popup. A tap gesture fails as soon as the finger moves (`ScheduleSlotRow`,
+  `SchedulePlanRow`, Мої послуги's `ServiceRow`). Older rows also carry
+  `.accessibilityAddTraits(.isButton)`; new code adds no VoiceOver traits or hints (user, M-37.5).
 - **A screen-wide swipe is `.gesture` on the screen, and its list scrolls only when it overflows**
   (M-39, found on the simulator). Розклад's `.weekSwipe` sits on the root stack with `.gesture`,
   not `.simultaneousGesture`: a descendant's gesture wins, so a row's `SwipeToDelete` drag keeps

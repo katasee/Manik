@@ -49,9 +49,9 @@
 - **The deliberate fire-and-forget writes are `FirestoreClientRepository`'s `add`, `update` and
   `delete`, `FirestoreSlotRepository`'s `add`, `book`, `clearBooking` and `delete`,
   `FirestoreEventTemplateRepository`'s `add`, `update` and `delete`, and
-  `FirestoreEventRepository`'s `add` and `delete`** (user decisions: `add` in
-  M-32.4, `update`/`delete` in M-32.5, slots in M-33.2, booking in M-34.1, templates in M-37.2
-  and plans in M-37.4,
+  `FirestoreEventRepository`'s `add`, `update` and `delete`** (user decisions: `add` in
+  M-32.4, `update`/`delete` in M-32.5, slots in M-33.2, booking in M-34.1, templates in M-37.2,
+  plans in M-37.4 and their `update` in M-37.6,
   where the protocol itself declares them plain `throws`). Awaiting a write waits
   for the *server* acknowledgement, so offline the client popups spun forever with Cancel disabled,
   although the change was already in the local cache and on screen. They now pass
@@ -68,7 +68,9 @@
   be booked at once, offline too. Booking writes are `setData(merge: true)` on the slot document;
   a cleared field is `FieldValue.delete()`, never `null`. "Заповнити місяць" merges only `date` and
   `time`, which is what keeps a booking alive when a filled month covers it — don't turn either
-  write into a plain `setData`, it would replace the whole document.
+  write into a plain `setData`, it would replace the whole document. A plan's `update` (M-37.6)
+  is `updateData` with all six fields: a plan deleted while its popup was open fails the write
+  instead of being recreated, which both `setData` forms would do.
 - Realtime data uses **async/await + `AsyncStream`** (`observeBlocks()`, `observeServices()`), not
   Combine. Each Firestore `addSnapshotListener` callback yields the full current array for that
   query; `continuation.onTermination` removes the listener. Listener errors are currently swallowed

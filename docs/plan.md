@@ -2087,6 +2087,48 @@ this file is just "what's done, what's next," not a design doc.
   - Verified: `xcodebuild` after every task, `swiftui-pro` on the plan; simulator pass by the user
     (relaunch, Console shows six fields and no `id`, offline add on three days, account deletion
     leaves no `events`); rules published in the Console.
+- **M-37.5 — Plan actions (UI)** (branch `feature/m-37.5-plan-actions-ui`, on top of M-37.4).
+  Tapping a plan in Розклад opens `PlanActionsPopup`: header "🥊 Бокс" over "Нд, 25 жовтня ·
+  10:00–11:30", rows "Змінити", "Перенести", "Видалити". Delete works (the existing
+  `deletePlan`); "Зберегти" / "Перенести" hand the edited `PlanEvent` to `onUpdate`, which
+  `ScheduleView` passes as `{ _ in }` until M-37.6 — so they only close the popup.
+  - A separate popup, not `BookingActionsPopup` with a switch (user discussion): the two differ
+    in how the time is picked (free-window chips vs start/end wheels), the post-move message and
+    the row set; they share the pieces instead — `PopupContainer`, `SchedulePopupHeader`,
+    `ActionRowButton` (the former private `actionButton` of `BookingActionsList`),
+    `ChoiceChipsEditor` (`BookingServiceEditor` renamed, `titleKey` added) and
+    `RescheduleDayScroller` (moved to `Reschedule/` with the new `RescheduleDays`, the strip's
+    range, taken out of `RescheduleChoice`).
+  - `PlanTimes` (`PlanTimes/`, with `PlanTimeFields` moved there): start, end and the edited field
+    as one value; "end after start" is a `didSet` on `start`, replacing the view's `.onChange`.
+    Used by "Мої справи" and "Перенести". `DateFormat.minutesOfDay(_:)` parses `HH:mm`.
+  - `TemplateChoice` (`ChoiceChips/`, shape of `ServiceChoice`): active templates by name, the
+    selection, and a pinned snapshot chip when the plan's own template was deleted or
+    deactivated. "Змінити" is hidden when there is no other template.
+  - `PlanActionsViewModel` (no repository, ever — plan writes stay in `ScheduleViewModel`, as
+    `addPlans` / `deletePlan`) only switches steps; `PlanMove` holds the day and `PlanTimes` and
+    gives `movedPlan`, `nil` when the end is not after the start, nothing changed, or the moved
+    plan already ended. The strip starts on today, so a past plan's move starts there too.
+    Days with plans are marked on the strip.
+  - User decisions: UI PRs keep in-memory view models (option A — the screen works but saves
+    nothing — over views-only); no `PlanText` helper for "\(emoji) \(name)" (YAGNI); pinning
+    landed in the commit that first used it; no VoiceOver traits or hints in new code.
+  - Verified: `xcodebuild` after every task, throwaway `swiftc` scripts for `PlanTimes` and
+    `RescheduleDays`, `swiftui-pro` on the plan and on the branch (one fix: delete always closes
+    the popup); simulator pass by the user.
+- **M-37.6 — Plan actions (logic)** (on top of M-37.5). "Змінити" and "Перенести" now save:
+  `EventRepository.update(_:)` writes the edited `PlanEvent`, and `ScheduleViewModel.updatePlan(_:)`
+  is `PlanActionsPopup`'s `onUpdate` (plan writes keep one owner; `PlanActionsViewModel` still has
+  no repository).
+  - `update` is fire-and-forget like `add` / `delete`, and uses `updateData`, not `setData`: a plan
+    deleted while its popup is open fails the write instead of coming back.
+  - After a save, `ScheduleView` puts the plan's date in `pendingDayId`, applied by the cover's
+    `onDismiss` — the same path as a booking's `onRescheduled`. One closure covers both editors:
+    after "Змінити" the date is unchanged and selecting it again does nothing.
+  - No rules change (`update` was allowed in M-37.4), no new strings.
+  - Verified: `xcodebuild` after each task, `swiftui-pro` on the plan (no findings); simulator
+    pass by the user (change, move to another day, offline, a plan deleted in the Console while its
+    popup was open).
 
 - **M-39 — Week swipe on Розклад** (branch `feature/m-39-schedule-week-swipe`; closes the backlog
   item "Swipe the day list to change the day", changed by the user when picked up: the swipe moves
@@ -2282,10 +2324,11 @@ those items are referred to by name, so the list can grow without renumbering an
          two steps on 2026-10-24 (user: the UI PR alone was 700–900 lines), which renumbered
          everything below.
       4. ~~**M-37.4 "Своя справа" (logic)**~~ — **done** (under "Done").
-      5. **M-37.5 / M-37.6 Plan actions (UI / logic)** — next. Tap a plan: "Змінити" (another
-         template), "Перенести" (day + start/end), "Видалити".
-      6. **M-37.7 / M-37.8 Weekly repeat (UI / logic).**
-      7. **M-37.9 / M-37.10 Conflicts with free windows (UI / logic).**
+      5. ~~**M-37.5 Plan actions (UI)**~~ — **done** (under "Done"). Tap a plan: "Змінити"
+         (another template), "Перенести" (day + start/end), "Видалити".
+      6. ~~**M-37.6 Plan actions (logic)**~~ — **done** (under "Done").
+      7. **M-37.7 / M-37.8 Weekly repeat (UI / logic)** — next.
+      8. **M-37.9 / M-37.10 Conflicts with free windows (UI / logic).**
    9. **M-38 Statistics on slots** — and delete `Block`/`blocks` (kept for Статистика since M-33.1).
 
 ## Backlog and tech debt (unordered)
