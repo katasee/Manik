@@ -36,9 +36,10 @@ struct PlanActionsPopup: View {
     }
 
     private func delete(then dismiss: () -> Void) {
-        guard let planId = viewModel.planId else { return }
+        if let planId = viewModel.planId {
+            onDelete(planId)
+        }
 
-        onDelete(planId)
         dismiss()
     }
 
