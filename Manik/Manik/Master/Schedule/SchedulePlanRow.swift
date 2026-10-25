@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SchedulePlanRow: View {
     let item: PlanItem
+    let onOpenActions: () -> Void
 
     var body: some View {
         HStack(spacing: 0) {
@@ -27,6 +28,8 @@ struct SchedulePlanRow: View {
         .frame(maxWidth: .infinity, minHeight: ScheduleMetrics.Size.bookedRowHeight)
         .cardSurface(padding: 0, cornerRadius: ScheduleMetrics.Size.rowCornerRadius)
         .opacity(item.isPast ? ScheduleMetrics.Size.pastOpacity : 1)
+        .contentShape(.rect(cornerRadius: ScheduleMetrics.Size.rowCornerRadius))
+        .onTapGesture(perform: onOpenActions)
         .accessibilityElement(children: .combine)
     }
 }
@@ -35,7 +38,7 @@ struct SchedulePlanRow: View {
 #Preview {
     VStack(spacing: ScheduleMetrics.Spacing.rowSpacing) {
         ForEach(SchedulePreviewData.planItems) { item in
-            SchedulePlanRow(item: item)
+            SchedulePlanRow(item: item, onOpenActions: {})
         }
     }
     .padding()

@@ -2630,6 +2630,38 @@
         }
       }
     },
+    "schedule.plan.actions.change" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Change"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Змінити"
+          }
+        }
+      }
+    },
+    "schedule.plan.actions.delete" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Видалити"
+          }
+        }
+      }
+    },
     "schedule.plan.add" : {
       "localizations" : {
         "en" : {
@@ -2674,6 +2706,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Додайте справи в «Мої справи» у Статистиці"
+          }
+        }
+      }
+    },
+    "schedule.plan.reschedule.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Move plan"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Перенести справу"
           }
         }
       }

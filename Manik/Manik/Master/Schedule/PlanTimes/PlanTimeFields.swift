@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct PlanTimeFields: View {
-    @Bindable var viewModel: AddPlanViewModel
+    @Binding var times: PlanTimes
 
     var body: some View {
         VStack(spacing: ScheduleMetrics.Spacing.timeFieldSpacing) {
@@ -9,32 +9,29 @@ struct PlanTimeFields: View {
                 field(
                     .start,
                     captionKey: "schedule.plan.start",
-                    value: viewModel.startText
+                    value: times.startText
                 )
 
                 field(
                     .end,
                     captionKey: "schedule.plan.end",
-                    value: viewModel.endText
+                    value: times.endText
                 )
             }
 
-            if viewModel.editing == .start {
+            if times.editing == .start {
                 TimeWheel(
-                    time: $viewModel.start,
+                    time: $times.start,
                     hours: WorkHours.customHours,
                     minuteStep: WorkHours.minuteStep
                 )
             } else {
                 TimeWheel(
-                    time: $viewModel.end,
+                    time: $times.end,
                     hours: WorkHours.customHours,
                     minuteStep: WorkHours.minuteStep
                 )
             }
-        }
-        .onChange(of: viewModel.start) {
-            viewModel.keepEndAfterStart()
         }
     }
 
@@ -43,7 +40,7 @@ struct PlanTimeFields: View {
         captionKey: LocalizedStringKey,
         value: String
     ) -> some View {
-        let isEditing = viewModel.editing == field
+        let isEditing = times.editing == field
         let shape = RoundedRectangle(cornerRadius: ScheduleMetrics.Size.timeFieldCornerRadius)
 
         return Button {
@@ -72,13 +69,15 @@ struct PlanTimeFields: View {
     }
 
     private func edit(_ field: PlanTimeField) {
-        viewModel.editing = field
+        times.editing = field
     }
 }
 
 #if DEBUG
 #Preview {
-    PlanTimeFields(viewModel: SchedulePreviewData.addPlan)
+    @Previewable @State var times = SchedulePreviewData.addPlan.times
+
+    PlanTimeFields(times: $times)
         .padding()
         .background(Color.card)
 }

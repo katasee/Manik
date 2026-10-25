@@ -6,8 +6,6 @@ struct RescheduleTarget: Equatable {
 }
 
 struct RescheduleChoice {
-    private static let weeksAhead = 8
-
     let days: [Date]
     let markedDays: Set<String>
 
@@ -28,14 +26,12 @@ struct RescheduleChoice {
     private let now: Date
 
     init(booking: Slot, slots: [Slot], now: Date) {
-        let firstDay = DateFormat.salonCalendar.startOfDay(for: now)
+        let range = RescheduleDays(dateId: booking.date, now: now)
         let freeTimes = Dictionary(grouping: slots.filter { $0.isBookable(now: now) }, by: \.date)
             .mapValues { $0.map(\.time).sorted() }
-        let bookingDay = DateFormat.date.date(from: booking.date) ?? firstDay
-        let day = max(bookingDay, firstDay)
 
-        days = Self.days(from: firstDay, covering: day)
-        self.day = day
+        days = range.days
+        day = range.initialDay
         self.freeTimes = freeTimes
         self.now = now
         markedDays = Set(freeTimes.keys)
@@ -94,17 +90,6 @@ struct RescheduleChoice {
         }
 
         custom = nil
-    }
-
-    private static func days(from firstDay: Date, covering day: Date) -> [Date] {
-        let calendar = DateFormat.salonCalendar
-        let lastDay = max(
-            calendar.date(byAdding: .weekOfYear, value: weeksAhead, to: firstDay) ?? firstDay,
-            calendar.date(byAdding: .weekOfYear, value: 1, to: day) ?? day
-        )
-        let dayCount = calendar.dateComponents([.day], from: firstDay, to: lastDay).day ?? 0
-
-        return (0...dayCount).compactMap { calendar.date(byAdding: .day, value: $0, to: firstDay) }
     }
 
     private var dayId: String {
