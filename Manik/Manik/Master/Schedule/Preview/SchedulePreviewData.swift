@@ -124,6 +124,19 @@ enum SchedulePreviewData {
     }
 
     @MainActor
+    static var planActions: PlanActionsViewModel {
+        var plan = plans[1]
+        plan.id = "plan-1"
+
+        return PlanActionsViewModel(
+            plan: plan,
+            templates: templates,
+            plannedDays: Set(plans.map(\.date)),
+            now: .now
+        )
+    }
+
+    @MainActor
     static var jumpToDate: JumpToDateViewModel {
         JumpToDateViewModel(
             selectedDate: .now,
