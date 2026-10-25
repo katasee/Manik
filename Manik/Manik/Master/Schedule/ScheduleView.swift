@@ -135,7 +135,10 @@ struct ScheduleView: View {
         case .planActions(let planActions):
             PlanActionsPopup(
                 viewModel: planActions,
-                onUpdate: { _ in },
+                onUpdate: { plan in
+                    viewModel.updatePlan(plan)
+                    pendingDayId = plan.date
+                },
                 onDelete: viewModel.deletePlan(id:),
                 onDismiss: closePopup
             )

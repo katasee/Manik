@@ -2116,6 +2116,19 @@ this file is just "what's done, what's next," not a design doc.
   - Verified: `xcodebuild` after every task, throwaway `swiftc` scripts for `PlanTimes` and
     `RescheduleDays`, `swiftui-pro` on the plan and on the branch (one fix: delete always closes
     the popup); simulator pass by the user.
+- **M-37.6 — Plan actions (logic)** (on top of M-37.5). "Змінити" and "Перенести" now save:
+  `EventRepository.update(_:)` writes the edited `PlanEvent`, and `ScheduleViewModel.updatePlan(_:)`
+  is `PlanActionsPopup`'s `onUpdate` (plan writes keep one owner; `PlanActionsViewModel` still has
+  no repository).
+  - `update` is fire-and-forget like `add` / `delete`, and uses `updateData`, not `setData`: a plan
+    deleted while its popup is open fails the write instead of coming back.
+  - After a save, `ScheduleView` puts the plan's date in `pendingDayId`, applied by the cover's
+    `onDismiss` — the same path as a booking's `onRescheduled`. One closure covers both editors:
+    after "Змінити" the date is unchanged and selecting it again does nothing.
+  - No rules change (`update` was allowed in M-37.4), no new strings.
+  - Verified: `xcodebuild` after each task, `swiftui-pro` on the plan (no findings); simulator
+    pass by the user (change, move to another day, offline, a plan deleted in the Console while its
+    popup was open).
 
 ## Screens (in order)
 
@@ -2296,10 +2309,8 @@ those items are referred to by name, so the list can grow without renumbering an
       4. ~~**M-37.4 "Своя справа" (logic)**~~ — **done** (under "Done").
       5. ~~**M-37.5 Plan actions (UI)**~~ — **done** (under "Done"). Tap a plan: "Змінити"
          (another template), "Перенести" (day + start/end), "Видалити".
-      6. **M-37.6 Plan actions (logic)** — next. `EventRepository.update(_:)` (fire-and-forget,
-         as slots), `ScheduleViewModel.updatePlan(_:)` passed as `PlanActionsPopup`'s `onUpdate`,
-         and selecting the new day after a move (as `onRescheduled` does for a booking).
-      7. **M-37.7 / M-37.8 Weekly repeat (UI / logic).**
+      6. ~~**M-37.6 Plan actions (logic)**~~ — **done** (under "Done").
+      7. **M-37.7 / M-37.8 Weekly repeat (UI / logic)** — next.
       8. **M-37.9 / M-37.10 Conflicts with free windows (UI / logic).**
    9. **M-38 Statistics on slots** — and delete `Block`/`blocks` (kept for Статистика since M-33.1).
 
