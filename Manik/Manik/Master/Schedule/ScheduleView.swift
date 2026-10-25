@@ -62,6 +62,7 @@ struct ScheduleView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(Color.background)
+            .weekSwipe(selectedDate: $viewModel.selectedDate)
             .toolbar(.hidden, for: .navigationBar)
             .navigationDestination(item: $openCardClientId) { clientId in
                 ClientCardView(viewModel: viewModel.makeClientCardViewModel(clientId: clientId))
@@ -174,6 +175,7 @@ struct ScheduleView: View {
             .padding(.bottom, ScheduleMetrics.Spacing.contentBottomPadding)
         }
         .scrollIndicators(.hidden)
+        .scrollBounceBehavior(.basedOnSize)
     }
 
     private func slotRow(_ item: SlotItem) -> some View {
