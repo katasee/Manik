@@ -1,6 +1,7 @@
 import SwiftUI
 
-struct BookingServiceEditor: View {
+struct ChoiceChipsEditor: View {
+    let titleKey: LocalizedStringKey
     let chips: [ChoiceChip]
     let canSave: Bool
     let onToggle: (String) -> Void
@@ -11,7 +12,7 @@ struct BookingServiceEditor: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: PopupContainerLayout.rowSpacing) {
-            SectionLabel(titleKey: "schedule.book.service")
+            SectionLabel(titleKey: titleKey)
 
             ScrollView {
                 ChoiceChips(chips: chips, onToggle: onToggle)
@@ -46,7 +47,8 @@ struct BookingServiceEditor: View {
 
 #if DEBUG
 #Preview {
-    BookingServiceEditor(
+    ChoiceChipsEditor(
+        titleKey: "schedule.book.service",
         chips: SchedulePreviewData.serviceChips,
         canSave: true,
         onToggle: { _ in },

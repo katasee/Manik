@@ -35,7 +35,8 @@ struct BookingActionsPopup: View {
 
                 PopupDismissButton(titleKey: "common.action.close", action: dismiss)
             case .changeService:
-                BookingServiceEditor(
+                ChoiceChipsEditor(
+                    titleKey: "schedule.book.service",
                     chips: viewModel.services,
                     canSave: viewModel.hasServiceChanged,
                     onToggle: viewModel.toggleService,

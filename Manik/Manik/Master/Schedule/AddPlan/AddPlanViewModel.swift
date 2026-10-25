@@ -7,9 +7,7 @@ final class AddPlanViewModel {
     var days: MonthDaySelection
     var times = PlanTimes()
 
-    private(set) var selectedTemplateId: String?
-
-    private let templates: [EventTemplate]
+    private var templateChoice: TemplateChoice
 
     init(
         month: Date,
@@ -22,37 +20,33 @@ final class AddPlanViewModel {
             now: now,
             markedDays: plannedDays
         )
-        self.templates = templates.filter(\.isActive).sortedByName()
+        templateChoice = TemplateChoice(templates: templates)
     }
 
     var templateChips: [ChoiceChip] {
-        templates.compactMap { template in
-            template.id.map { id in
-                ChoiceChip(
-                    id: id,
-                    title: "\(template.emoji) \(template.name)",
-                    isSelected: id == selectedTemplateId
-                )
-            }
-        }
+        templateChoice.chips
     }
 
     var hasTemplates: Bool {
-        templates.isEmpty == false
+        templateChoice.isEmpty == false
+    }
+
+    var selectedTemplateId: String? {
+        templateChoice.selectedId
     }
 
     var canAdd: Bool {
         days.selected.isEmpty == false
-            && selectedTemplate != nil
+            && templateChoice.selectedTemplate != nil
             && times.isValid
     }
 
     func selectTemplate(_ id: String) {
-        selectedTemplateId = id
+        templateChoice.select(id)
     }
 
     func makePlans() -> [PlanEvent] {
-        guard canAdd, let template = selectedTemplate, let templateId = template.id else { return [] }
+        guard canAdd, let template = templateChoice.selectedTemplate, let templateId = template.id else { return [] }
 
         return days.selected.sorted().map { date in
             PlanEvent(
@@ -64,9 +58,5 @@ final class AddPlanViewModel {
                 name: template.name
             )
         }
-    }
-
-    private var selectedTemplate: EventTemplate? {
-        templates.first { $0.id == selectedTemplateId }
     }
 }
