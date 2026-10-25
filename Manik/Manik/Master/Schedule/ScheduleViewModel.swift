@@ -56,6 +56,10 @@ final class ScheduleViewModel {
         try? eventRepository.add(newPlans)
     }
 
+    func updatePlan(_ plan: PlanEvent) {
+        try? eventRepository.update(plan)
+    }
+
     func deletePlan(id: String) {
         try? eventRepository.delete(id: id)
     }
