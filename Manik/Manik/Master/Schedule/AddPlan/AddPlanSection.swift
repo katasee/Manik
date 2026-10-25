@@ -19,7 +19,7 @@ struct AddPlanSection: View {
 
             SectionLabel(titleKey: "schedule.plan.time")
 
-            PlanTimeFields(viewModel: viewModel)
+            PlanTimeFields(times: $viewModel.times)
         }
     }
 }

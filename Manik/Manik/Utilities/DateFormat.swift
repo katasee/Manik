@@ -37,6 +37,16 @@ enum DateFormat {
         return time.string(from: date)
     }
 
+    static func minutesOfDay(_ storageTime: String) -> Int? {
+        guard let date = time.date(from: storageTime) else { return nil }
+
+        let components = salonCalendar.dateComponents([.hour, .minute], from: date)
+
+        guard let hour = components.hour, let minute = components.minute else { return nil }
+
+        return hour * 60 + minute
+    }
+
     static func displayTime(_ storageTime: String) -> String {
         guard let date = time.date(from: storageTime) else { return storageTime }
 

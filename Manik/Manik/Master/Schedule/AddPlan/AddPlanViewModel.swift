@@ -1,18 +1,11 @@
 import Foundation
 import Observation
 
-enum PlanTimeField {
-    case start
-    case end
-}
-
 @MainActor
 @Observable
 final class AddPlanViewModel {
     var days: MonthDaySelection
-    var start = WorkHours.defaultPlanStart
-    var end = AddPlanViewModel.endTime(after: WorkHours.defaultPlanStart)
-    var editing = PlanTimeField.start
+    var times = PlanTimes()
 
     private(set) var selectedTemplateId: String?
 
@@ -48,28 +41,14 @@ final class AddPlanViewModel {
         templates.isEmpty == false
     }
 
-    var startText: String {
-        DateFormat.displayTime(storageTime(start))
-    }
-
-    var endText: String {
-        DateFormat.displayTime(storageTime(end))
-    }
-
     var canAdd: Bool {
         days.selected.isEmpty == false
             && selectedTemplate != nil
-            && end.minutesOfDay > start.minutesOfDay
+            && times.isValid
     }
 
     func selectTemplate(_ id: String) {
         selectedTemplateId = id
-    }
-
-    func keepEndAfterStart() {
-        guard end.minutesOfDay <= start.minutesOfDay else { return }
-
-        end = Self.endTime(after: start)
     }
 
     func makePlans() -> [PlanEvent] {
@@ -78,8 +57,8 @@ final class AddPlanViewModel {
         return days.selected.sorted().map { date in
             PlanEvent(
                 date: date,
-                startTime: storageTime(start),
-                endTime: storageTime(end),
+                startTime: times.startTime,
+                endTime: times.endTime,
                 templateId: templateId,
                 emoji: template.emoji,
                 name: template.name
@@ -87,20 +66,7 @@ final class AddPlanViewModel {
         }
     }
 
-    private static func endTime(after start: ClockTime) -> ClockTime {
-        ClockTime(
-            minutesOfDay: min(
-                start.minutesOfDay + WorkHours.defaultPlanMinutes,
-                WorkHours.latestTime.minutesOfDay
-            )
-        )
-    }
-
     private var selectedTemplate: EventTemplate? {
         templates.first { $0.id == selectedTemplateId }
-    }
-
-    private func storageTime(_ time: ClockTime) -> String {
-        DateFormat.storageTime(minutesOfDay: time.minutesOfDay)
     }
 }
