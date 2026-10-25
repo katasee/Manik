@@ -18,50 +18,34 @@ struct BookingActionsList: View {
             }
 
             if canChangeService {
-                actionButton(
+                ActionRowButton(
                     titleKey: "schedule.actions.changeService",
                     systemImage: "list.bullet.rectangle",
                     action: onChangeService
                 )
             }
 
-            actionButton(
+            ActionRowButton(
                 titleKey: "schedule.actions.reschedule",
                 systemImage: "arrow.left.arrow.right",
                 action: onReschedule
             )
 
             if canOpenCard {
-                actionButton(
+                ActionRowButton(
                     titleKey: "schedule.actions.clientCard",
                     systemImage: "person.crop.circle",
                     action: onOpenCard
                 )
             }
 
-            actionButton(
+            ActionRowButton(
                 titleKey: "schedule.actions.cancelBooking",
                 systemImage: "xmark.circle",
                 role: .destructive,
                 action: onCancelBooking
             )
         }
-    }
-
-    private func actionButton(
-        titleKey: LocalizedStringKey,
-        systemImage: String,
-        role: BookingActionRole = .regular,
-        action: @escaping () -> Void
-    ) -> some View {
-        Button(action: action) {
-            BookingActionLabel(
-                titleKey: titleKey,
-                systemImage: systemImage,
-                role: role
-            )
-        }
-        .buttonStyle(.plain)
     }
 }
 
