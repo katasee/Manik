@@ -168,6 +168,17 @@ final class ScheduleViewModel {
         )
     }
 
+    func makePlanActionsViewModel(planId: String, now: Date = .now) -> PlanActionsViewModel? {
+        guard let plan = plans.first(where: { $0.id == planId }) else { return nil }
+
+        return PlanActionsViewModel(
+            plan: plan,
+            templates: templates,
+            plannedDays: Set(plans.map(\.date)),
+            now: now
+        )
+    }
+
     func makeClientCardViewModel(clientId: String) -> ClientCardViewModel {
         ClientCardViewModel(
             clientId: clientId,
