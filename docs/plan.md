@@ -2088,6 +2088,23 @@ this file is just "what's done, what's next," not a design doc.
     (relaunch, Console shows six fields and no `id`, offline add on three days, account deletion
     leaves no `events`); rules published in the Console.
 
+- **M-39 — Week swipe on Розклад** (branch `feature/m-39-schedule-week-swipe`; closes the backlog
+  item "Swipe the day list to change the day", changed by the user when picked up: the swipe moves
+  the **week**, like the strip's arrows, and works anywhere on the screen).
+  - `WeekDayStrip` lost its own swipe. The landing-day rule (current week → today, any other week →
+    its Monday) became `fileprivate static landingDay(shiftingWeekOf:forward:now:)`, shared by the
+    arrows and the new `View.weekSwipe(selectedDate:)`, which lives in `WeekDayStrip.swift` (it
+    serves only the strip — moved there after a clean-code review, so both statics stay
+    `fileprivate`). The drag needs 20pt and `abs(width) > abs(height)`.
+  - `ScheduleView` applies `.weekSwipe` to the whole screen with `.gesture`, not
+    `.simultaneousGesture`: a row's `SwipeToDelete` drag is a descendant gesture and wins, so a
+    swipe on a slot or plan row still only opens / closes delete.
+  - Found on the simulator: on the list the `ScrollView`'s pan often won over the week swipe.
+    `.scrollBounceBehavior(.basedOnSize)` on the day list fixed it — a day whose rows fit does not
+    scroll at all, so its pan never starts; a day too long to fit still scrolls (12 "Заповнити
+    місяць" hours plus plans do not fit), and there the swipe can still lose to the scroll.
+  - Verified: `xcodebuild` after each task, `swiftui-pro` on the plan; simulator pass by the user.
+
 ## Screens (in order)
 
 This is the actual work queue, and the only numbered list here. The ordering follows the **data
@@ -2326,12 +2343,6 @@ numbering drifts every time an item is added or closed (it already did once: PR9
     and record the rules in `architecture.md`/`code-style.md`. Own PR, not mixed into a feature.
     (The first `#available` in a view already exists: M-36.1's reschedule lens; its rules are in
     `code-style.md`.)
-
-- **Swipe the day list to change the day** (user request, 2026-10-17, during M-34.1). On Розклад,
-  a horizontal swipe on the list of windows moves to the previous / next day (today only the week
-  strip swipes, by week). Watch the conflict with `SwipeToDelete`, which also reads horizontal
-  drags on every row: probably only a swipe that starts on empty space, or a right-swipe for
-  "previous day" since rows only open to the left — decide when it is picked up.
 
 - **A big button in Розклад's empty state** (user request, 2026-10-18, during M-34.2, on a
   screenshot of an empty day). Today an empty day shows only "Немає вікон" / "Натисніть +, щоб
