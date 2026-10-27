@@ -135,7 +135,8 @@ final class BookingActionsViewModel: Identifiable {
                 windows: [Slot(date: target.date, time: target.time)],
                 plans: plans,
                 now: now
-            )
+            ),
+            subject: .window
         )
     }
 

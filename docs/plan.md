@@ -2174,6 +2174,33 @@ this file is just "what's done, what's next," not a design doc.
     SOLID pass; previews in light and dark; the popups with sample conflicts on the simulator (a
     temporary patch, reverted).
 
+- **M-37.8 — Conflicts between windows and plans (logic)** (branch
+  `feature/m-37.8-conflicts-logic`; design in the M-37 spec, section "M-37.7 / M-37.8"). The rule
+  replaces M-37.7's sample notices; kept as one PR (~270 lines, user).
+  - `Models/PlanConflict/`: `PlanConflict(windowMinute:planStart:planEnd:)` (red `start <= window <
+    end`, amber `0 < start - window <= WorkHours.planLeadMinutes`, 60) is `Comparable` by case
+    order, so `max` is the worse level. `WindowConflict.find(windows:plans:now:)` pairs same-day
+    windows and plans, skips past windows, and looks up the day's plans before any date parsing
+    (swiftui-pro: it runs on every `body` read, ~430 candidate windows on "Вікна");
+    `worstLevels(_:by:)` folds pairs per day or per window.
+  - Nothing is stored: `conflictNotice` is computed on all four view models, the "+" popup's
+    `dayConflicts` feed `MonthDaySelection.days(conflicts:)` (its stored `conflicts` is gone), and
+    `ScheduleDayItems` marks Розклад rows. Only saved data counts — each tab of the "+" popup checks
+    against the other kind of saved item, not the other tab's selection.
+  - `ConflictNotice.init?(_:subject:)`: the first red, else every amber, `nil` when empty (no
+    `.near([])`). The line names what is already there, so it depends on what is being added
+    (`ConflictSubject`, user after a simulator pass: on "Мої справи" "30.10 о 9:00 · 🥊 Бокс" read as
+    "Бокс at 9:00"). Adding a window ("Вікна", Reschedule a booking) names the plan:
+    `overlapLine` / `nearLine`. Adding a plan ("Мої справи", "Перенести") names the window:
+    "30.10 о 9:00 — робоче вікно" / "— запис", amber "— вікно впритул до справи" / "— запис впритул
+    до справи". Day through the new `DateFormat.dayMonthNumeric` (`dM`, "05.10"). Red still blocks
+    (user).
+  - "+" popup's line has `.id(tab)`. "Мої справи" checks `candidatePlans` (template + valid times),
+    which `makePlans()` returns only when `canAdd`.
+  - Verified: a `swiftc` script on the minute rule (plan end, 60 and 61 minutes before), `xcodebuild`
+    after each task, `swiftui-pro` on the plan. Розклад has no screen preview, so the row marks are
+    checked on the simulator only.
+
 ## Screens (in order)
 
 This is the actual work queue, and the only numbered list here. The ordering follows the **data
@@ -2354,8 +2381,8 @@ those items are referred to by name, so the list can grow without renumbering an
       5. ~~**M-37.5 Plan actions (UI)**~~ — **done** (under "Done"). Tap a plan: "Змінити"
          (another template), "Перенести" (day + start/end), "Видалити".
       6. ~~**M-37.6 Plan actions (logic)**~~ — **done** (under "Done").
-      7. **M-37.7 / M-37.8 Conflicts with free windows (UI / logic)** — M-37.7 **done** (under
-         "Done"); M-37.8 next. The weekly repeat moved to the backlog on 2026-10-24 (user: maybe
+      7. ~~**M-37.7 / M-37.8 Conflicts with free windows (UI / logic)**~~ — **done** (under
+         "Done"). M-37 is finished; next is M-38. The weekly repeat moved to the backlog on 2026-10-24 (user: maybe
          not needed), which renumbered this step.
    9. **M-38 Statistics on slots** — and delete `Block`/`blocks` (kept for Статистика since M-33.1).
 

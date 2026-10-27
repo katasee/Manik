@@ -13,8 +13,14 @@ enum ScheduleDayItems {
         clientName: (String) -> String,
         now: Date
     ) -> [ScheduleItem] {
-        let slotRows = slots
-            .filter { $0.date == day }
+        let daySlots = slots.filter { $0.date == day }
+        let dayPlans = plans.filter { $0.date == day }
+        let conflicts = WindowConflict.worstLevels(
+            WindowConflict.find(windows: daySlots, plans: dayPlans, now: now),
+            by: { Slot.documentId(date: $0.window.date, time: $0.window.time) }
+        )
+
+        let slotRows = daySlots
             .map { slot in
                 (
                     key: (slot.time, Order.slot.rawValue, slot.id ?? ""),
@@ -22,15 +28,14 @@ enum ScheduleDayItems {
                         SlotItem(
                             slot: slot,
                             clientName: slot.clientId.map(clientName) ?? "",
-                            conflict: nil,
+                            conflict: conflicts[Slot.documentId(date: slot.date, time: slot.time)],
                             now: now
                         )
                     )
                 )
             }
 
-        let planRows = plans
-            .filter { $0.date == day }
+        let planRows = dayPlans
             .map { plan in
                 (
                     key: (plan.startTime, Order.plan.rawValue, plan.id ?? ""),

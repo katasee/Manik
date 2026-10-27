@@ -49,7 +49,7 @@ final class FillMonthViewModel: Identifiable {
     }
 
     var conflictNotice: ConflictNotice? {
-        ConflictNotice(conflicts)
+        ConflictNotice(conflicts, subject: .window)
     }
 
     var dayConflicts: [String: PlanConflict] {

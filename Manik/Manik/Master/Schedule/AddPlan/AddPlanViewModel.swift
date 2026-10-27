@@ -42,7 +42,7 @@ final class AddPlanViewModel {
     }
 
     var conflictNotice: ConflictNotice? {
-        ConflictNotice(conflicts)
+        ConflictNotice(conflicts, subject: .plan)
     }
 
     var dayConflicts: [String: PlanConflict] {

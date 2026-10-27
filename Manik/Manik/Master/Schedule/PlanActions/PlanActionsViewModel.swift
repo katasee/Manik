@@ -79,7 +79,8 @@ final class PlanActionsViewModel: Identifiable {
                 windows: slots,
                 plans: [move.movedPlan].compactMap { $0 },
                 now: now
-            )
+            ),
+            subject: .plan
         )
     }
 
