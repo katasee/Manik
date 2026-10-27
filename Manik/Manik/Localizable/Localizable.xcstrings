@@ -2329,7 +2329,7 @@
         }
       }
     },
-    "schedule.conflict.closeCount %lld" : {
+    "schedule.conflict.nearCount %lld" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {

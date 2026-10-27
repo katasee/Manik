@@ -7,7 +7,7 @@ struct ConflictMark {
 
     init(_ conflict: PlanConflict) {
         switch conflict {
-        case .close:
+        case .near:
             color = .warning
             softColor = .warningSoft
             systemImage = "exclamationmark.triangle.fill"

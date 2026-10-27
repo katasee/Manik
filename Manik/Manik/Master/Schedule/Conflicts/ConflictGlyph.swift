@@ -14,7 +14,7 @@ struct ConflictGlyph: View {
 #if DEBUG
 #Preview {
     HStack(spacing: 12) {
-        ConflictGlyph(mark: ConflictMark(.close))
+        ConflictGlyph(mark: ConflictMark(.near))
         ConflictGlyph(mark: ConflictMark(.overlap))
     }
     .padding()

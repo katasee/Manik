@@ -32,10 +32,8 @@ struct BookedSlotRow: View {
         .frame(maxWidth: .infinity, minHeight: ScheduleMetrics.Size.bookedRowHeight)
         .cardSurface(padding: 0, cornerRadius: ScheduleMetrics.Size.rowCornerRadius)
         .overlay {
-            if let mark {
-                RoundedRectangle(cornerRadius: ScheduleMetrics.Size.rowCornerRadius)
-                    .strokeBorder(mark.color, lineWidth: ScheduleMetrics.Size.rowBorderWidth)
-            }
+            RoundedRectangle(cornerRadius: ScheduleMetrics.Size.rowCornerRadius)
+                .strokeBorder(outlineColor, lineWidth: ScheduleMetrics.Size.rowBorderWidth)
         }
         .opacity(item.isPast ? ScheduleMetrics.Size.pastOpacity : 1)
         .accessibilityElement(children: .combine)
@@ -43,6 +41,14 @@ struct BookedSlotRow: View {
 
     private var mark: ConflictMark? {
         item.conflict.map(ConflictMark.init)
+    }
+
+    private var outlineColor: Color {
+        if let mark {
+            mark.color
+        } else {
+            .clear
+        }
     }
 }
 

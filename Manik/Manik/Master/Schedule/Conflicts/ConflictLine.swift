@@ -20,7 +20,7 @@ struct ConflictLine: View {
 #Preview {
     VStack(alignment: .leading, spacing: 12) {
         ConflictLine(text: "5.10 о 10:00 · 🥊 Бокс", mark: ConflictMark(.overlap))
-        ConflictLine(text: "5.10 о 9:00 · 🦷 Стоматолог-ортодонт о 10:00", mark: ConflictMark(.close))
+        ConflictLine(text: "5.10 о 9:00 · 🦷 Стоматолог-ортодонт о 10:00", mark: ConflictMark(.near))
     }
     .padding()
     .background(Color.card)

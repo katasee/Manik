@@ -37,26 +37,26 @@ enum SchedulePreviewData {
         MonthDay(id: "selected", numberText: "20", isEnabled: true, isToday: false, isSelected: true, hasSlots: false, conflict: nil),
         MonthDay(id: "both", numberText: "26", isEnabled: true, isToday: false, isSelected: true, hasSlots: true, conflict: nil),
         MonthDay(id: "overlap", numberText: "27", isEnabled: true, isToday: false, isSelected: true, hasSlots: true, conflict: .overlap),
-        MonthDay(id: "close", numberText: "28", isEnabled: true, isToday: false, isSelected: true, hasSlots: false, conflict: .close)
+        MonthDay(id: "near", numberText: "28", isEnabled: true, isToday: false, isSelected: true, hasSlots: false, conflict: .near)
     ]
 
     static let overlapNotice = ConflictNotice.overlap(ConflictEntry(id: "overlap", text: "5.10 о 10:00 · 🥊 Бокс"))
 
-    static let closeNotice = ConflictNotice.close([ConflictEntry(id: "close", text: "5.10 о 9:00 · 🥊 Бокс о 10:00")])
+    static let nearNotice = ConflictNotice.near([ConflictEntry(id: "near", text: "5.10 о 9:00 · 🥊 Бокс о 10:00")])
 
-    static let closeEntries: [ConflictEntry] = [
-        ConflictEntry(id: "close-0", text: "5.10 о 9:00 · 🥊 Бокс о 10:00"),
-        ConflictEntry(id: "close-1", text: "7.10 о 11:00 · 🦷 Стоматолог-ортодонт о 12:00"),
-        ConflictEntry(id: "close-2", text: "12.10 о 9:00 · 🥊 Бокс о 10:00"),
-        ConflictEntry(id: "close-3", text: "14.10 о 11:00 · 🦷 Стоматолог-ортодонт о 12:00"),
-        ConflictEntry(id: "close-4", text: "19.10 о 9:00 · 🥊 Бокс о 10:00"),
-        ConflictEntry(id: "close-5", text: "21.10 о 17:00 · 🏃‍♀️ Біг о 18:00"),
-        ConflictEntry(id: "close-6", text: "26.10 о 9:00 · 🥊 Бокс о 10:00"),
-        ConflictEntry(id: "close-7", text: "28.10 о 17:00 · 🏃‍♀️ Біг о 18:00"),
-        ConflictEntry(id: "close-8", text: "30.10 о 9:30 · 🥊 Бокс о 10:00")
+    static let nearEntries: [ConflictEntry] = [
+        ConflictEntry(id: "near-0", text: "5.10 о 9:00 · 🥊 Бокс о 10:00"),
+        ConflictEntry(id: "near-1", text: "7.10 о 11:00 · 🦷 Стоматолог-ортодонт о 12:00"),
+        ConflictEntry(id: "near-2", text: "12.10 о 9:00 · 🥊 Бокс о 10:00"),
+        ConflictEntry(id: "near-3", text: "14.10 о 11:00 · 🦷 Стоматолог-ортодонт о 12:00"),
+        ConflictEntry(id: "near-4", text: "19.10 о 9:00 · 🥊 Бокс о 10:00"),
+        ConflictEntry(id: "near-5", text: "21.10 о 17:00 · 🏃‍♀️ Біг о 18:00"),
+        ConflictEntry(id: "near-6", text: "26.10 о 9:00 · 🥊 Бокс о 10:00"),
+        ConflictEntry(id: "near-7", text: "28.10 о 17:00 · 🏃‍♀️ Біг о 18:00"),
+        ConflictEntry(id: "near-8", text: "30.10 о 9:30 · 🥊 Бокс о 10:00")
     ]
 
-    static let closeNotices = ConflictNotice.close(closeEntries)
+    static let nearNotices = ConflictNotice.near(nearEntries)
 
     static var items: [SlotItem] {
         let directory = ClientDirectory(clients: ClientsPreviewData.clients, isLoaded: true)
@@ -65,7 +65,7 @@ enum SchedulePreviewData {
             SlotItem(
                 slot: slot,
                 clientName: slot.clientId.map(directory.name(for:)) ?? "",
-                conflict: ["slot-0900", "slot-1100"].contains(slot.id) ? .close : nil,
+                conflict: ["slot-0900", "slot-1100"].contains(slot.id) ? .near : nil,
                 now: noon
             )
         }
@@ -127,8 +127,8 @@ enum SchedulePreviewData {
         viewModel.toggleTime("12:00")
         viewModel.toggleTime("14:00")
         viewModel.addCustomTime(ClockTime(minutesOfDay: 17 * 60 + 30))
-        viewModel.days.conflicts = conflicts(.close, on: viewModel.days.selected)
-        viewModel.conflictNotice = closeNotices
+        viewModel.days.conflicts = conflicts(.near, on: viewModel.days.selected)
+        viewModel.conflictNotice = nearNotices
 
         return viewModel
     }
@@ -164,7 +164,7 @@ enum SchedulePreviewData {
             now: .now
         )
 
-        viewModel.conflictNotice = closeNotice
+        viewModel.conflictNotice = nearNotice
 
         return viewModel
     }

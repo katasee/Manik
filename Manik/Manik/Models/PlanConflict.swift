@@ -1,4 +1,4 @@
 enum PlanConflict {
-    case close
+    case near
     case overlap
 }

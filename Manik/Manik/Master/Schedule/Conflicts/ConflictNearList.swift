@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct ConflictCloseList: View {
+struct ConflictNearList: View {
     let entries: [ConflictEntry]
     let mark: ConflictMark
 
@@ -12,7 +12,7 @@ struct ConflictCloseList: View {
                 HStack(spacing: ScheduleMetrics.Spacing.conflictGlyphSpacing) {
                     ConflictGlyph(mark: mark)
 
-                    Text("schedule.conflict.closeCount \(entries.count)")
+                    Text("schedule.conflict.nearCount \(entries.count)")
                         .font(.elmsSans(.semiBold, ScheduleMetrics.Size.conflictText))
 
                     Spacer(minLength: 0)
@@ -30,10 +30,10 @@ struct ConflictCloseList: View {
 
             if isExpanded {
                 ViewThatFits(in: .vertical) {
-                    lines
+                    ConflictEntryList(entries: entries, mark: mark)
 
                     ScrollView {
-                        lines
+                        ConflictEntryList(entries: entries, mark: mark)
                     }
                     .scrollIndicators(.hidden)
                 }
@@ -41,15 +41,6 @@ struct ConflictCloseList: View {
                 .padding(.bottom, ScheduleMetrics.Spacing.conflictPadding)
             }
         }
-    }
-
-    private var lines: some View {
-        VStack(alignment: .leading, spacing: ScheduleMetrics.Spacing.conflictLineSpacing) {
-            ForEach(entries) { entry in
-                ConflictLine(text: entry.text, mark: mark)
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private func toggle() {
@@ -61,7 +52,7 @@ struct ConflictCloseList: View {
 
 #if DEBUG
 #Preview {
-    ConflictCloseList(entries: SchedulePreviewData.closeEntries, mark: ConflictMark(.close))
+    ConflictNearList(entries: SchedulePreviewData.nearEntries, mark: ConflictMark(.near))
         .padding()
         .background(Color.card)
 }

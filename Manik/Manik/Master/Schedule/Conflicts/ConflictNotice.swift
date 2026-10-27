@@ -5,19 +5,20 @@ struct ConflictEntry: Identifiable, Equatable {
 
 enum ConflictNotice: Equatable {
     case overlap(ConflictEntry)
-    case close([ConflictEntry])
+    case near([ConflictEntry])
 
-    var blocksConfirm: Bool {
+    var level: PlanConflict {
         switch self {
-        case .overlap: true
-        case .close: false
+        case .overlap: .overlap
+        case .near: .near
         }
     }
 
+    var blocksConfirm: Bool {
+        level == .overlap
+    }
+
     var mark: ConflictMark {
-        switch self {
-        case .overlap: ConflictMark(.overlap)
-        case .close: ConflictMark(.close)
-        }
+        ConflictMark(level)
     }
 }
