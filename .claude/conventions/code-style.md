@@ -44,7 +44,8 @@ clear in light, white in dark, so the light theme is untouched. Both modifiers d
 `colorScheme` branches to get depth. **Nothing a user reads as an object is flat**: a flat outlined box
 (`.insetSurface`) existed in M-27 and was removed after a device pass, because a summary plate that
 does not lift reads as a hole in the popup. The deliberately flat exceptions are markers, not
-objects: the dashed free window (`FreeSlotRow`) and the "today" outline in `WeekDayStrip`.
+objects: the dashed free window (`FreeSlotRow`), the "today" outline in `WeekDayStrip`, and the
+conflict warning line (`ConflictNoticeView`, M-37.7: a tinted note, not a card).
 A raised control that can be *selected* swaps its surface for a `PrimaryFill` fill with
 `.brandShadow()` (the selected day in `WeekDayStrip`); write that as an explicit `if`/`else` in
 `.background`, not as a fill stacked over a raised one — for a plain chip or field that is
@@ -106,6 +107,8 @@ what broke when `Ink` was text *and* fill *and* shadow):
 | `Backdrop` | popup backdrop | ink 22% / black 55% |
 | `Highlight` | surface rim and sheen | clear / white |
 | `HeaderFill` | `BookingHeader` block — unused since M-30 removed it | `#0A0A0B` / `#1F1A1F` (card tone) |
+| `Warning` / `WarningSoft` | a window too close before a plan (M-37.7): glyph, text and outline / the flat fill under the warning line | `#9A5200` / `#FFB340`; `#FFF4E0` / `#33261A` |
+| `DestructiveSoft` | the flat fill under a red conflict line (text on it is `Destructive`) | `#FDECEC` / `#3A1F22` |
 
 Never name a colorset after an existing SwiftUI `Color` member — the generated symbol collides
 (`Primary` would be `Color.primary`, hence `PrimaryFill`).

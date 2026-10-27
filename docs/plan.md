@@ -2147,6 +2147,33 @@ this file is just "what's done, what's next," not a design doc.
     місяць" hours plus plans do not fit), and there the swipe can still lose to the scroll.
   - Verified: `xcodebuild` after each task, `swiftui-pro` on the plan; simulator pass by the user.
 
+- **M-37.7 — Conflicts between windows and plans (UI)** (branch `feature/m-37.7-conflicts-ui`;
+  design in the M-37 spec, section "M-37.7 / M-37.8"). Pure UI: four view models get a stored
+  `conflictNotice: ConflictNotice?` that is `nil` in the app and set only by preview data, so the
+  app is unchanged until M-37.8 adds the rule.
+  - `PlanConflict` (`overlap` / `near`) in `Models/`; `Master/Schedule/Conflicts/` holds
+    `ConflictMark` (colour, soft fill, SF Symbol of a level), `ConflictNotice` (`overlap(entry)` /
+    `near([entry])`, one `level` that `blocksConfirm` and `mark` derive from), and the views
+    `ConflictNoticeView`, `ConflictLine`, `ConflictNearList` (expands in place, height capped by
+    `ViewThatFits`), `ConflictEntryList`, `ConflictGlyph`. `near` replaced `close` after a
+    clean-code review: "close" also reads as "shut".
+  - The line sits above the popup buttons, outside the scroll view (HIG: the reason for a disabled
+    button stays in sight), in "Вікна" / "Мої справи", "Перенести" a plan and Reschedule a
+    booking; a red notice disables the confirm button through the view model (`canAdd`,
+    `canReschedule`). `.animation(PopupContainerLayout.fade, value:)` sits on the container, since
+    an animation on a view inside an `if` does not animate its insertion.
+  - Calendar: `MonthDaySelection.conflicts` feeds `MonthDay.conflict`; the dot is red, then amber,
+    then wine. Розклад: `SlotItem.conflict` colours the free window's dash or a booked card's
+    outline (over `.cardSurface`, so the shadow stays) and adds `ConflictGlyph` at the row's
+    trailing edge — not by the time as the spec says: a booked card's time column is a fixed 64pt.
+  - New colorsets `Warning`, `WarningSoft`, `DestructiveSoft`; string
+    `schedule.conflict.nearCount %lld` (plural).
+  - Left for M-37.8: `.id(tab)` on the "+" popup's line (an expanded list survives a tab switch)
+    and `nil` instead of an empty `.near([])`.
+  - Verified: `xcodebuild` after each task, `swiftui-pro` on the plan and the code, a clean-code /
+    SOLID pass; previews in light and dark; the popups with sample conflicts on the simulator (a
+    temporary patch, reverted).
+
 ## Screens (in order)
 
 This is the actual work queue, and the only numbered list here. The ordering follows the **data
@@ -2327,8 +2354,9 @@ those items are referred to by name, so the list can grow without renumbering an
       5. ~~**M-37.5 Plan actions (UI)**~~ — **done** (under "Done"). Tap a plan: "Змінити"
          (another template), "Перенести" (day + start/end), "Видалити".
       6. ~~**M-37.6 Plan actions (logic)**~~ — **done** (under "Done").
-      7. **M-37.7 / M-37.8 Weekly repeat (UI / logic)** — next.
-      8. **M-37.9 / M-37.10 Conflicts with free windows (UI / logic).**
+      7. **M-37.7 / M-37.8 Conflicts with free windows (UI / logic)** — M-37.7 **done** (under
+         "Done"); M-37.8 next. The weekly repeat moved to the backlog on 2026-10-24 (user: maybe
+         not needed), which renumbered this step.
    9. **M-38 Statistics on slots** — and delete `Block`/`blocks` (kept for Статистика since M-33.1).
 
 ## Backlog and tech debt (unordered)
