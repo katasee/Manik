@@ -5,4 +5,5 @@ struct MonthDay: Identifiable {
     let isToday: Bool
     let isSelected: Bool
     let hasSlots: Bool
+    let conflict: PlanConflict?
 }

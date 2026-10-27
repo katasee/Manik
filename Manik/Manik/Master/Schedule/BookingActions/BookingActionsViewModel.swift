@@ -14,6 +14,7 @@ final class BookingActionsViewModel: Identifiable {
     let id = UUID()
 
     private(set) var mode = BookingActionsMode.actions
+    var conflictNotice: ConflictNotice?
     private var rescheduleChoice: RescheduleChoice
     private var serviceChoice: ServiceChoice
 
@@ -123,7 +124,7 @@ final class BookingActionsViewModel: Identifiable {
     }
 
     var canReschedule: Bool {
-        rescheduleChoice.target != nil
+        rescheduleChoice.target != nil && conflictNotice?.blocksConfirm != true
     }
 
     func toggleRescheduleTime(_ time: String) {

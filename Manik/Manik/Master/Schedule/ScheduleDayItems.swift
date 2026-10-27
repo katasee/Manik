@@ -22,6 +22,7 @@ enum ScheduleDayItems {
                         SlotItem(
                             slot: slot,
                             clientName: slot.clientId.map(clientName) ?? "",
+                            conflict: nil,
                             now: now
                         )
                     )

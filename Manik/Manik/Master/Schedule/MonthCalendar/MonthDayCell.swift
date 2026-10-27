@@ -20,7 +20,7 @@ struct MonthDayCell: View {
                     }
 
                 Circle()
-                    .fill(day.hasSlots ? Color.wine : Color.clear)
+                    .fill(dotColor)
                     .frame(width: ScheduleMetrics.Size.dayDot, height: ScheduleMetrics.Size.dayDot)
             }
             .frame(maxWidth: .infinity, minHeight: ScheduleMetrics.Size.dayCellHeight)
@@ -30,6 +30,16 @@ struct MonthDayCell: View {
         .disabled(day.isEnabled == false)
         .accessibilityAddTraits(day.isSelected ? .isSelected : [])
         .accessibilityValue(day.hasSlots ? Text("schedule.day.hasSlots") : Text(verbatim: ""))
+    }
+
+    private var dotColor: Color {
+        if let conflict = day.conflict {
+            ConflictMark(conflict).color
+        } else if day.hasSlots {
+            Color.wine
+        } else {
+            Color.clear
+        }
     }
 
     private var numberColor: Color {

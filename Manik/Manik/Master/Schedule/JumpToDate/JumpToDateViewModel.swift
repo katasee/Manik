@@ -56,7 +56,8 @@ final class JumpToDateViewModel: Identifiable {
                 isEnabled: true,
                 isToday: id == today,
                 isSelected: id == selectedDayId,
-                hasSlots: datesWithSlots.contains(id)
+                hasSlots: datesWithSlots.contains(id),
+                conflict: nil
             )
         }
     }

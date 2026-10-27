@@ -12,6 +12,7 @@ enum PlanActionsMode {
 final class PlanActionsViewModel: Identifiable {
     private(set) var mode = PlanActionsMode.actions
     var move: PlanMove
+    var conflictNotice: ConflictNotice?
 
     private var templateChoice: TemplateChoice
 
@@ -69,7 +70,7 @@ final class PlanActionsViewModel: Identifiable {
     }
 
     var canReschedule: Bool {
-        move.movedPlan != nil
+        move.movedPlan != nil && conflictNotice?.blocksConfirm != true
     }
 
     func startChangingTemplate() {

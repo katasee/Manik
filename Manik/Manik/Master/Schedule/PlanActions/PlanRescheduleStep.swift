@@ -17,6 +17,10 @@ struct PlanRescheduleStep: View {
 
             PlanTimeFields(times: $viewModel.move.times)
 
+            if let notice = viewModel.conflictNotice {
+                ConflictNoticeView(notice: notice)
+            }
+
             HStack {
                 PopupDismissButton(titleKey: "common.action.back", action: viewModel.stopRescheduling)
 
@@ -30,6 +34,7 @@ struct PlanRescheduleStep: View {
                 )
             }
         }
+        .animation(PopupContainerLayout.fade, value: viewModel.conflictNotice)
     }
 }
 

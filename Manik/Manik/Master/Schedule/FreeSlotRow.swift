@@ -7,13 +7,18 @@ struct FreeSlotRow: View {
         ZStack {
             time
             freeLabel
+
+            if let mark {
+                ConflictGlyph(mark: mark)
+                    .frame(maxWidth: .infinity, alignment: .trailing)
+            }
         }
         .padding(.horizontal, ScheduleMetrics.Spacing.rowHorizontalPadding)
         .frame(maxWidth: .infinity, minHeight: ScheduleMetrics.Size.rowHeight)
         .overlay {
             RoundedRectangle(cornerRadius: ScheduleMetrics.Size.rowCornerRadius)
                 .strokeBorder(
-                    Color.stroke,
+                    strokeColor,
                     style: StrokeStyle(
                         lineWidth: ScheduleMetrics.Size.rowBorderWidth,
                         dash: ScheduleMetrics.Size.rowDash
@@ -23,6 +28,18 @@ struct FreeSlotRow: View {
         .opacity(item.isPast ? ScheduleMetrics.Size.pastOpacity : 1)
         .background(Color.background, in: .rect(cornerRadius: ScheduleMetrics.Size.rowCornerRadius))
         .accessibilityElement(children: .combine)
+    }
+
+    private var mark: ConflictMark? {
+        item.conflict.map(ConflictMark.init)
+    }
+
+    private var strokeColor: Color {
+        if let mark {
+            mark.color
+        } else {
+            .stroke
+        }
     }
 
     private var time: some View {

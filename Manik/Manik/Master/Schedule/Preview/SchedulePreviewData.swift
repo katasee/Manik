@@ -31,12 +31,32 @@ enum SchedulePreviewData {
     }
 
     static let dayStates: [MonthDay] = [
-        MonthDay(id: "past", numberText: "12", isEnabled: false, isToday: false, isSelected: false, hasSlots: true),
-        MonthDay(id: "today", numberText: "17", isEnabled: true, isToday: true, isSelected: false, hasSlots: false),
-        MonthDay(id: "slots", numberText: "19", isEnabled: true, isToday: false, isSelected: false, hasSlots: true),
-        MonthDay(id: "selected", numberText: "20", isEnabled: true, isToday: false, isSelected: true, hasSlots: false),
-        MonthDay(id: "both", numberText: "26", isEnabled: true, isToday: false, isSelected: true, hasSlots: true)
+        MonthDay(id: "past", numberText: "12", isEnabled: false, isToday: false, isSelected: false, hasSlots: true, conflict: nil),
+        MonthDay(id: "today", numberText: "17", isEnabled: true, isToday: true, isSelected: false, hasSlots: false, conflict: nil),
+        MonthDay(id: "slots", numberText: "19", isEnabled: true, isToday: false, isSelected: false, hasSlots: true, conflict: nil),
+        MonthDay(id: "selected", numberText: "20", isEnabled: true, isToday: false, isSelected: true, hasSlots: false, conflict: nil),
+        MonthDay(id: "both", numberText: "26", isEnabled: true, isToday: false, isSelected: true, hasSlots: true, conflict: nil),
+        MonthDay(id: "overlap", numberText: "27", isEnabled: true, isToday: false, isSelected: true, hasSlots: true, conflict: .overlap),
+        MonthDay(id: "near", numberText: "28", isEnabled: true, isToday: false, isSelected: true, hasSlots: false, conflict: .near)
     ]
+
+    static let overlapNotice = ConflictNotice.overlap(ConflictEntry(id: "overlap", text: "5.10 о 10:00 · 🥊 Бокс"))
+
+    static let nearNotice = ConflictNotice.near([ConflictEntry(id: "near", text: "5.10 о 9:00 · 🥊 Бокс о 10:00")])
+
+    static let nearEntries: [ConflictEntry] = [
+        ConflictEntry(id: "near-0", text: "5.10 о 9:00 · 🥊 Бокс о 10:00"),
+        ConflictEntry(id: "near-1", text: "7.10 о 11:00 · 🦷 Стоматолог-ортодонт о 12:00"),
+        ConflictEntry(id: "near-2", text: "12.10 о 9:00 · 🥊 Бокс о 10:00"),
+        ConflictEntry(id: "near-3", text: "14.10 о 11:00 · 🦷 Стоматолог-ортодонт о 12:00"),
+        ConflictEntry(id: "near-4", text: "19.10 о 9:00 · 🥊 Бокс о 10:00"),
+        ConflictEntry(id: "near-5", text: "21.10 о 17:00 · 🏃‍♀️ Біг о 18:00"),
+        ConflictEntry(id: "near-6", text: "26.10 о 9:00 · 🥊 Бокс о 10:00"),
+        ConflictEntry(id: "near-7", text: "28.10 о 17:00 · 🏃‍♀️ Біг о 18:00"),
+        ConflictEntry(id: "near-8", text: "30.10 о 9:30 · 🥊 Бокс о 10:00")
+    ]
+
+    static let nearNotices = ConflictNotice.near(nearEntries)
 
     static var items: [SlotItem] {
         let directory = ClientDirectory(clients: ClientsPreviewData.clients, isLoaded: true)
@@ -45,6 +65,7 @@ enum SchedulePreviewData {
             SlotItem(
                 slot: slot,
                 clientName: slot.clientId.map(directory.name(for:)) ?? "",
+                conflict: ["slot-0900", "slot-1100"].contains(slot.id) ? .near : nil,
                 now: noon
             )
         }
@@ -79,7 +100,7 @@ enum SchedulePreviewData {
 
     @MainActor
     static var bookingActions: BookingActionsViewModel {
-        BookingActionsViewModel(
+        let viewModel = BookingActionsViewModel(
             slot: slots[1],
             client: ClientsPreviewData.clients.first,
             services: ServicesPreviewData.services,
@@ -87,6 +108,10 @@ enum SchedulePreviewData {
             now: .now,
             slotRepository: FakeSlotRepository(slots: slots)
         )
+
+        viewModel.conflictNotice = overlapNotice
+
+        return viewModel
     }
 
     @MainActor
@@ -102,6 +127,8 @@ enum SchedulePreviewData {
         viewModel.toggleTime("12:00")
         viewModel.toggleTime("14:00")
         viewModel.addCustomTime(ClockTime(minutesOfDay: 17 * 60 + 30))
+        viewModel.days.conflicts = conflicts(.near, on: viewModel.days.selected)
+        viewModel.conflictNotice = nearNotices
 
         return viewModel
     }
@@ -119,6 +146,8 @@ enum SchedulePreviewData {
         viewModel.selectTemplate("tpl-boxing")
         viewModel.times.end = ClockTime(minutesOfDay: 10 * 60)
         viewModel.times.editing = .end
+        viewModel.days.conflicts = conflicts(.overlap, on: viewModel.days.selected)
+        viewModel.conflictNotice = overlapNotice
 
         return viewModel
     }
@@ -128,12 +157,16 @@ enum SchedulePreviewData {
         var plan = plans[1]
         plan.id = "plan-1"
 
-        return PlanActionsViewModel(
+        let viewModel = PlanActionsViewModel(
             plan: plan,
             templates: templates,
             plannedDays: Set(plans.map(\.date)),
             now: .now
         )
+
+        viewModel.conflictNotice = nearNotice
+
+        return viewModel
     }
 
     @MainActor
@@ -172,6 +205,10 @@ enum SchedulePreviewData {
             clients: ClientsPreviewData.clients,
             now: monthStart
         )
+    }
+
+    private static func conflicts(_ conflict: PlanConflict, on days: Set<String>) -> [String: PlanConflict] {
+        Dictionary(uniqueKeysWithValues: days.sorted().prefix(2).map { ($0, conflict) })
     }
 
     private static var today: String {

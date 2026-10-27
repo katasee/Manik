@@ -32,6 +32,10 @@ struct RescheduleStep: View {
                 onAddCustom: viewModel.addCustomRescheduleTime
             )
 
+            if let notice = viewModel.conflictNotice {
+                ConflictNoticeView(notice: notice)
+            }
+
             HStack {
                 PopupDismissButton(titleKey: "common.action.back", action: viewModel.stopRescheduling)
 
@@ -45,6 +49,7 @@ struct RescheduleStep: View {
                 )
             }
         }
+        .animation(PopupContainerLayout.fade, value: viewModel.conflictNotice)
     }
 }
 

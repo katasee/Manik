@@ -30,7 +30,19 @@ struct FillMonthPopup: View {
             .scrollIndicators(.hidden)
             .padding(-ScheduleMetrics.Spacing.scrollShadowInset)
 
+            if let conflictNotice {
+                ConflictNoticeView(notice: conflictNotice)
+            }
+
             actions(dismiss: dismiss)
+        }
+        .animation(PopupContainerLayout.fade, value: conflictNotice)
+    }
+
+    private var conflictNotice: ConflictNotice? {
+        switch tab {
+        case .slots: viewModel.conflictNotice
+        case .plans: addPlan.conflictNotice
         }
     }
 
@@ -60,7 +72,7 @@ struct FillMonthPopup: View {
                 CapsuleButton(
                     titleKey: "schedule.fill.add \(viewModel.newSlotCount)",
                     role: .primary,
-                    isEnabled: viewModel.newSlotCount > 0,
+                    isEnabled: viewModel.canAdd,
                     action: { add(then: dismiss) }
                 )
             case .plans:

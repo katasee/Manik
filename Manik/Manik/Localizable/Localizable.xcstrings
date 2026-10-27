@@ -2329,6 +2329,59 @@
         }
       }
     },
+    "schedule.conflict.nearCount %lld" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+                "one" : {
+                  "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "%lld window close to a plan"
+                  }
+                },
+                "other" : {
+                  "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "%lld windows close to plans"
+                  }
+                }
+            }
+          }
+        },
+        "uk" : {
+          "variations" : {
+            "plural" : {
+                "few" : {
+                  "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "%lld вікна впритул до справ"
+                  }
+                },
+                "many" : {
+                  "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "%lld вікон впритул до справ"
+                  }
+                },
+                "one" : {
+                  "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "%lld вікно впритул до справ"
+                  }
+                },
+                "other" : {
+                  "stringUnit" : {
+                    "state" : "translated",
+                    "value" : "%lld вікна впритул до справ"
+                  }
+                }
+            }
+          }
+        }
+      }
+    },
     "schedule.delete.booked.action" : {
       "localizations" : {
         "en" : {
