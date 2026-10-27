@@ -2,6 +2,7 @@ import Foundation
 
 struct MonthDaySelection {
     private(set) var selected: Set<String> = []
+    var conflicts: [String: PlanConflict] = [:]
 
     private var pager: MonthPager
     private let today: String
@@ -35,7 +36,8 @@ struct MonthDaySelection {
                 isEnabled: id >= today,
                 isToday: id == today,
                 isSelected: selected.contains(id),
-                hasSlots: markedDays.contains(id)
+                hasSlots: markedDays.contains(id),
+                conflict: conflicts[id]
             )
         }
     }

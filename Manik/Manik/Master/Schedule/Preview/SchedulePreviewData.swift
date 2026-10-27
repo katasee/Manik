@@ -31,11 +31,13 @@ enum SchedulePreviewData {
     }
 
     static let dayStates: [MonthDay] = [
-        MonthDay(id: "past", numberText: "12", isEnabled: false, isToday: false, isSelected: false, hasSlots: true),
-        MonthDay(id: "today", numberText: "17", isEnabled: true, isToday: true, isSelected: false, hasSlots: false),
-        MonthDay(id: "slots", numberText: "19", isEnabled: true, isToday: false, isSelected: false, hasSlots: true),
-        MonthDay(id: "selected", numberText: "20", isEnabled: true, isToday: false, isSelected: true, hasSlots: false),
-        MonthDay(id: "both", numberText: "26", isEnabled: true, isToday: false, isSelected: true, hasSlots: true)
+        MonthDay(id: "past", numberText: "12", isEnabled: false, isToday: false, isSelected: false, hasSlots: true, conflict: nil),
+        MonthDay(id: "today", numberText: "17", isEnabled: true, isToday: true, isSelected: false, hasSlots: false, conflict: nil),
+        MonthDay(id: "slots", numberText: "19", isEnabled: true, isToday: false, isSelected: false, hasSlots: true, conflict: nil),
+        MonthDay(id: "selected", numberText: "20", isEnabled: true, isToday: false, isSelected: true, hasSlots: false, conflict: nil),
+        MonthDay(id: "both", numberText: "26", isEnabled: true, isToday: false, isSelected: true, hasSlots: true, conflict: nil),
+        MonthDay(id: "overlap", numberText: "27", isEnabled: true, isToday: false, isSelected: true, hasSlots: true, conflict: .overlap),
+        MonthDay(id: "close", numberText: "28", isEnabled: true, isToday: false, isSelected: true, hasSlots: false, conflict: .close)
     ]
 
     static let overlapNotice = ConflictNotice.overlap(ConflictEntry(id: "overlap", text: "5.10 о 10:00 · 🥊 Бокс"))
