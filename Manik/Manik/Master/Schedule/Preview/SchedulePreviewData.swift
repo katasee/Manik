@@ -38,6 +38,24 @@ enum SchedulePreviewData {
         MonthDay(id: "both", numberText: "26", isEnabled: true, isToday: false, isSelected: true, hasSlots: true)
     ]
 
+    static let overlapNotice = ConflictNotice.overlap(ConflictEntry(id: "overlap", text: "5.10 о 10:00 · 🥊 Бокс"))
+
+    static let closeNotice = ConflictNotice.close([ConflictEntry(id: "close", text: "5.10 о 9:00 · 🥊 Бокс о 10:00")])
+
+    static let closeEntries: [ConflictEntry] = [
+        ConflictEntry(id: "close-0", text: "5.10 о 9:00 · 🥊 Бокс о 10:00"),
+        ConflictEntry(id: "close-1", text: "7.10 о 11:00 · 🦷 Стоматолог-ортодонт о 12:00"),
+        ConflictEntry(id: "close-2", text: "12.10 о 9:00 · 🥊 Бокс о 10:00"),
+        ConflictEntry(id: "close-3", text: "14.10 о 11:00 · 🦷 Стоматолог-ортодонт о 12:00"),
+        ConflictEntry(id: "close-4", text: "19.10 о 9:00 · 🥊 Бокс о 10:00"),
+        ConflictEntry(id: "close-5", text: "21.10 о 17:00 · 🏃‍♀️ Біг о 18:00"),
+        ConflictEntry(id: "close-6", text: "26.10 о 9:00 · 🥊 Бокс о 10:00"),
+        ConflictEntry(id: "close-7", text: "28.10 о 17:00 · 🏃‍♀️ Біг о 18:00"),
+        ConflictEntry(id: "close-8", text: "30.10 о 9:30 · 🥊 Бокс о 10:00")
+    ]
+
+    static let closeNotices = ConflictNotice.close(closeEntries)
+
     static var items: [SlotItem] {
         let directory = ClientDirectory(clients: ClientsPreviewData.clients, isLoaded: true)
 

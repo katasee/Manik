@@ -54,6 +54,11 @@ enum ScheduleMetrics {
         static let timeFieldCaption: CGFloat = 12
         static let timeFieldValue: CGFloat = 18
         static let planHint: CGFloat = 15
+        static let conflictText: CGFloat = 14
+        static let conflictGlyph: CGFloat = 14
+        static let conflictCornerRadius: CGFloat = 14
+        static let conflictListMaxHeight: CGFloat = 160
+        static let conflictTapHeight: CGFloat = 44
     }
 
     enum Spacing {
@@ -87,5 +92,8 @@ enum ScheduleMetrics {
         static let tabTrackPadding: CGFloat = 3
         static let timeFieldSpacing: CGFloat = 8
         static let timeFieldLineSpacing: CGFloat = 2
+        static let conflictPadding: CGFloat = 12
+        static let conflictGlyphSpacing: CGFloat = 8
+        static let conflictLineSpacing: CGFloat = 6
     }
 }
