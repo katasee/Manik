@@ -65,6 +65,7 @@ enum SchedulePreviewData {
             SlotItem(
                 slot: slot,
                 clientName: slot.clientId.map(directory.name(for:)) ?? "",
+                conflict: ["slot-0900", "slot-1100"].contains(slot.id) ? .close : nil,
                 now: noon
             )
         }

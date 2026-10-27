@@ -15,11 +15,18 @@ struct SlotItem: Identifiable {
     let timeText: String
     let isPast: Bool
     let booking: SlotBookingItem?
+    let conflict: PlanConflict?
 
-    init(slot: Slot, clientName: String, now: Date) {
+    init(
+        slot: Slot,
+        clientName: String,
+        conflict: PlanConflict?,
+        now: Date
+    ) {
         id = slot.id ?? Slot.documentId(date: slot.date, time: slot.time)
         timeText = DateFormat.displayTime(slot.time)
         isPast = slot.isPast(now: now)
         booking = slot.isBooked ? SlotBookingItem(slot: slot, clientName: clientName) : nil
+        self.conflict = conflict
     }
 }

@@ -23,12 +23,26 @@ struct BookedSlotRow: View {
             .lineLimit(1)
 
             Spacer(minLength: 0)
+
+            if let mark {
+                ConflictGlyph(mark: mark)
+            }
         }
         .padding(.horizontal, ScheduleMetrics.Spacing.rowHorizontalPadding)
         .frame(maxWidth: .infinity, minHeight: ScheduleMetrics.Size.bookedRowHeight)
         .cardSurface(padding: 0, cornerRadius: ScheduleMetrics.Size.rowCornerRadius)
+        .overlay {
+            if let mark {
+                RoundedRectangle(cornerRadius: ScheduleMetrics.Size.rowCornerRadius)
+                    .strokeBorder(mark.color, lineWidth: ScheduleMetrics.Size.rowBorderWidth)
+            }
+        }
         .opacity(item.isPast ? ScheduleMetrics.Size.pastOpacity : 1)
         .accessibilityElement(children: .combine)
+    }
+
+    private var mark: ConflictMark? {
+        item.conflict.map(ConflictMark.init)
     }
 }
 

@@ -10,9 +10,7 @@ struct ConflictCloseList: View {
         VStack(alignment: .leading, spacing: ScheduleMetrics.Spacing.conflictLineSpacing) {
             Button(action: toggle) {
                 HStack(spacing: ScheduleMetrics.Spacing.conflictGlyphSpacing) {
-                    Image(systemName: mark.systemImage)
-                        .font(.elmsSans(.medium, ScheduleMetrics.Size.conflictGlyph))
-                        .accessibilityHidden(true)
+                    ConflictGlyph(mark: mark)
 
                     Text("schedule.conflict.closeCount \(entries.count)")
                         .font(.elmsSans(.semiBold, ScheduleMetrics.Size.conflictText))

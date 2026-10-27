@@ -6,9 +6,7 @@ struct ConflictLine: View {
 
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: ScheduleMetrics.Spacing.conflictGlyphSpacing) {
-            Image(systemName: mark.systemImage)
-                .font(.elmsSans(.medium, ScheduleMetrics.Size.conflictGlyph))
-                .accessibilityHidden(true)
+            ConflictGlyph(mark: mark)
 
             Text(verbatim: text)
                 .font(.elmsSans(.medium, ScheduleMetrics.Size.conflictText))
