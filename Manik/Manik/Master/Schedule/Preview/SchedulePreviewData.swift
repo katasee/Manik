@@ -105,11 +105,12 @@ enum SchedulePreviewData {
             client: ClientsPreviewData.clients.first,
             services: ServicesPreviewData.services,
             slots: slots,
+            plans: plans,
             now: .now,
             slotRepository: FakeSlotRepository(slots: slots)
         )
 
-        viewModel.conflictNotice = overlapNotice
+        viewModel.addCustomRescheduleTime(ClockTime(minutesOfDay: 13 * 60 + 30))
 
         return viewModel
     }
@@ -160,10 +161,12 @@ enum SchedulePreviewData {
             plan: plan,
             templates: templates,
             plannedDays: Set(plans.map(\.date)),
+            slots: slots,
             now: .now
         )
 
-        viewModel.conflictNotice = nearNotice
+        viewModel.move.times.start = ClockTime(minutesOfDay: 17 * 60)
+        viewModel.move.times.end = ClockTime(minutesOfDay: 18 * 60)
 
         return viewModel
     }

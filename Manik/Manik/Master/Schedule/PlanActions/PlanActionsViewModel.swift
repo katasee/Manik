@@ -12,21 +12,25 @@ enum PlanActionsMode {
 final class PlanActionsViewModel: Identifiable {
     private(set) var mode = PlanActionsMode.actions
     var move: PlanMove
-    var conflictNotice: ConflictNotice?
 
     private var templateChoice: TemplateChoice
 
     private let plan: PlanEvent
     private let initialChoice: TemplateChoice
     private let initialMove: PlanMove
+    private let slots: [Slot]
+    private let now: Date
 
     init(
         plan: PlanEvent,
         templates: [EventTemplate],
         plannedDays: Set<String>,
+        slots: [Slot],
         now: Date
     ) {
         self.plan = plan
+        self.slots = slots
+        self.now = now
         initialChoice = TemplateChoice(templates: templates, pinning: plan)
         templateChoice = initialChoice
         initialMove = PlanMove(
@@ -67,6 +71,16 @@ final class PlanActionsViewModel: Identifiable {
         guard let id = templateChoice.selectedTemplate?.id else { return false }
 
         return id != plan.templateId
+    }
+
+    var conflictNotice: ConflictNotice? {
+        ConflictNotice(
+            WindowConflict.find(
+                windows: slots,
+                plans: [move.movedPlan].compactMap { $0 },
+                now: now
+            )
+        )
     }
 
     var canReschedule: Bool {
