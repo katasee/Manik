@@ -2,7 +2,6 @@ import Foundation
 
 struct MonthDaySelection {
     private(set) var selected: Set<String> = []
-    var conflicts: [String: PlanConflict] = [:]
 
     private var pager: MonthPager
     private let today: String
@@ -26,7 +25,7 @@ struct MonthDaySelection {
         pager.grid.leadingBlanks
     }
 
-    var days: [MonthDay] {
+    func days(conflicts: [String: PlanConflict]) -> [MonthDay] {
         pager.grid.days.map { date in
             let id = DateFormat.date.string(from: date)
 

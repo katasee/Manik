@@ -2,6 +2,7 @@ import SwiftUI
 
 struct MonthDayPicker: View {
     @Binding var selection: MonthDaySelection
+    let conflicts: [String: PlanConflict]
 
     var body: some View {
         VStack(spacing: PopupContainerLayout.rowSpacing) {
@@ -16,7 +17,7 @@ struct MonthDayPicker: View {
             MonthCalendarGrid(
                 weekdays: selection.weekdays,
                 leadingBlanks: selection.leadingBlanks,
-                days: selection.days,
+                days: selection.days(conflicts: conflicts),
                 onDay: toggleDay
             ) { weekday in
                 Button {
@@ -54,9 +55,9 @@ struct MonthDayPicker: View {
 
 #if DEBUG
 #Preview {
-    @Previewable @State var selection = SchedulePreviewData.fillMonth.days
+    @Previewable @State var viewModel = SchedulePreviewData.fillMonth
 
-    MonthDayPicker(selection: $selection)
+    MonthDayPicker(selection: $viewModel.days, conflicts: viewModel.dayConflicts)
         .padding()
         .background(Color.background)
 }

@@ -129,6 +129,7 @@ final class ScheduleViewModel {
         FillMonthViewModel(
             month: selectedDate,
             existing: slots,
+            plans: plans,
             now: now,
             slotRepository: slotRepository
         )
@@ -139,6 +140,7 @@ final class ScheduleViewModel {
             month: selectedDate,
             templates: templates,
             plannedDays: Set(plans.map(\.date)),
+            slots: slots,
             now: now
         )
     }

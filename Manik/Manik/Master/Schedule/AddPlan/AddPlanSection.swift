@@ -5,7 +5,7 @@ struct AddPlanSection: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: PopupContainerLayout.rowSpacing) {
-            MonthDayPicker(selection: $viewModel.days)
+            MonthDayPicker(selection: $viewModel.days, conflicts: viewModel.dayConflicts)
 
             SectionLabel(titleKey: "schedule.plan.template")
 
