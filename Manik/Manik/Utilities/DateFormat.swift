@@ -10,6 +10,7 @@ enum DateFormat {
     static let dateTime = storageFormatter("yyyy-MM-dd HH:mm")
     static let dayMonth = templateFormatter("dMMMM")
     static let dayMonthShort = templateFormatter("dMMM")
+    static let dayMonthNumeric = templateFormatter("dM")
     static let weekdayDayMonth = templateFormatter("EEEdMMMM")
     static let messageDay = messageFormatter("d.MM")
     static let messageTime = messageFormatter("H:mm")
