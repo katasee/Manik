@@ -7,6 +7,7 @@ final class FillMonthViewModel: Identifiable {
     let id = UUID()
 
     var days: MonthDaySelection
+    var conflictNotice: ConflictNotice?
 
     private var fillTimes = FillTimes()
 
@@ -43,6 +44,10 @@ final class FillMonthViewModel: Identifiable {
 
     var newSlotCount: Int {
         missingSlots(now: now).count
+    }
+
+    var canAdd: Bool {
+        newSlotCount > 0 && conflictNotice?.blocksConfirm != true
     }
 
     func toggleTime(_ id: String) {

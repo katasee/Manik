@@ -6,6 +6,7 @@ import Observation
 final class AddPlanViewModel {
     var days: MonthDaySelection
     var times = PlanTimes()
+    var conflictNotice: ConflictNotice?
 
     private var templateChoice: TemplateChoice
 
@@ -39,6 +40,7 @@ final class AddPlanViewModel {
         days.selected.isEmpty == false
             && templateChoice.selectedTemplate != nil
             && times.isValid
+            && conflictNotice?.blocksConfirm != true
     }
 
     func selectTemplate(_ id: String) {

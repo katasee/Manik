@@ -99,7 +99,7 @@ enum SchedulePreviewData {
 
     @MainActor
     static var bookingActions: BookingActionsViewModel {
-        BookingActionsViewModel(
+        let viewModel = BookingActionsViewModel(
             slot: slots[1],
             client: ClientsPreviewData.clients.first,
             services: ServicesPreviewData.services,
@@ -107,6 +107,10 @@ enum SchedulePreviewData {
             now: .now,
             slotRepository: FakeSlotRepository(slots: slots)
         )
+
+        viewModel.conflictNotice = overlapNotice
+
+        return viewModel
     }
 
     @MainActor
@@ -122,6 +126,8 @@ enum SchedulePreviewData {
         viewModel.toggleTime("12:00")
         viewModel.toggleTime("14:00")
         viewModel.addCustomTime(ClockTime(minutesOfDay: 17 * 60 + 30))
+        viewModel.days.conflicts = conflicts(.close, on: viewModel.days.selected)
+        viewModel.conflictNotice = closeNotices
 
         return viewModel
     }
@@ -139,6 +145,8 @@ enum SchedulePreviewData {
         viewModel.selectTemplate("tpl-boxing")
         viewModel.times.end = ClockTime(minutesOfDay: 10 * 60)
         viewModel.times.editing = .end
+        viewModel.days.conflicts = conflicts(.overlap, on: viewModel.days.selected)
+        viewModel.conflictNotice = overlapNotice
 
         return viewModel
     }
@@ -148,12 +156,16 @@ enum SchedulePreviewData {
         var plan = plans[1]
         plan.id = "plan-1"
 
-        return PlanActionsViewModel(
+        let viewModel = PlanActionsViewModel(
             plan: plan,
             templates: templates,
             plannedDays: Set(plans.map(\.date)),
             now: .now
         )
+
+        viewModel.conflictNotice = closeNotice
+
+        return viewModel
     }
 
     @MainActor
@@ -192,6 +204,10 @@ enum SchedulePreviewData {
             clients: ClientsPreviewData.clients,
             now: monthStart
         )
+    }
+
+    private static func conflicts(_ conflict: PlanConflict, on days: Set<String>) -> [String: PlanConflict] {
+        Dictionary(uniqueKeysWithValues: days.sorted().prefix(2).map { ($0, conflict) })
     }
 
     private static var today: String {
