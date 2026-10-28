@@ -33,6 +33,7 @@ final class StatsViewModel {
             totals: StatsCalculator.totals(
                 slots: [],
                 monthStart: start,
+                previous: nil,
                 now: .now
             )
         )
@@ -92,6 +93,7 @@ final class StatsViewModel {
             totals: StatsCalculator.totals(
                 slots: slots,
                 monthStart: monthStart,
+                previous: nil,
                 now: .now
             )
         )

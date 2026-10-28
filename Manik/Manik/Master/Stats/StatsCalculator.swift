@@ -30,15 +30,82 @@ enum StatsCalculator {
         return DateFormat.salonCalendar.date(byAdding: .month, value: 1, to: start) ?? start
     }
 
+    static func monthId(_ monthStart: Date) -> String {
+        DateFormat.month.string(from: monthStart)
+    }
+
+    static func missingMonths(storedIds: Set<String>, now: Date) -> [Date] {
+        let current = monthStart(containing: now)
+        let months = sequence(first: earliestMonthStart(now: now)) {
+            DateFormat.salonCalendar.date(byAdding: .month, value: 1, to: $0)
+        }
+
+        return months
+            .prefix { $0 < current }
+            .filter { storedIds.contains(monthId($0)) == false }
+    }
+
+    static func summariesToArchive(
+        slots: [Slot],
+        storedIds: Set<String>,
+        now: Date
+    ) -> [MonthlySummary] {
+        missingMonths(storedIds: storedIds, now: now).map {
+            summary(
+                slots: slots,
+                monthStart: $0,
+                now: now
+            )
+        }
+    }
+
+    static func summary(
+        slots: [Slot],
+        monthStart: Date,
+        now: Date
+    ) -> MonthlySummary {
+        let totals = totals(
+            slots: slots,
+            monthStart: monthStart,
+            previous: nil,
+            now: now
+        )
+
+        return MonthlySummary(
+            id: monthId(monthStart),
+            revenue: totals.revenue,
+            visits: totals.visits,
+            clients: totals.clients,
+            windows: totals.windows,
+            bookedWindows: totals.bookedWindows
+        )
+    }
+
+    static func totals(summary: MonthlySummary, previous: MonthlySummary?) -> MonthlyTotals {
+        MonthlyTotals(
+            revenue: summary.revenue,
+            previousRevenue: previous?.revenue,
+            expected: summary.revenue,
+            visits: summary.visits,
+            clients: summary.clients,
+            previousClients: previous?.clients,
+            freeSlots: summary.windows - summary.bookedWindows,
+            windows: summary.windows,
+            bookedWindows: summary.bookedWindows,
+            isMonthFinished: true
+        )
+    }
+
     static func totals(
         slots: [Slot],
         monthStart: Date,
+        previous: MonthlySummary?,
         now: Date
     ) -> MonthlyTotals {
         let calendar = DateFormat.salonCalendar
         let monthEnd = calendar.date(byAdding: .month, value: 1, to: monthStart) ?? monthStart
         let previousStart = calendar.date(byAdding: .month, value: -1, to: monthStart) ?? monthStart
-        let hasPrevious = previousStart >= earliestMonthStart(now: now)
+        let isPreviousLive = previousStart >= earliestMonthStart(now: now)
 
         let monthSlots = slots.filter { isInside($0, start: monthStart, end: monthEnd) }
         let previousSlots = slots.filter { isInside($0, start: previousStart, end: monthStart) }
@@ -51,11 +118,11 @@ enum StatsCalculator {
 
         return MonthlyTotals(
             revenue: total(of: completed),
-            previousRevenue: hasPrevious ? total(of: previousCompleted) : nil,
+            previousRevenue: isPreviousLive ? total(of: previousCompleted) : previous?.revenue,
             expected: total(of: booked),
             visits: completed.count,
             clients: clientIds(of: completed).count,
-            previousClients: hasPrevious ? clientIds(of: previousCompleted).count : nil,
+            previousClients: isPreviousLive ? clientIds(of: previousCompleted).count : previous?.clients,
             freeSlots: freeSlots(
                 in: monthSlots,
                 isMonthFinished: isMonthFinished,
