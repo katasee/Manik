@@ -2216,8 +2216,9 @@ this file is just "what's done, what's next," not a design doc.
   - On a listener error Статистика keeps the last slots (zeros would read as lost money).
   - Deleted: `Block` (+4 extensions), `BlockRepository`, `FirestoreBlockRepository`,
     `FakeBlockRepository`, `"blocks"` in `FirestoreUserDataRepository.collections`,
-    `hasValidBlockFormat()` and the `blocks` rule. **Before deploying the rules, wipe
-    `users/*/blocks` in the Console** — without the rule the app can no longer delete them.
+    `hasValidBlockFormat()` and the `blocks` rule. Without the rule the app can no longer delete
+    `blocks`, so the Console was checked first (2026-10-28): no user has a `blocks` subcollection,
+    nothing to wipe. The rules still need publishing in the Console after the merge.
   - Verified: a `swiftc` script on the calculator (16 checks: totals, nil price, slot at `now`,
     finished month, empty month, earliest month and its hidden trend), `xcodebuild` after each
     task, `swiftui-pro` on the plan.
