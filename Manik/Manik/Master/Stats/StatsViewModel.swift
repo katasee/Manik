@@ -10,9 +10,9 @@ final class StatsViewModel {
     private(set) var monthTitle: String
     private(set) var hasLoaded = false
 
-    private let blockRepository: BlockRepository
+    private let slotRepository: SlotRepository
 
-    private var blocks: [Block] = [] {
+    private var slots: [Slot] = [] {
         didSet { rebuild() }
     }
 
@@ -23,31 +23,36 @@ final class StatsViewModel {
         }
     }
 
-    init(blockRepository: BlockRepository = FirestoreBlockRepository()) {
+    init(slotRepository: SlotRepository = FirestoreSlotRepository()) {
         let start = StatsCalculator.monthStart(containing: .now)
 
-        self.blockRepository = blockRepository
+        self.slotRepository = slotRepository
         self.monthStart = start
         self.monthTitle = DateFormat.monthYear.string(from: start)
         self.stats = MonthlyStats(
             totals: StatsCalculator.totals(
-                blocks: [],
+                slots: [],
                 monthStart: start,
                 now: .now
             )
         )
     }
 
+    var canGoBack: Bool {
+        monthStart > StatsCalculator.earliestMonthStart(now: .now)
+    }
+
     var canGoForward: Bool {
         monthStart < StatsCalculator.monthStart(containing: .now)
     }
 
-    func observeBlocks() async {
-        for await updatedBlocks in blockRepository.observeBlocks() {
-            blocks = updatedBlocks
-
-            guard hasLoaded == false else { continue }
-
+    func observeSlots() async {
+        do {
+            for try await updatedSlots in slotRepository.observeSlots() {
+                slots = updatedSlots
+                hasLoaded = true
+            }
+        } catch {
             hasLoaded = true
         }
     }
@@ -61,6 +66,7 @@ final class StatsViewModel {
     }
 
     func showPreviousMonth() {
+        guard canGoBack else { return }
         guard let previous = DateFormat.salonCalendar.date(
             byAdding: .month,
             value: -1,
@@ -84,7 +90,7 @@ final class StatsViewModel {
     private func rebuild() {
         stats = MonthlyStats(
             totals: StatsCalculator.totals(
-                blocks: blocks,
+                slots: slots,
                 monthStart: monthStart,
                 now: .now
             )

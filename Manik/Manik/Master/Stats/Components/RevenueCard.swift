@@ -62,7 +62,7 @@ struct RevenueCard: View {
         RevenueCard(
             stats: MonthlyStats(
                 totals: StatsCalculator.totals(
-                    blocks: StatsPreviewData.blocks,
+                    slots: StatsPreviewData.slots,
                     monthStart: StatsCalculator.monthStart(containing: .now),
                     now: .now
                 )
@@ -72,7 +72,7 @@ struct RevenueCard: View {
         RevenueCard(
             stats: MonthlyStats(
                 totals: StatsCalculator.totals(
-                    blocks: StatsPreviewData.emptyMonth,
+                    slots: [],
                     monthStart: StatsCalculator.monthStart(containing: .now),
                     now: .now
                 )

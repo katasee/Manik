@@ -2200,6 +2200,28 @@ this file is just "what's done, what's next," not a design doc.
   - Verified: a `swiftc` script on the minute rule (plan end, 60 and 61 minutes before), `xcodebuild`
     after each task, `swiftui-pro` on the plan. Розклад has no screen preview, so the row marks are
     checked on the simulator only.
+- **M-38 — Statistics on slots** (branch `worktree-m-38-stats-on-slots`; no design file — the
+  pivot spec's item 9 plus a chat on 2026-10-25/28). One PR (~570 lines, two thirds deletions; user).
+  - `StatsCalculator.totals(slots:monthStart:now:)`: revenue, visits and clients count booked slots
+    already started (`isPast` is `<=`), expected every booked slot of the month, free windows the
+    unbooked ones still ahead (all of them once the month is over). A slot with no
+    `servicePrice` (booked before M-34.1) is a visit worth 0.
+  - "Годин" is gone (slots have no end time); "Заповненість" takes its place (user): booked ÷ all
+    windows of the month, past and future (user), "—" with no windows, no trend.
+    `stats.card.occupancy`, icon `chart.pie`. `StatCard.unitKey` went with the hours tile.
+  - Paging back stops at `StatsCalculator.earliestMonthStart(now:)`, the first month the 3-month
+    slot query loads in full — the month holding the history start is partial and would show
+    wrong totals. `previousRevenue`/`previousClients` are `Int?`: `nil` when the previous month is
+    not fully loaded, so the trend hides instead of comparing with a partial month.
+  - On a listener error Статистика keeps the last slots (zeros would read as lost money).
+  - Deleted: `Block` (+4 extensions), `BlockRepository`, `FirestoreBlockRepository`,
+    `FakeBlockRepository`, `"blocks"` in `FirestoreUserDataRepository.collections`,
+    `hasValidBlockFormat()` and the `blocks` rule. Without the rule the app can no longer delete
+    `blocks`, so the Console was checked first (2026-10-28): no user has a `blocks` subcollection,
+    nothing to wipe. The rules still need publishing in the Console after the merge.
+  - Verified: a `swiftc` script on the calculator (16 checks: totals, nil price, slot at `now`,
+    finished month, empty month, earliest month and its hidden trend), `xcodebuild` after each
+    task, `swiftui-pro` on the plan.
 
 ## Screens (in order)
 
@@ -2384,7 +2406,16 @@ those items are referred to by name, so the list can grow without renumbering an
       7. ~~**M-37.7 / M-37.8 Conflicts with free windows (UI / logic)**~~ — **done** (under
          "Done"). M-37 is finished; next is M-38. The weekly repeat moved to the backlog on 2026-10-24 (user: maybe
          not needed), which renumbered this step.
-   9. **M-38 Statistics on slots** — and delete `Block`/`blocks` (kept for Статистика since M-33.1).
+   9. ~~**M-38 Statistics on slots**~~ — **done** (under "Done").
+   10. **M-38.1 Statistics beyond 3 months** — next, one PR (user). Each finished month still inside
+       the 3-month window is computed from slots and written **once** to
+       `users/{uid}/monthlyStats/{yyyy-MM}` (`MonthlySummary`: revenue, visits, clients, windows,
+       booked windows, free windows) the first time Статистика opens after it ends — never
+       rewritten (user: past bookings are not edited after the month). The last 3 months stay
+       live from slots; older months, and their previous-month comparison, read the stored
+       summary; paging back reaches the oldest stored month; a month never stored shows "no data".
+       Needs a `MonthlySummaryRepository` (+ Firestore, fake), a `monthlyStats` rule and the name
+       in `FirestoreUserDataRepository.collections`.
 
 ## Backlog and tech debt (unordered)
 

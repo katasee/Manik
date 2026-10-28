@@ -1,6 +1,6 @@
 # Data layer
 
-- `Slot.date`/`time` (and the legacy `Block.date`/`startTime`/`endTime`) are plain `String`
+- `Slot.date`/`time` are plain `String`
   (`yyyy-MM-dd`/`HH:mm`) but must never be produced by an inline `DateFormatter` — always go
   through `Manik/Manik/Utilities/DateFormat.swift`.
   That file splits into three kinds: **storage** formatters (`DateFormat.date`/`DateFormat.time`) pin
@@ -12,7 +12,7 @@
   ones, because the "Надіслати графік" text is the master's own fixed format (`1.10-9:00/11:00`)
   and must not follow the device locale either — but it is never stored, hence its own name. All
   three keep the salon's fixed `TimeZone`. `firestore.rules` regex-validates the storage format server-side
-  (`hasValidBlockFormat()`) as defense in depth. Times shown on screen must go through
+  (`hasValidSlotFormat(_:)`) as defense in depth. Times shown on screen must go through
   `DateFormat.displayTime(_:)` rather than printing the stored `HH:mm` string (`SlotItem.timeText`
   does) — it uses `setLocalizedDateFormatFromTemplate("jmm")`, so an English device gets
   "9:00 AM". Use the `"jmm"` template, not `"j"`: the latter silently drops minutes.
@@ -31,7 +31,7 @@
   anything it cannot parse **verbatim** rather than mangling it, which is what keeps values written
   before the format existed (or by hand in the Console) readable. The app is Poland-only by
   deliberate choice; widening it means turning the static `+48` prefix into a picker, not changing
-  the stored form. `firestore.rules` does **not** regex-validate this, unlike `hasValidBlockFormat()` —
+  the stored form. `firestore.rules` does **not** regex-validate this, unlike `hasValidSlotFormat(_:)` —
   a malformed phone breaks nothing server-side.
 - Firestore's Codable convenience methods — `setData(from:)`, `addDocument(from:)` — have **no
   `async` overload** in this SDK version, only `throws` with an optional completion closure.
@@ -71,7 +71,7 @@
   write into a plain `setData`, it would replace the whole document. A plan's `update` (M-37.6)
   is `updateData` with all six fields: a plan deleted while its popup was open fails the write
   instead of being recreated, which both `setData` forms would do.
-- Realtime data uses **async/await + `AsyncStream`** (`observeBlocks()`, `observeServices()`), not
+- Realtime data uses **async/await + `AsyncStream`** (`observeServices()`), not
   Combine. Each Firestore `addSnapshotListener` callback yields the full current array for that
   query; `continuation.onTermination` removes the listener. Listener errors are currently swallowed
   (`{ snapshot, _ in ... }`) — if that needs to surface to the UI, switch to `AsyncThrowingStream`
@@ -86,8 +86,8 @@
   moved out of `FirestoreClientRepository` in M-33.2 when `slots` became the second user): the
   caller says what to listen to and how to read a snapshot, the helper owns the stream, the error
   and `onTermination`. The fakes keep their own observer dictionary (`observe(_:)` in
-  `FakeClientRepository`). `observeServices` stays as it is and `observeBlocks` goes with `Block`
-  in M-38.
+  `FakeClientRepository`). `observeServices` stays as it is (`observeBlocks` went with `Block` in
+  M-38).
 - **A listener reads its whole result again** whenever it re-attaches more than ~30 minutes after
   the last one, and a tab's `.task` re-attaches on every return to the tab. So a collection that
   only grows (`slots`, and `events` since M-37.4) is queried with a lower bound
@@ -116,21 +116,17 @@
 - In `firestore.rules`, **`write` means create + update + delete**, and on a delete
   `request.resource` is `null`. Any rule that validates incoming fields must therefore be attached
   to `create, update` with `delete` allowed separately — `allow write: if isOwner(uid) &&
-  hasValidServiceFormat()` silently breaks deletion. `services`, `blocks`, `clients`, `slots`,
+  hasValidServiceFormat()` silently breaks deletion. `services`, `clients`, `slots`,
   `eventTemplates` and `events` are all split this way.
-- Block state machine: `available → pending → confirmed`, with cancel/decline both returning to
-  `available`. A block carries `offeredServiceIds: [String]` (services the master allows for that
-  time slot) and `bookedServiceId: String?` (the one the client actually picked at booking time).
-  Since M-30 nobody but the owning master writes a block (client booking is gone), so
-  `firestore.rules` (deployed manually via Firebase Console — no CLI/CI hookup) only checks the
-  `date`/`startTime`/`endTime` format server-side with `hasValidBlockFormat()`. The block model is
-  being replaced by `slots` (`Models/Slot/`: `date`, `time`, `clientId?` + the service snapshot
-  `serviceId?`/`serviceName?`/`servicePrice?` since M-34.1 — no end time, no status): since
-  M-33.1 Розклад has no block code left, and only Статистика still reads `blocks` (with
-  `Block+Minutes`/`+StartDate`/`+EndDate`/`+Completed`) until M-38 recomputes it from slots.
+- **A slot is a window, booked or not** (`Models/Slot/`: `date`, `time`, `clientId?` + the
+  service snapshot `serviceId?`/`serviceName?`/`servicePrice?` since M-34.1 — no end time, no
+  status). It replaced the old `Block` (`available → pending → confirmed`, an end time), which
+  M-38 deleted together with `blocks` once Статистика was recomputed from slots. With no end time
+  there is no duration, so nothing in the app counts hours. `firestore.rules` is deployed manually
+  via Firebase Console — no CLI/CI hookup.
 - **Independent cabinets, no roles** (since M-30). Every account is a master; sign-up creates
   `users/{uid}` (`name`, `email`), and all her data lives under it: `users/{uid}/services`,
-  `users/{uid}/blocks`, and every later collection. The Firestore repositories resolve the path with
+  `users/{uid}/slots`, and every later collection. The Firestore repositories resolve the path with
   `Firestore.userCollection(_:)` from the signed-in user. `firestore.rules` has one gate,
   `isVerifiedOwner(uid)` (owner and `request.auth.token.email_verified`), on the user document and
   everything below it — no `get()` lookups, no role field (old documents may still carry `role`;

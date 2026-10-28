@@ -4,42 +4,35 @@ import Foundation
 enum StatsPreviewData {
     static let reference = Date.now
 
-    static let blocks: [Block] = [
-        block(id: "done-1", day: 2, start: "10:00", end: "11:30", price: 450, client: "client-olena", status: .confirmed),
-        block(id: "done-2", day: 4, start: "12:00", end: "13:00", price: 750, client: "client-maria", status: .confirmed),
-        block(id: "done-3", day: 6, start: "14:00", end: "15:30", price: 600, client: "client-olena", status: .confirmed),
-        block(id: "done-legacy", day: 7, start: "16:00", end: "17:00", price: nil, client: "client-sofia", status: .confirmed),
-        block(id: "upcoming-1", day: 27, start: "10:00", end: "11:00", price: 750, client: "client-maria", status: .confirmed),
-        block(id: "pending-1", day: 26, start: "12:00", end: "13:00", price: 450, client: "client-sofia", status: .pending),
-        block(id: "free-1", day: 26, start: "14:00", end: "15:00", price: nil, client: nil, status: .available),
-        block(id: "free-2", day: 28, start: "09:00", end: "10:00", price: nil, client: nil, status: .available),
-        block(id: "prev-1", monthOffset: -1, day: 5, start: "10:00", end: "11:00", price: 450, client: "client-olena", status: .confirmed),
-        block(id: "prev-2", monthOffset: -1, day: 9, start: "10:00", end: "11:00", price: 600, client: "client-maria", status: .confirmed)
+    static let slots: [Slot] = [
+        slot(id: "done-1", day: 2, time: "10:00", price: 450, client: "client-olena"),
+        slot(id: "done-2", day: 4, time: "12:00", price: 750, client: "client-maria"),
+        slot(id: "done-3", day: 6, time: "14:00", price: 600, client: "client-olena"),
+        slot(id: "done-legacy", day: 7, time: "16:00", price: nil, client: "client-sofia"),
+        slot(id: "upcoming-1", day: 27, time: "10:00", price: 750, client: "client-maria"),
+        slot(id: "upcoming-2", day: 26, time: "12:00", price: 450, client: "client-sofia"),
+        slot(id: "free-1", day: 26, time: "14:00", price: nil, client: nil),
+        slot(id: "free-2", day: 28, time: "09:00", price: nil, client: nil),
+        slot(id: "prev-1", monthOffset: -1, day: 5, time: "10:00", price: 450, client: "client-olena"),
+        slot(id: "prev-2", monthOffset: -1, day: 9, time: "10:00", price: 600, client: "client-maria")
     ]
 
-    static let emptyMonth: [Block] = []
-
-    private static func block(
+    private static func slot(
         id: String,
         monthOffset: Int = 0,
         day: Int,
-        start: String,
-        end: String,
+        time: String,
         price: Int?,
-        client: String?,
-        status: BlockStatus
-    ) -> Block {
-        Block(
+        client: String?
+    ) -> Slot {
+        Slot(
             id: id,
             date: date(monthOffset: monthOffset, day: day),
-            startTime: start,
-            endTime: end,
-            offeredServiceIds: ["svc-classic"],
-            bookedServiceId: client == nil ? nil : "svc-classic",
-            bookedServiceName: client == nil ? nil : "Класичний манікюр",
-            bookedServicePrice: price,
-            status: status,
-            clientId: client
+            time: time,
+            clientId: client,
+            serviceId: client == nil ? nil : "svc-classic",
+            serviceName: client == nil ? nil : "Класичний манікюр",
+            servicePrice: price
         )
     }
 

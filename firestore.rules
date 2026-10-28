@@ -17,12 +17,6 @@ service cloud.firestore {
         request.resource.data.email is string;
     }
 
-    function hasValidBlockFormat() {
-      return request.resource.data.date.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$') &&
-        request.resource.data.startTime.matches('^([01][0-9]|2[0-3]):[0-5][0-9]$') &&
-        request.resource.data.endTime.matches('^([01][0-9]|2[0-3]):[0-5][0-9]$');
-    }
-
     function hasValidServiceFormat() {
       return request.resource.data.name is string &&
         request.resource.data.name.size() > 0 &&
@@ -80,11 +74,6 @@ service cloud.firestore {
       match /services/{serviceId} {
         allow read, delete: if isVerifiedOwner(uid);
         allow create, update: if isVerifiedOwner(uid) && hasValidServiceFormat();
-      }
-
-      match /blocks/{blockId} {
-        allow read, delete: if isVerifiedOwner(uid);
-        allow create, update: if isVerifiedOwner(uid) && hasValidBlockFormat();
       }
 
       match /clients/{clientId} {
