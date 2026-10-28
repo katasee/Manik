@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Build (must succeed before considering any change done):
 
 ```bash
-cd Yoi && xcodebuild -scheme Yoi -destination 'generic/platform=iOS Simulator' build
+cd YOi && xcodebuild -scheme YOi -destination 'generic/platform=iOS Simulator' build
 ```
 
 When Xcode is open on the project, add `-derivedDataPath <a scratch folder>` to that command:

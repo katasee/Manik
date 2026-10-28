@@ -19,7 +19,7 @@ this file is just "what's done, what's next," not a design doc.
 - **PR3 — root routing (in progress, branch `feature/pr3/root-routing`)**: `Root/RootView.swift` +
   `RootViewModel.swift` — checks auth state + role (`fetchProfile()`), routes to
   `Master/MasterRootView.swift` / `Client/ClientRootView.swift` (currently placeholder screens:
-  cabinet title + name + sign out). `YoiApp` now starts from `RootView()`.
+  cabinet title + name + sign out). `YOiApp` now starts from `RootView()`.
 - **PR4 — custom tab bar (branch `feature/pr-4-custom-tabbar`)**: `TabBar/` (`CustomTabBar` +
   `CabinetKind`, `TabBarButton`, `TabBarActiveIndicator`, `TabBarBadge`, `TabBarMetrics`),
   `Master/MasterTab.swift`, `Client/ClientTab.swift`. Floating dark-capsule tab bar (fixed 70pt
@@ -1182,7 +1182,7 @@ this file is just "what's done, what's next," not a design doc.
     `bottomClearance` parameter is gone from `StatsView`, `BookingView`, `BookingDatesView` — the
     system bar owns the bottom safe area, even inside a screen's `NavigationStack`.
   - **The target's deployment target was 17.2, not 18.1.** The project-level setting said 18.1
-    but the `Yoi` target overrode it; `Tab` is iOS 18+, so the target now says 18.1 too.
+    but the `YOi` target overrode it; `Tab` is iOS 18+, so the target now says 18.1 too.
   - **Live "Заявки" badge** (closes the backlog item): `.badge(requests.count)`. Hidden tabs don't
     run their `.task`s, so `RequestsViewModel`'s `observeBlocks()`/`refreshRequests()` moved from
     `RequestsView` to `MasterRootView`; the four `RequestsView` previews start `observeBlocks()`
@@ -2252,13 +2252,15 @@ this file is just "what's done, what's next," not a design doc.
   - PR numbering: the prefix was "M" for Manik; from this PR on it is "Y" for YOi, and the number
     keeps counting (Y-40 after M-39, so no number repeats). Older entries keep their `M-` names —
     they match branches and commits in git history.
-  - Spelling: "YOi" where the user sees it, "Yoi" in code and file names (user).
+  - Spelling: "YOi" everywhere, code and file names included (`YOi.xcodeproj`, `YOiApp`) — the
+    way Apple keeps a brand's casing in `iOS` and `iPhoneOS.platform` (user). On a case-insensitive
+    Mac a case-only rename goes through a temporary name, or version control misses it.
   - Home screen: `INFOPLIST_KEY_CFBundleDisplayName = YOi` (the Info.plist is generated). Icon: a
     1024×1024 `AppIcon.png`, glossy extruded wine-pink "YOi" on a dark tile, picked from the
-    "Yoi app icon" design canvas; full-bleed, no alpha, letters rendered in Elms Sans Bold. The
+    "YOi app icon" design canvas; full-bleed, no alpha, letters rendered in Elms Sans Bold. The
     dark and tinted slots stay empty.
-  - Renamed with `git mv`: `Manik/` → `Yoi/`, `Manik.xcodeproj` → `Yoi.xcodeproj`, `Manik/Manik/`
-    → `Yoi/Yoi/`, `ManikApp` → `YoiApp`, the MVP spec → `2026-07-15-yoi-mvp-design.md`. Every
+  - Renamed with `git mv`: `Manik/` → `YOi/`, `Manik.xcodeproj` → `YOi.xcodeproj`, `Manik/Manik/`
+    → `YOi/YOi/`, `ManikApp` → `YOiApp`, the MVP spec → `2026-07-15-yoi-mvp-design.md`. Every
     doc was rewritten, history entries included (user: "so nothing breaks later").
   - Strings: `appTitle` "YOi"; `auth.tagline` "Book a manicure" → "Your bookings calendar" /
     «Календар ваших записів»; `services.form.namePlaceholder` "Classic manicure" → "Service name" /
@@ -2268,8 +2270,8 @@ this file is just "what's done, what's next," not a design doc.
     the Firebase project id `manik-5a2b8`, the canvas names "Manik Screens" and
     `manik3-*.css`, and the paths inside commit `98e8882` that a `git show` line quotes — all name
     things outside this repo that were not renamed.
-  - After merging, open `Yoi/Yoi.xcodeproj`; the per-user `Manik` scheme in `xcuserdata` is stale.
-  - Verified: `xcodebuild -scheme Yoi` after each task; the built `Info.plist` reads
+  - After merging, open `YOi/YOi.xcodeproj`; the per-user `Manik` scheme in `xcuserdata` is stale.
+  - Verified: `xcodebuild -scheme YOi` after each task; the built `Info.plist` reads
     `CFBundleDisplayName = YOi` and `CFBundleIdentifier = katriGin.mani`; `GoogleService-Info.plist`
     and the four fonts are in the bundle; `git grep -i manik` lists only the kept names above.
 

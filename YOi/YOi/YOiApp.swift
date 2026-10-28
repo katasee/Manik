@@ -2,7 +2,7 @@ import SwiftUI
 import FirebaseCore
 
 @main
-struct YoiApp: App {
+struct YOiApp: App {
     init() {
         FirebaseApp.configure()
     }
