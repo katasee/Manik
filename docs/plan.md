@@ -2246,8 +2246,12 @@ this file is just "what's done, what's next," not a design doc.
     previous ignores the summary), `xcodebuild` after each task, `swiftui-pro` and
     `swift-concurrency-pro` on the plan.
 
-- **Rebrand Manik → YOi** (branch `worktree-rebranding-yoi`; decided in chat on 2026-10-27/28, no
-  design file). The app is for any master who books clients, not only nail masters (user).
+- **Y-40 — Rebrand Manik → YOi** (branch `worktree-rebranding-yoi`; decided in chat on
+  2026-10-27/28, no design file). The app is for any master who books clients, not only nail
+  masters (user).
+  - PR numbering: the prefix was "M" for Manik; from this PR on it is "Y" for YOi, and the number
+    keeps counting (Y-40 after M-39, so no number repeats). Older entries keep their `M-` names —
+    they match branches and commits in git history.
   - Spelling: "YOi" where the user sees it, "Yoi" in code and file names (user).
   - Home screen: `INFOPLIST_KEY_CFBundleDisplayName = YOi` (the Info.plist is generated). Icon: a
     1024×1024 `AppIcon.png`, glossy extruded wine-pink "YOi" on a dark tile, picked from the
