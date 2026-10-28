@@ -14,26 +14,26 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		6ECD8CBB3007C8DF005000A2 /* Manik.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Manik.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		6ECD8CBB3007C8DF005000A2 /* YOi.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = YOi.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		6EFF00112233445566778899 /* Exceptions for "Manik" folder in "Manik" target */ = {
+		6EFF00112233445566778899 /* Exceptions for "YOi" folder in "YOi" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
 			);
-			target = 6ECD8CBA3007C8DF005000A2 /* Manik */;
+			target = 6ECD8CBA3007C8DF005000A2 /* YOi */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		6ECD8CBD3007C8DF005000A2 /* Manik */ = {
+		6ECD8CBD3007C8DF005000A2 /* YOi */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				6EFF00112233445566778899 /* Exceptions for "Manik" folder in "Manik" target */,
+				6EFF00112233445566778899 /* Exceptions for "YOi" folder in "YOi" target */,
 			);
-			path = Manik;
+			path = YOi;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -56,7 +56,7 @@
 		6ECD8CB23007C8DF005000A2 = {
 			isa = PBXGroup;
 			children = (
-				6ECD8CBD3007C8DF005000A2 /* Manik */,
+				6ECD8CBD3007C8DF005000A2 /* YOi */,
 				6ECD8CBC3007C8DF005000A2 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -64,7 +64,7 @@
 		6ECD8CBC3007C8DF005000A2 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				6ECD8CBB3007C8DF005000A2 /* Manik.app */,
+				6ECD8CBB3007C8DF005000A2 /* YOi.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -72,9 +72,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		6ECD8CBA3007C8DF005000A2 /* Manik */ = {
+		6ECD8CBA3007C8DF005000A2 /* YOi */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 6ECD8CC93007C8E3005000A2 /* Build configuration list for PBXNativeTarget "Manik" */;
+			buildConfigurationList = 6ECD8CC93007C8E3005000A2 /* Build configuration list for PBXNativeTarget "YOi" */;
 			buildPhases = (
 				6ECD8CB73007C8DF005000A2 /* Sources */,
 				6ECD8CB83007C8DF005000A2 /* Frameworks */,
@@ -85,17 +85,17 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				6ECD8CBD3007C8DF005000A2 /* Manik */,
+				6ECD8CBD3007C8DF005000A2 /* YOi */,
 			);
-			name = Manik;
+			name = YOi;
 			packageProductDependencies = (
 				6E49ACFD3009806500DBFE02 /* FirebaseAuth */,
 				6E49ACFF3009806500DBFE02 /* FirebaseFirestore */,
 				6EC62ABC300E18F200D42FE1 /* FirebaseAuth */,
 				6EC62ABE300E18F200D42FE1 /* FirebaseFirestore */,
 			);
-			productName = Manik;
-			productReference = 6ECD8CBB3007C8DF005000A2 /* Manik.app */;
+			productName = YOi;
+			productReference = 6ECD8CBB3007C8DF005000A2 /* YOi.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -113,7 +113,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 6ECD8CB63007C8DF005000A2 /* Build configuration list for PBXProject "Manik" */;
+			buildConfigurationList = 6ECD8CB63007C8DF005000A2 /* Build configuration list for PBXProject "YOi" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -130,7 +130,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				6ECD8CBA3007C8DF005000A2 /* Manik */,
+				6ECD8CBA3007C8DF005000A2 /* YOi */,
 			);
 		};
 /* End PBXProject section */
@@ -283,11 +283,12 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"Manik/Preview Content\"";
+				DEVELOPMENT_ASSET_PATHS = "\"YOi/Preview Content\"";
 				DEVELOPMENT_TEAM = 992YB2UC7R;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = Manik/Info.plist;
+				INFOPLIST_FILE = YOi/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = YOi;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -320,11 +321,12 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"Manik/Preview Content\"";
+				DEVELOPMENT_ASSET_PATHS = "\"YOi/Preview Content\"";
 				DEVELOPMENT_TEAM = 992YB2UC7R;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = Manik/Info.plist;
+				INFOPLIST_FILE = YOi/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = YOi;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -352,7 +354,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		6ECD8CB63007C8DF005000A2 /* Build configuration list for PBXProject "Manik" */ = {
+		6ECD8CB63007C8DF005000A2 /* Build configuration list for PBXProject "YOi" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				6ECD8CC73007C8E3005000A2 /* Debug */,
@@ -361,7 +363,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		6ECD8CC93007C8E3005000A2 /* Build configuration list for PBXNativeTarget "Manik" */ = {
+		6ECD8CC93007C8E3005000A2 /* Build configuration list for PBXNativeTarget "YOi" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				6ECD8CCA3007C8E3005000A2 /* Debug */,

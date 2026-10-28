@@ -67,19 +67,19 @@ entirely (the "black" lens was just a black pill). Keep it untinted unless a dev
 otherwise.
 
 User-facing strings never sit as bare literals in a View — they go in
-`Manik/Manik/Localizable.xcstrings` (String Catalog) under a `feature.kind.name` key
+`YOi/YOi/Localizable.xcstrings` (String Catalog) under a `feature.kind.name` key
 (e.g. `auth.field.email`, `auth.action.signUp`) and get pulled in via `String(localized: "key")`.
-Exception: the "Manik" wordmark/brand name — it's not translated, leave it as a literal. Add the
+Exception: the "YOi" wordmark/brand name — it's not translated, leave it as a literal. Add the
 key to the catalog in the same change that introduces the string; don't leave it dangling for a
 later pass.
 
 Text never uses the system font — always go through `Font.elmsSans(_:_:)`
-(`Manik/Assets/Font/Extension+ElmsSans.swift`), e.g. `.font(.elmsSans(.bold, 32))`, never
+(`YOi/YOi/Assets/UICommons/Extension+ElmsSans.swift`), e.g. `.font(.elmsSans(.bold, 32))`, never
 `.font(.system(...))`, `.font(.title)`, `.bold()`, or similar. Pick the closest weight from
-`ElmsSans` (`regular`/`medium`/`semiBold`/`bold`, in `Manik/Assets/Font/ElmsSansWeight.swift`;
+`ElmsSans` (`regular`/`medium`/`semiBold`/`bold`, in `YOi/YOi/Assets/UICommons/ElmsSansWeight.swift`;
 the mockup's weight 600 is `.semiBold`, 700 is `.bold`)
-instead of layering SwiftUI's own `.fontWeight()` on top. The four `.ttf` files sit next to these
-two Swift files in `Manik/Assets/Font/` and are registered by hand in `Info.plist` under
+instead of layering SwiftUI's own `.fontWeight()` on top. The four `.ttf` files sit in
+`YOi/YOi/Assets/Font/` and are registered by hand in `Info.plist` under
 `UIAppFonts` — adding a new weight means dropping the `.ttf` in that folder *and* adding its
 filename to `UIAppFonts`, or `Font.custom` silently falls back to the system font with no warning
 or crash.

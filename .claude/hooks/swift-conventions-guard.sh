@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # PreToolUse guard for Write|Edit|MultiEdit.
-# Blocks writing Manik-convention violations into .swift files.
+# Blocks writing YOi-convention violations into .swift files.
 # Denies via PreToolUse JSON (permissionDecision: deny). Never blocks non-swift files.
 
 input=$(cat)
@@ -39,7 +39,7 @@ if [ "$base" != "DateFormat.swift" ]; then
 fi
 
 if [ -n "$violations" ]; then
-  reason="Manik convention violation in ${base}:${violations}"
+  reason="YOi convention violation in ${base}:${violations}"
   jq -n --arg r "$reason" \
     '{hookSpecificOutput: {hookEventName: "PreToolUse", permissionDecision: "deny", permissionDecisionReason: $r}}'
 fi

@@ -2,7 +2,7 @@
 
 - `Slot.date`/`time` are plain `String`
   (`yyyy-MM-dd`/`HH:mm`) but must never be produced by an inline `DateFormatter` — always go
-  through `Manik/Manik/Utilities/DateFormat.swift`.
+  through `YOi/YOi/Utilities/DateFormat.swift`.
   That file splits into three kinds: **storage** formatters (`DateFormat.date`/`DateFormat.time`) pin
   `en_US_POSIX` locale so the string written to Firestore can't be corrupted by device
   locale/calendar; **display** formatters (`DateFormat.dayNumber`/`weekdayLetter`/`monthYear`) use
@@ -24,7 +24,7 @@
   exception is `monthYear`, which keeps the fixed `"LLLL y"`: `LLLL` is the *standalone* month form
   ("Серпень 2026"), while a template would produce the genitive "серпня 2026" — wrong for a bare
   month header. Don't "fix" that one.
-- **A phone number goes through `Manik/Manik/Utilities/PhoneFormat.swift`, never a raw string.**
+- **A phone number goes through `YOi/YOi/Utilities/PhoneFormat.swift`, never a raw string.**
   Same storage/display split as `DateFormat`: Firestore holds one canonical form
   (`+48` + exactly 9 digits, e.g. `+48600123456`), the screen shows `+48 600 123 456`, and the edit
   field holds the spaced text while `phoneDigits` derives the digits from it. `display(_:)` returns

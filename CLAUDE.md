@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Build (must succeed before considering any change done):
 
 ```bash
-cd Manik && xcodebuild -scheme Manik -destination 'generic/platform=iOS Simulator' build
+cd YOi && xcodebuild -scheme YOi -destination 'generic/platform=iOS Simulator' build
 ```
 
 When Xcode is open on the project, add `-derivedDataPath <a scratch folder>` to that command:
@@ -18,7 +18,8 @@ There is no test target, linter, or formatter configured yet.
 
 ## Project
 
-Manik is an iOS calendar for nail masters: each master signs up and gets an independent cabinet
+YOi is an iOS calendar for any master who books clients (it started as one for nail masters and
+was widened on 2026-10-28, when Manik was rebranded to YOi): each master signs up and gets an independent cabinet
 (her data under `users/{uid}/`) with her client base, free windows, bookings and personal plans;
 clients never use the app (they write to her in Instagram and she books them). SwiftUI + Firebase
 (Auth + Firestore). It was a two-cabinet booking app (one master / clients) until the 2026-10-09
@@ -26,7 +27,7 @@ pivot; the code moved over PRs M-30…M-38 (`docs/plan.md`, item 9) — M-30 rem
 cabinet, M-33.1 made the Schedule a day list of `slots`, and M-38 moved Статистика onto `slots` and
 deleted the old `blocks` model. Full product spec —
 data model, screen flows, out-of-scope list — lives in
-`docs/superpowers/specs/2026-07-15-manik-mvp-design.md`; keep it in sync with any product decision
+`docs/superpowers/specs/2026-07-15-yoi-mvp-design.md`; keep it in sync with any product decision
 that changes scope, not just this file.
 
 **Current implementation status and the ordered next-steps checklist live in `docs/plan.md`.**
@@ -56,7 +57,7 @@ exists to preserve. So expect to read Ukrainian in older entries; just don't wri
 artifacts — delete them once that feature is finished (implemented and merged).** They exist to
 plan and design a feature before the code does; after the code lands, the code is the source of
 truth and these files are just stale duplication. Two files are the exception and must stay:
-`docs/superpowers/specs/2026-07-15-manik-mvp-design.md` (the product-wide MVP spec, referenced
+`docs/superpowers/specs/2026-07-15-yoi-mvp-design.md` (the product-wide MVP spec, referenced
 above) and `docs/plan.md` (the living status checklist, which is not a superpowers artifact).
 
 ## Feature workflow
