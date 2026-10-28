@@ -33,6 +33,12 @@ final class FakeSlotRepository: SlotRepository {
         return stream
     }
 
+    func fetchSlots(from: String, to: String) async throws -> [Slot] {
+        state.withLock { state in
+            state.slots.filter { $0.date >= from && $0.date < to }
+        }
+    }
+
     func add(_ slots: [Slot]) throws {
         change { stored in
             for slot in slots {

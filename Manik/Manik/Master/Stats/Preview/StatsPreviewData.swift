@@ -17,6 +17,33 @@ enum StatsPreviewData {
         slot(id: "prev-2", monthOffset: -1, day: 9, time: "10:00", price: 600, client: "client-maria")
     ]
 
+    static let summaries: [MonthlySummary] = [
+        summary(monthOffset: -4, revenue: 2400, visits: 5, clients: 4, windows: 9, bookedWindows: 5),
+        summary(monthOffset: -6, revenue: 1800, visits: 4, clients: 3, windows: 8, bookedWindows: 4)
+    ]
+
+    private static func summary(
+        monthOffset: Int,
+        revenue: Int,
+        visits: Int,
+        clients: Int,
+        windows: Int,
+        bookedWindows: Int
+    ) -> MonthlySummary {
+        let calendar = DateFormat.salonCalendar
+        let start = StatsCalculator.monthStart(containing: reference)
+        let month = calendar.date(byAdding: .month, value: monthOffset, to: start) ?? start
+
+        return MonthlySummary(
+            id: StatsCalculator.monthId(month),
+            revenue: revenue,
+            visits: visits,
+            clients: clients,
+            windows: windows,
+            bookedWindows: bookedWindows
+        )
+    }
+
     private static func slot(
         id: String,
         monthOffset: Int = 0,

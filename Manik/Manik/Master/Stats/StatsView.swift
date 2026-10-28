@@ -56,6 +56,9 @@ struct StatsView: View {
                 await viewModel.observeSlots()
             }
             .task {
+                await viewModel.observeSummaries()
+            }
+            .task {
                 await viewModel.refreshStats()
             }
         }
@@ -80,20 +83,13 @@ struct StatsView: View {
     private var content: some View {
         ScrollView {
             VStack(spacing: StatsMetrics.Spacing.cardSpacing) {
-                RevenueCard(stats: viewModel.stats)
-
-                Grid(
-                    horizontalSpacing: StatsMetrics.Spacing.cardSpacing,
-                    verticalSpacing: StatsMetrics.Spacing.cardSpacing
-                ) {
-                    GridRow {
-                        visitsCard
-                        clientsCard
-                    }
-
-                    GridRow {
-                        occupancyCard
-                        slotsCard
+                if let stats = viewModel.stats {
+                    MonthStatsCards(stats: stats)
+                } else {
+                    ContentUnavailableView {
+                        Text("stats.noData")
+                            .font(.elmsSans(.bold, 18))
+                            .foregroundStyle(Color.ink)
                     }
                 }
 
@@ -111,41 +107,6 @@ struct StatsView: View {
                     .tint(Color.ink)
             }
         }
-    }
-
-    private var visitsCard: some View {
-        StatCard(
-            iconName: "checkmark.circle",
-            value: viewModel.stats.visitsLabel,
-            titleKey: "stats.card.visits"
-        )
-    }
-
-    private var clientsCard: some View {
-        StatCard(
-            iconName: "person.2",
-            value: viewModel.stats.clientsLabel,
-            titleKey: "stats.card.clients",
-            trend: viewModel.stats.clientsTrend
-        )
-    }
-
-    private var occupancyCard: some View {
-        StatCard(
-            iconName: "chart.pie",
-            value: viewModel.stats.occupancyLabel,
-            titleKey: "stats.card.occupancy"
-        )
-    }
-
-    private var slotsCard: some View {
-        StatCard(
-            iconName: "square.dashed",
-            value: viewModel.stats.freeSlotsLabel,
-            titleKey: viewModel.stats.isMonthFinished
-                ? "stats.card.unbookedSlots"
-                : "stats.card.freeSlots"
-        )
     }
 
     private var servicesLink: some View {
@@ -169,7 +130,8 @@ struct StatsView: View {
 #Preview {
     StatsView(
         viewModel: StatsViewModel(
-            slotRepository: FakeSlotRepository(slots: StatsPreviewData.slots)
+            slotRepository: FakeSlotRepository(slots: StatsPreviewData.slots),
+            summaryRepository: FakeMonthlySummaryRepository(summaries: StatsPreviewData.summaries)
         ),
         profile: ProfilePreviewData.profile,
         onSignOut: {},

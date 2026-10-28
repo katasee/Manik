@@ -63,6 +63,17 @@ service cloud.firestore {
         data.name is string && data.name.size() > 0;
     }
 
+    function hasValidMonthlySummaryFormat(monthId) {
+      let data = request.resource.data;
+      return monthId.matches('^[0-9]{4}-[0-9]{2}$') &&
+        data.keys().hasOnly(['revenue', 'visits', 'clients', 'windows', 'bookedWindows']) &&
+        data.revenue is int && data.revenue >= 0 &&
+        data.visits is int && data.visits >= 0 &&
+        data.clients is int && data.clients >= 0 &&
+        data.windows is int && data.windows >= 0 &&
+        data.bookedWindows is int && data.bookedWindows >= 0;
+    }
+
     // Every master's data lives under her own document; only she can touch it, and only once
     // her email is verified. The one exception is creating the profile at sign-up, which
     // happens before the verification email is even sent.
@@ -94,6 +105,12 @@ service cloud.firestore {
       match /events/{eventId} {
         allow read, delete: if isVerifiedOwner(uid);
         allow create, update: if isVerifiedOwner(uid) && hasValidEventFormat();
+      }
+
+      // A finished month is summarised once and never rewritten, so there is no update.
+      match /monthlyStats/{monthId} {
+        allow read, delete: if isVerifiedOwner(uid);
+        allow create: if isVerifiedOwner(uid) && hasValidMonthlySummaryFormat(monthId);
       }
     }
   }

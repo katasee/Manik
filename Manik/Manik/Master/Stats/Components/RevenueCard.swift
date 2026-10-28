@@ -64,6 +64,7 @@ struct RevenueCard: View {
                 totals: StatsCalculator.totals(
                     slots: StatsPreviewData.slots,
                     monthStart: StatsCalculator.monthStart(containing: .now),
+                    previous: nil,
                     now: .now
                 )
             )
@@ -74,6 +75,7 @@ struct RevenueCard: View {
                 totals: StatsCalculator.totals(
                     slots: [],
                     monthStart: StatsCalculator.monthStart(containing: .now),
+                    previous: nil,
                     now: .now
                 )
             )

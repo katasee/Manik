@@ -2223,6 +2223,30 @@ this file is just "what's done, what's next," not a design doc.
     finished month, empty month, earliest month and its hidden trend), `xcodebuild` after each
     task, `swiftui-pro` on the plan.
 
+- **M-38.1 — Statistics beyond 3 months** (no design file — `docs/plan.md` item 9.10 plus a chat
+  on 2026-10-28). One PR.
+  - Each finished month fully inside the slot window is summarised once into
+    `users/{uid}/monthlyStats/{yyyy-MM}` (`MonthlySummary`: `revenue`, `visits`, `clients`,
+    `windows`, `bookedWindows`; free windows and expected revenue are derived). Never rewritten:
+    the rule allows `create`, no `update`.
+  - The archive runs from `MasterRootView` at every launch (`StatsViewModel.archiveFinishedMonths()`),
+    not from the Статистика tab (user: the stats must not depend on opening one tab). It reads the
+    stored ids and, only when a month is missing, that range of slots with `source: .server` — a
+    cache snapshot can be empty after a fresh install and would freeze a zero month forever.
+    Offline it throws and the next launch retries. One `now` per run, so a month boundary crossed
+    during the `await`s cannot archive an unread month; `Task.checkCancellation()` before the write.
+  - Months inside the window stay live from slots; older months read the summary, and so does the
+    previous-month comparison of the oldest live month. "Back" reaches the oldest stored month; a
+    month with no summary shows `stats.noData` in a `ContentUnavailableView`. The cards moved into
+    `MonthStatsCards` so they render only with data.
+  - `MonthlySummaryRepository` (+ Firestore, fake), `SlotRepository.fetchSlots(from:to:)`,
+    `DateFormat.month`, `monthlyStats` in `FirestoreUserDataRepository.collections` and the rules.
+    The rules still need publishing in the Console after the merge.
+  - Verified: a `swiftc` script on the calculator (8 checks: summary, missing months, current month
+    never archived, stored month skipped, summary totals, stored previous at the window edge, live
+    previous ignores the summary), `xcodebuild` after each task, `swiftui-pro` and
+    `swift-concurrency-pro` on the plan.
+
 ## Screens (in order)
 
 This is the actual work queue, and the only numbered list here. The ordering follows the **data
@@ -2407,7 +2431,7 @@ those items are referred to by name, so the list can grow without renumbering an
          "Done"). M-37 is finished; next is M-38. The weekly repeat moved to the backlog on 2026-10-24 (user: maybe
          not needed), which renumbered this step.
    9. ~~**M-38 Statistics on slots**~~ — **done** (under "Done").
-   10. **M-38.1 Statistics beyond 3 months** — next, one PR (user). Each finished month still inside
+   10. ~~**M-38.1 Statistics beyond 3 months**~~ — **done** (under "Done"). Was: one PR (user). Each finished month still inside
        the 3-month window is computed from slots and written **once** to
        `users/{uid}/monthlyStats/{yyyy-MM}` (`MonthlySummary`: revenue, visits, clients, windows,
        booked windows, free windows) the first time Статистика opens after it ends — never
@@ -2416,6 +2440,14 @@ those items are referred to by name, so the list can grow without renumbering an
        summary; paging back reaches the oldest stored month; a month never stored shows "no data".
        Needs a `MonthlySummaryRepository` (+ Firestore, fake), a `monthlyStats` rule and the name
        in `FirestoreUserDataRepository.collections`.
+   11. **Fix the Firebase bundle ID mismatch** — next (user, 2026-10-28). Every launch logs
+       `[FirebaseCore][I-COR000008] The project's Bundle ID is inconsistent with ... the Bundle ID in
+       'GoogleService-Info.plist'`: the target's `PRODUCT_BUNDLE_IDENTIFIER` is `katriGin.mani` (a
+       missing `k`, there since "Add firebase sdk", 11422e0), while the registered Firebase iOS app
+       and `FirebaseInfoPlist/GoogleService-Info.plist` say `katriGin.manik`. Decide first whether to
+       fix the target to `katriGin.manik`, or to register a new Firebase iOS app under the final
+       bundle ID if the Yoi rename (worktree `rebranding-yoi`) changes it anyway. Then check that
+       Auth (email verification links) and Firestore still work.
 
 ## Backlog and tech debt (unordered)
 
@@ -2423,6 +2455,19 @@ Not a queue. These accumulate as they're found and get picked up when they block
 something nearby is already being touched. **No numbers on purpose** — cite them by name, since
 numbering drifts every time an item is added or closed (it already did once: PR9's entry pointed at
 "step 9" for what was item 10).
+
+- **Hide the tab bar on pushed screens** (requested 2026-10-28). A screen pushed inside a tab —
+  Клієнтки's `ClientCardView` (also pushed from Розклад), Статистика's `StatsRoute` destinations
+  (Profile, Мої послуги, …) — keeps the system tab bar today. Candidate fix:
+  `.toolbar(.hidden, for: .tabBar)` on each destination. Check against the HIG before doing it:
+  the Tab bars page asks to keep the bar visible while people navigate within the app and to hide
+  it only for modal views, so this may be a deliberate departure, not a HIG fix. On iOS 26,
+  `.tabBarMinimizeBehavior(.onScrollDown)` is the lighter alternative.
+
+- **One generic fake store** (found in M-38.1). `FakeSlotRepository`, `FakeClientRepository` and
+  `FakeMonthlySummaryRepository` each repeat the same `Mutex` state, observer dictionary and
+  `makeStream(bufferingNewest(1))`. Extract a generic `FakeStore<Item>` in a small PR of its own;
+  DEBUG-only code, so no hurry.
 
 - **Stories image of the free windows** (moved out of M-35 on 2026-10-18 — the master sends text
   today). The pivot spec's layout A: the same lines as the M-35 text, 9:16, rendered with
