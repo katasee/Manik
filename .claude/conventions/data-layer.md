@@ -49,9 +49,10 @@
 - **The deliberate fire-and-forget writes are `FirestoreClientRepository`'s `add`, `update` and
   `delete`, `FirestoreSlotRepository`'s `add`, `book`, `clearBooking` and `delete`,
   `FirestoreEventTemplateRepository`'s `add`, `update` and `delete`, and
-  `FirestoreEventRepository`'s `add`, `update` and `delete`** (user decisions: `add` in
+  `FirestoreEventRepository`'s `add`, `update` and `delete`, and
+  `FirestoreMonthlySummaryRepository`'s `add`** (user decisions: `add` in
   M-32.4, `update`/`delete` in M-32.5, slots in M-33.2, booking in M-34.1, templates in M-37.2,
-  plans in M-37.4 and their `update` in M-37.6,
+  plans in M-37.4 and their `update` in M-37.6, the month archive in M-38.1,
   where the protocol itself declares them plain `throws`). Awaiting a write waits
   for the *server* acknowledgement, so offline the client popups spun forever with Cancel disabled,
   although the change was already in the local cache and on screen. They now pass
@@ -117,7 +118,12 @@
   `request.resource` is `null`. Any rule that validates incoming fields must therefore be attached
   to `create, update` with `delete` allowed separately — `allow write: if isOwner(uid) &&
   hasValidServiceFormat()` silently breaks deletion. `services`, `clients`, `slots`,
-  `eventTemplates` and `events` are all split this way.
+  `eventTemplates` and `events` are all split this way. `monthlyStats` (M-38.1) has `create` and
+  `delete` but no `update`: a finished month's summary is written once and never rewritten.
+- **A write that freezes data reads from the server, not the cache.** The `monthlyStats` archive
+  reads ids and slots with `getDocuments(source: .server)`: a listener's first snapshot comes from
+  the local cache, which is empty after a fresh install, and a summary written from it would be a
+  permanent zero. Offline the read throws and the archive waits for the next launch.
 - **A slot is a window, booked or not** (`Models/Slot/`: `date`, `time`, `clientId?` + the
   service snapshot `serviceId?`/`serviceName?`/`servicePrice?` since M-34.1 — no end time, no
   status). It replaced the old `Block` (`available → pending → confirmed`, an end time), which
