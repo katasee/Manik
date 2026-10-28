@@ -3610,6 +3610,22 @@
         }
       }
     },
+    "stats.noData" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No data for this month"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Немає даних за цей місяць"
+          }
+        }
+      }
+    },
     "stats.revenue.expected" : {
       "localizations" : {
         "en" : {
