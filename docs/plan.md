@@ -2440,6 +2440,14 @@ those items are referred to by name, so the list can grow without renumbering an
        summary; paging back reaches the oldest stored month; a month never stored shows "no data".
        Needs a `MonthlySummaryRepository` (+ Firestore, fake), a `monthlyStats` rule and the name
        in `FirestoreUserDataRepository.collections`.
+   11. **Fix the Firebase bundle ID mismatch** — next (user, 2026-10-28). Every launch logs
+       `[FirebaseCore][I-COR000008] The project's Bundle ID is inconsistent with ... the Bundle ID in
+       'GoogleService-Info.plist'`: the target's `PRODUCT_BUNDLE_IDENTIFIER` is `katriGin.mani` (a
+       missing `k`, there since "Add firebase sdk", 11422e0), while the registered Firebase iOS app
+       and `FirebaseInfoPlist/GoogleService-Info.plist` say `katriGin.manik`. Decide first whether to
+       fix the target to `katriGin.manik`, or to register a new Firebase iOS app under the final
+       bundle ID if the Yoi rename (worktree `rebranding-yoi`) changes it anyway. Then check that
+       Auth (email verification links) and Firestore still work.
 
 ## Backlog and tech debt (unordered)
 
