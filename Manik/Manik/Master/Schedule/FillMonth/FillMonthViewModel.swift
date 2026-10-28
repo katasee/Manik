@@ -7,17 +7,18 @@ final class FillMonthViewModel: Identifiable {
     let id = UUID()
 
     var days: MonthDaySelection
-    var conflictNotice: ConflictNotice?
 
     private var fillTimes = FillTimes()
 
     private let existingIds: Set<String>
+    private let plans: [PlanEvent]
     private let now: Date
     private let slotRepository: SlotRepository
 
     init(
         month: Date,
         existing: [Slot],
+        plans: [PlanEvent],
         now: Date,
         slotRepository: SlotRepository
     ) {
@@ -27,6 +28,7 @@ final class FillMonthViewModel: Identifiable {
             markedDays: Set(existing.map(\.date))
         )
         existingIds = Set(existing.map { Slot.documentId(date: $0.date, time: $0.time) })
+        self.plans = plans
         self.now = now
         self.slotRepository = slotRepository
     }
@@ -44,6 +46,14 @@ final class FillMonthViewModel: Identifiable {
 
     var newSlotCount: Int {
         missingSlots(now: now).count
+    }
+
+    var conflictNotice: ConflictNotice? {
+        ConflictNotice(conflicts, subject: .window)
+    }
+
+    var dayConflicts: [String: PlanConflict] {
+        WindowConflict.worstLevels(conflicts, by: \.window.date)
     }
 
     var canAdd: Bool {
@@ -68,6 +78,14 @@ final class FillMonthViewModel: Identifiable {
         guard slots.isEmpty == false else { return }
 
         try? slotRepository.add(slots)
+    }
+
+    private var conflicts: [WindowConflict] {
+        WindowConflict.find(
+            windows: missingSlots(now: now),
+            plans: plans,
+            now: now
+        )
     }
 
     private func missingSlots(now: Date) -> [Slot] {

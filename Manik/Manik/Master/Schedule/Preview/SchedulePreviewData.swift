@@ -105,11 +105,12 @@ enum SchedulePreviewData {
             client: ClientsPreviewData.clients.first,
             services: ServicesPreviewData.services,
             slots: slots,
+            plans: plans,
             now: .now,
             slotRepository: FakeSlotRepository(slots: slots)
         )
 
-        viewModel.conflictNotice = overlapNotice
+        viewModel.addCustomRescheduleTime(ClockTime(minutesOfDay: 13 * 60 + 30))
 
         return viewModel
     }
@@ -119,6 +120,7 @@ enum SchedulePreviewData {
         let viewModel = FillMonthViewModel(
             month: .now,
             existing: slots,
+            plans: dailyPlans("13:00", "14:00"),
             now: .now,
             slotRepository: FakeSlotRepository(slots: slots)
         )
@@ -127,8 +129,6 @@ enum SchedulePreviewData {
         viewModel.toggleTime("12:00")
         viewModel.toggleTime("14:00")
         viewModel.addCustomTime(ClockTime(minutesOfDay: 17 * 60 + 30))
-        viewModel.days.conflicts = conflicts(.near, on: viewModel.days.selected)
-        viewModel.conflictNotice = nearNotices
 
         return viewModel
     }
@@ -139,15 +139,15 @@ enum SchedulePreviewData {
             month: .now,
             templates: templates,
             plannedDays: [today],
+            slots: dailySlots("11:00"),
             now: .now
         )
 
         viewModel.days.toggleWeekday(MonthGrid.column(of: .now))
         viewModel.selectTemplate("tpl-boxing")
-        viewModel.times.end = ClockTime(minutesOfDay: 10 * 60)
+        viewModel.times.start = ClockTime(minutesOfDay: 10 * 60 + 30)
+        viewModel.times.end = ClockTime(minutesOfDay: 11 * 60 + 30)
         viewModel.times.editing = .end
-        viewModel.days.conflicts = conflicts(.overlap, on: viewModel.days.selected)
-        viewModel.conflictNotice = overlapNotice
 
         return viewModel
     }
@@ -161,10 +161,12 @@ enum SchedulePreviewData {
             plan: plan,
             templates: templates,
             plannedDays: Set(plans.map(\.date)),
+            slots: slots,
             now: .now
         )
 
-        viewModel.conflictNotice = nearNotice
+        viewModel.move.times.start = ClockTime(minutesOfDay: 17 * 60)
+        viewModel.move.times.end = ClockTime(minutesOfDay: 18 * 60)
 
         return viewModel
     }
@@ -207,8 +209,24 @@ enum SchedulePreviewData {
         )
     }
 
-    private static func conflicts(_ conflict: PlanConflict, on days: Set<String>) -> [String: PlanConflict] {
-        Dictionary(uniqueKeysWithValues: days.sorted().prefix(2).map { ($0, conflict) })
+    private static func dailyPlans(_ start: String, _ end: String) -> [PlanEvent] {
+        (1...31).map { day in
+            PlanEvent(
+                id: "daily-plan-\(day)",
+                date: dayId(day),
+                startTime: start,
+                endTime: end,
+                templateId: "tpl-boxing",
+                emoji: "🥊",
+                name: "Бокс"
+            )
+        }
+    }
+
+    private static func dailySlots(_ time: String) -> [Slot] {
+        (1...31).map { day in
+            Slot(id: "daily-slot-\(day)", date: dayId(day), time: time)
+        }
     }
 
     private static var today: String {

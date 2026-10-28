@@ -6,14 +6,17 @@ import Observation
 final class AddPlanViewModel {
     var days: MonthDaySelection
     var times = PlanTimes()
-    var conflictNotice: ConflictNotice?
 
     private var templateChoice: TemplateChoice
+
+    private let slots: [Slot]
+    private let now: Date
 
     init(
         month: Date,
         templates: [EventTemplate],
         plannedDays: Set<String>,
+        slots: [Slot],
         now: Date
     ) {
         days = MonthDaySelection(
@@ -22,6 +25,8 @@ final class AddPlanViewModel {
             markedDays: plannedDays
         )
         templateChoice = TemplateChoice(templates: templates)
+        self.slots = slots
+        self.now = now
     }
 
     var templateChips: [ChoiceChip] {
@@ -36,6 +41,14 @@ final class AddPlanViewModel {
         templateChoice.selectedId
     }
 
+    var conflictNotice: ConflictNotice? {
+        ConflictNotice(conflicts, subject: .plan)
+    }
+
+    var dayConflicts: [String: PlanConflict] {
+        WindowConflict.worstLevels(conflicts, by: \.plan.date)
+    }
+
     var canAdd: Bool {
         days.selected.isEmpty == false
             && templateChoice.selectedTemplate != nil
@@ -48,7 +61,23 @@ final class AddPlanViewModel {
     }
 
     func makePlans() -> [PlanEvent] {
-        guard canAdd, let template = templateChoice.selectedTemplate, let templateId = template.id else { return [] }
+        canAdd ? candidatePlans : []
+    }
+
+    private var conflicts: [WindowConflict] {
+        WindowConflict.find(
+            windows: slots,
+            plans: candidatePlans,
+            now: now
+        )
+    }
+
+    private var candidatePlans: [PlanEvent] {
+        guard
+            times.isValid,
+            let template = templateChoice.selectedTemplate,
+            let templateId = template.id
+        else { return [] }
 
         return days.selected.sorted().map { date in
             PlanEvent(

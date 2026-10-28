@@ -14,7 +14,6 @@ final class BookingActionsViewModel: Identifiable {
     let id = UUID()
 
     private(set) var mode = BookingActionsMode.actions
-    var conflictNotice: ConflictNotice?
     private var rescheduleChoice: RescheduleChoice
     private var serviceChoice: ServiceChoice
 
@@ -22,6 +21,8 @@ final class BookingActionsViewModel: Identifiable {
     private let client: Client?
     private let initialChoice: ServiceChoice
     private let initialReschedule: RescheduleChoice
+    private let plans: [PlanEvent]
+    private let now: Date
     private let slotRepository: SlotRepository
 
     init(
@@ -29,10 +30,13 @@ final class BookingActionsViewModel: Identifiable {
         client: Client?,
         services: [Service],
         slots: [Slot],
+        plans: [PlanEvent],
         now: Date,
         slotRepository: SlotRepository
     ) {
         self.slot = slot
+        self.plans = plans
+        self.now = now
         self.client = client
         self.slotRepository = slotRepository
         initialChoice = ServiceChoice(services: services, pinning: slot)
@@ -121,6 +125,19 @@ final class BookingActionsViewModel: Identifiable {
 
     var rescheduleTimes: [TimeChipItem] {
         rescheduleChoice.times
+    }
+
+    var conflictNotice: ConflictNotice? {
+        guard let target = rescheduleChoice.target else { return nil }
+
+        return ConflictNotice(
+            WindowConflict.find(
+                windows: [Slot(date: target.date, time: target.time)],
+                plans: plans,
+                now: now
+            ),
+            subject: .window
+        )
     }
 
     var canReschedule: Bool {

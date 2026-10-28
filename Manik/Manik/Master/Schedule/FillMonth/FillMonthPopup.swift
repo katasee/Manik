@@ -32,6 +32,7 @@ struct FillMonthPopup: View {
 
             if let conflictNotice {
                 ConflictNoticeView(notice: conflictNotice)
+                    .id(tab)
             }
 
             actions(dismiss: dismiss)
@@ -51,7 +52,7 @@ struct FillMonthPopup: View {
         switch tab {
         case .slots:
             VStack(alignment: .leading, spacing: PopupContainerLayout.rowSpacing) {
-                MonthDayPicker(selection: $viewModel.days)
+                MonthDayPicker(selection: $viewModel.days, conflicts: viewModel.dayConflicts)
 
                 FillMonthHours(viewModel: viewModel)
             }

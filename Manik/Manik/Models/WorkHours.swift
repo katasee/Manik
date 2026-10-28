@@ -5,5 +5,6 @@ enum WorkHours {
     static let defaultCustomTime = ClockTime(minutesOfDay: 9 * 60 + 30)
     static let defaultPlanStart = ClockTime(minutesOfDay: 10 * 60)
     static let defaultPlanMinutes = 60
+    static let planLeadMinutes = 60
     static let latestTime = ClockTime(minutesOfDay: (customHours.upperBound + 1) * 60 - minuteStep)
 }

@@ -2329,6 +2329,40 @@
         }
       }
     },
+    "schedule.conflict.bookingLine %@ %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ at %2$@ — a booking"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ о %2$@ — запис"
+          }
+        }
+      }
+    },
+    "schedule.conflict.nearBookingLine %@ %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ at %2$@ — a booking right before the plan"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ о %2$@ — запис впритул до справи"
+          }
+        }
+      }
+    },
     "schedule.conflict.nearCount %lld" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2378,6 +2412,74 @@
                   }
                 }
             }
+          }
+        }
+      }
+    },
+    "schedule.conflict.nearLine %@ %@ %@ %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ at %2$@ · %3$@ at %4$@"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ о %2$@ · %3$@ о %4$@"
+          }
+        }
+      }
+    },
+    "schedule.conflict.nearWindowLine %@ %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ at %2$@ — a window right before the plan"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ о %2$@ — вікно впритул до справи"
+          }
+        }
+      }
+    },
+    "schedule.conflict.overlapLine %@ %@ %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ at %2$@ · %3$@"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ о %2$@ · %3$@"
+          }
+        }
+      }
+    },
+    "schedule.conflict.windowLine %@ %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ at %2$@ — a work window"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ о %2$@ — робоче вікно"
           }
         }
       }
