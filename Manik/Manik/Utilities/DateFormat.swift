@@ -3,6 +3,7 @@ import Foundation
 enum DateFormat {
     static let date = storageFormatter("yyyy-MM-dd")
     static let time = storageFormatter("HH:mm")
+    static let month = storageFormatter("yyyy-MM")
     static let dayNumber = displayFormatter("d")
     static let weekdayLetter = displayFormatter("EEEEE")
     static let weekdayName = displayFormatter("cccc")

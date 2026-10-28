@@ -13,6 +13,15 @@ final class FirestoreSlotRepository: SlotRepository {
         }
     }
 
+    func fetchSlots(from: String, to: String) async throws -> [Slot] {
+        let snapshot = try await db.userCollection("slots")
+            .whereField("date", isGreaterThanOrEqualTo: from)
+            .whereField("date", isLessThan: to)
+            .getDocuments(source: .server)
+
+        return snapshot.documents.compactMap { try? $0.data(as: Slot.self) }
+    }
+
     func add(_ slots: [Slot]) throws {
         let collection = try db.userCollection("slots")
         let batch = db.batch()
