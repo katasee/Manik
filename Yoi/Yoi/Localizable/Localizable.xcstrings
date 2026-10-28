@@ -380,13 +380,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Manik"
+            "value" : "YOi"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Manik"
+            "value" : "YOi"
           }
         }
       }
@@ -700,13 +700,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Book a manicure"
+            "value" : "Your bookings calendar"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Запис на манікюр"
+            "value" : "Календар ваших записів"
           }
         }
       }
@@ -3439,13 +3439,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Classic manicure"
+            "value" : "Service name"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Класичний манікюр"
+            "value" : "Назва послуги"
           }
         }
       }
