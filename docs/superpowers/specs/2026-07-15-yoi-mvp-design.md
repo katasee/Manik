@@ -1,4 +1,4 @@
-# Manik — Product Spec
+# YOi — Product Spec
 
 First approved: 2026-07-15 (two cabinets: master + client).
 Rewritten: 2026-10-09 for the **master-only pivot** (independent cabinets, one per master). The two-cabinet version lives in git history;
@@ -8,7 +8,7 @@ item 9) moved the code there: since M-38 every screen reads `slots`, and the old
 
 ## Goal
 
-An iOS app for nail masters. Each master signs up and gets an independent cabinet: her client base,
+An iOS app for any master who books clients — nails, hair, brows, massage. Each master signs up and gets an independent cabinet: her client base,
 her free windows, her bookings and her personal plans in one calendar. It replaces the Notes list she keeps today and the screenshot she posts to
 Instagram. Clients never use the app — they write to the master in Instagram (or by phone), and
 the master books them herself.

@@ -1,8 +1,8 @@
-# Manik — Implementation Plan
+# YOi — Implementation Plan
 
 Living checklist of implementation progress and next steps. Update this file whenever a step is
 finished or the plan changes — this is what lets work continue from any machine/terminal. Full
-product scope/design decisions live in `docs/superpowers/specs/2026-07-15-manik-mvp-design.md`;
+product scope/design decisions live in `docs/superpowers/specs/2026-07-15-yoi-mvp-design.md`;
 this file is just "what's done, what's next," not a design doc.
 
 ## Done
@@ -19,7 +19,7 @@ this file is just "what's done, what's next," not a design doc.
 - **PR3 — root routing (in progress, branch `feature/pr3/root-routing`)**: `Root/RootView.swift` +
   `RootViewModel.swift` — checks auth state + role (`fetchProfile()`), routes to
   `Master/MasterRootView.swift` / `Client/ClientRootView.swift` (currently placeholder screens:
-  cabinet title + name + sign out). `ManikApp` now starts from `RootView()`.
+  cabinet title + name + sign out). `YoiApp` now starts from `RootView()`.
 - **PR4 — custom tab bar (branch `feature/pr-4-custom-tabbar`)**: `TabBar/` (`CustomTabBar` +
   `CabinetKind`, `TabBarButton`, `TabBarActiveIndicator`, `TabBarBadge`, `TabBarMetrics`),
   `Master/MasterTab.swift`, `Client/ClientTab.swift`. Floating dark-capsule tab bar (fixed 70pt
@@ -1182,7 +1182,7 @@ this file is just "what's done, what's next," not a design doc.
     `bottomClearance` parameter is gone from `StatsView`, `BookingView`, `BookingDatesView` — the
     system bar owns the bottom safe area, even inside a screen's `NavigationStack`.
   - **The target's deployment target was 17.2, not 18.1.** The project-level setting said 18.1
-    but the `Manik` target overrode it; `Tab` is iOS 18+, so the target now says 18.1 too.
+    but the `Yoi` target overrode it; `Tab` is iOS 18+, so the target now says 18.1 too.
   - **Live "Заявки" badge** (closes the backlog item): `.badge(requests.count)`. Hidden tabs don't
     run their `.task`s, so `RequestsViewModel`'s `observeBlocks()`/`refreshRequests()` moved from
     `RequestsView` to `MasterRootView`; the four `RequestsView` previews start `observeBlocks()`
@@ -2222,7 +2222,6 @@ this file is just "what's done, what's next," not a design doc.
   - Verified: a `swiftc` script on the calculator (16 checks: totals, nil price, slot at `now`,
     finished month, empty month, earliest month and its hidden trend), `xcodebuild` after each
     task, `swiftui-pro` on the plan.
-
 - **M-38.1 — Statistics beyond 3 months** (no design file — `docs/plan.md` item 9.10 plus a chat
   on 2026-10-28). One PR.
   - Each finished month fully inside the slot window is summarised once into
@@ -2246,6 +2245,29 @@ this file is just "what's done, what's next," not a design doc.
     never archived, stored month skipped, summary totals, stored previous at the window edge, live
     previous ignores the summary), `xcodebuild` after each task, `swiftui-pro` and
     `swift-concurrency-pro` on the plan.
+
+- **Rebrand Manik → YOi** (branch `worktree-rebranding-yoi`; decided in chat on 2026-10-27/28, no
+  design file). The app is for any master who books clients, not only nail masters (user).
+  - Spelling: "YOi" where the user sees it, "Yoi" in code and file names (user).
+  - Home screen: `INFOPLIST_KEY_CFBundleDisplayName = YOi` (the Info.plist is generated). Icon: a
+    1024×1024 `AppIcon.png`, glossy extruded wine-pink "YOi" on a dark tile, picked from the
+    "Yoi app icon" design canvas; full-bleed, no alpha, letters rendered in Elms Sans Bold. The
+    dark and tinted slots stay empty.
+  - Renamed with `git mv`: `Manik/` → `Yoi/`, `Manik.xcodeproj` → `Yoi.xcodeproj`, `Manik/Manik/`
+    → `Yoi/Yoi/`, `ManikApp` → `YoiApp`, the MVP spec → `2026-07-15-yoi-mvp-design.md`. Every
+    doc was rewritten, history entries included (user: "so nothing breaks later").
+  - Strings: `appTitle` "YOi"; `auth.tagline` "Book a manicure" → "Your bookings calendar" /
+    «Календар ваших записів»; `services.form.namePlaceholder` "Classic manicure" → "Service name" /
+    «Назва послуги».
+  - Kept on purpose: `PRODUCT_BUNDLE_IDENTIFIER = katriGin.mani` (left to "Fix the Firebase
+    bundle ID mismatch", item 11 of the pivot), the bundle ID Firebase registered (`katriGin.manik`),
+    the Firebase project id `manik-5a2b8`, the canvas names "Manik Screens" and
+    `manik3-*.css`, and the paths inside commit `98e8882` that a `git show` line quotes — all name
+    things outside this repo that were not renamed.
+  - After merging, open `Yoi/Yoi.xcodeproj`; the per-user `Manik` scheme in `xcuserdata` is stale.
+  - Verified: `xcodebuild -scheme Yoi` after each task; the built `Info.plist` reads
+    `CFBundleDisplayName = YOi` and `CFBundleIdentifier = katriGin.mani`; `GoogleService-Info.plist`
+    and the four fonts are in the bundle; `git grep -i manik` lists only the kept names above.
 
 ## Screens (in order)
 
@@ -2363,10 +2385,11 @@ those items are referred to by name, so the list can grow without renumbering an
 8. ~~**Next up, in order** (user priority, 2026-10-07)~~ — **superseded by item 9** (2026-10-09).
    Item 1 (slot overlap + double-submit) shipped as PR29; the rest was overtaken by the pivot.
 
-9. **Pivot: a calendar for nail masters** (decided 2026-10-09; screens on the "Manik Screens"
+9. **Pivot: a calendar for nail masters** (decided 2026-10-09, widened to any master on 2026-10-28
+   with the YOi rebrand; screens on the "Manik Screens"
    canvas, page "Тільки майстриня"; full design in
    `docs/superpowers/specs/2026-10-09-master-only-pivot-design.md`, the product summary in the MVP
-   spec). Clients don't install an app to book one manicure, so the client cabinet goes and Manik
+   spec). Clients don't install an app to book one manicure, so the client cabinet goes and YOi
    becomes the master's own tool: a client base, free windows published as a stories image and as
    text, booking a client into a window, rescheduling, and personal plans in the same calendar.
    **Every master signs up and gets an independent cabinet** — her data lives under
@@ -2445,9 +2468,10 @@ those items are referred to by name, so the list can grow without renumbering an
        'GoogleService-Info.plist'`: the target's `PRODUCT_BUNDLE_IDENTIFIER` is `katriGin.mani` (a
        missing `k`, there since "Add firebase sdk", 11422e0), while the registered Firebase iOS app
        and `FirebaseInfoPlist/GoogleService-Info.plist` say `katriGin.manik`. Decide first whether to
-       fix the target to `katriGin.manik`, or to register a new Firebase iOS app under the final
-       bundle ID if the Yoi rename (worktree `rebranding-yoi`) changes it anyway. Then check that
-       Auth (email verification links) and Firestore still work.
+       fix the target to `katriGin.manik`, or to register a new Firebase iOS app under a final
+       YOi bundle ID — the rebrand (2026-10-28) renamed everything else but left the bundle ID
+       for this step (user). Then check that Auth (email verification links) and Firestore still
+       work. Settle it before the first App Store submission: the bundle ID cannot change after.
 
 ## Backlog and tech debt (unordered)
 
@@ -2552,7 +2576,7 @@ numbering drifts every time an item is added or closed (it already did once: PR9
     whether the sender is the cause;
   - proper: a domain we own — **Customize domain** with the DNS records (SPF/DKIM) Firebase shows,
     or an email service (Brevo, SendGrid) on that domain. The domain must be ours; an arbitrary
-    name such as `manik.app` cannot be verified.
+    name such as `yoi.app` cannot be verified.
   - In the app, worth adding regardless: a "Не прийшов лист? Перевірте «Спам» або спробуйте іншу
     пошту" hint on the verify-email screen, and surfacing a failed first send (sign-up sends it
     with `try?`, so a rejected send is invisible).

@@ -6,11 +6,11 @@
   `ObservableObject`/`@Published` pair — plain `var` properties, no `@Published`. Views hold them
   with `@State private var viewModel = SomeViewModel()`, not `@StateObject`. Deployment target is
   iOS 18.1 so this is available everywhere; don't reach for `ObservableObject` out of habit.
-- Views/ViewModels are organized **by feature, not by layer** — e.g. `Manik/Manik/Auth/` holds
+- Views/ViewModels are organized **by feature, not by layer** — e.g. `Yoi/Yoi/Auth/` holds
   `AuthView.swift` and `AuthViewModel.swift` together, rather than spreading them across generic
   top-level `Views/`/`ViewModels` folders. A model only lives inside a feature folder if it's
   genuinely private to that feature; anything referenced from more than one feature belongs in
-  `Manik/Manik/Models/` instead — that's where `Service` and `Slot` live, since each is read
+  `Yoi/Yoi/Models/` instead — that's where `Service` and `Slot` live, since each is read
   by more than one feature (`Service` by Мої послуги and, from M-34, booking; `Slot` by Розклад
   now and Заповнити місяць, booking and Статистика), not just by the screen that created
   it — `Client` (Клієнтки now, the booking flow in M-34), and `UserProfile`, the account model `Root/`
@@ -59,7 +59,7 @@
   zero) belong on the presentation side too — that is a display decision, not a sum. The same
   principle applies
   to reusable *views*: a component used (or reusable) across more than one feature lives in
-  `Manik/Manik/Assets/UICommons/` (e.g. `WeekDayStrip`, `TimeWheel`, `View+BrandShadow`, the
+  `Yoi/Yoi/Assets/UICommons/` (e.g. `WeekDayStrip`, `TimeWheel`, `View+BrandShadow`, the
   `ElmsSans` font extension), not in a feature folder, and must not depend on any feature's types
   (e.g. a feature's `*Metrics`) — give it its own private constants or take them as parameters.
   Those constants are a `private enum Layout` **nested inside the component's struct** — the
@@ -192,12 +192,12 @@
   `Service`/`Slot` use `@DocumentID var id: String?` (Firestore assigns it, don't encode it
   yourself). `UserProfile.id` is `uid`, since that collection is keyed by the Firebase Auth uid
   rather than an auto-generated document ID.
-- `Manik/Manik/Services/Repositories/` — protocols only (`AuthRepository`, `ServiceRepository`,
+- `Yoi/Yoi/Services/Repositories/` — protocols only (`AuthRepository`, `ServiceRepository`,
   `ClientRepository`, `SlotRepository`, `EventTemplateRepository`,
   `EventRepository`, `UserDataRepository`). These files must **not** import Firebase — that's the whole point: ViewModels
   depend on these contracts, not on Firestore/Auth directly, so a fake implementation can stand in
   for SwiftUI previews or tests without touching the network.
-- `Manik/Manik/Services/Firestore/` — concrete implementations (`FirebaseAuthRepository`,
+- `Yoi/Yoi/Services/Firestore/` — concrete implementations (`FirebaseAuthRepository`,
   `FirestoreServiceRepository`, `FirestoreClientRepository`,
   `FirestoreSlotRepository`, `FirestoreEventTemplateRepository`, `FirestoreEventRepository`,
   `FirestoreUserDataRepository`).
@@ -214,7 +214,7 @@
   the Profile screen (`Master/Profile/`). It has no view model — the picker only reads and writes
   `@AppStorage`. `LargeTitleHeader` takes an optional trailing view: Статистика puts the round
   person button there, which opens Profile.
-- Two `PBXFileSystemSynchronizedRootGroup`s feed the `Manik` target: `Manik/Manik/` (app source) and
-  `Manik/Assets/` (build resources that aren't Swift source living next to feature code — currently
-  just `Manik/Assets/Font/`). Both are auto-picked-up like the `GoogleService-Info.plist` case (see
-  `firebase.md`); dropping a file into either tree is enough, no manual "Add Files" step.
+- One `PBXFileSystemSynchronizedRootGroup`, `Yoi/Yoi/`, feeds the `Yoi` target — app source and
+  build resources alike (the fonts sit in `Yoi/Yoi/Assets/Font/`). It is auto-picked-up like the
+  `GoogleService-Info.plist` case (see `firebase.md`); dropping a file into the tree is enough, no
+  manual "Add Files" step.

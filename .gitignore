@@ -16,7 +16,7 @@ GoogleService-Info.plist
 # The product-wide MVP spec is the one permanent file here and stays tracked.
 docs/superpowers/plans/
 docs/superpowers/specs/*
-!docs/superpowers/specs/2026-07-15-manik-mvp-design.md
+!docs/superpowers/specs/2026-07-15-yoi-mvp-design.md
 
 # Parallel git worktrees — checkouts of this same repo, never content to commit.
 .worktrees/
