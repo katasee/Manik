@@ -3,14 +3,12 @@ import SwiftUI
 struct StatCard: View {
     let iconName: String
     let value: String
-    var unitKey: LocalizedStringKey?
     let titleKey: LocalizedStringKey
     var valueLineLimit = 1
     var trend: StatsTrend?
 
     private enum Layout {
         static let contentSpacing: CGFloat = 10
-        static let valueSpacing: CGFloat = 4
         static let padding: CGFloat = 16
         static let cornerRadius: CGFloat = 24
         static let value: CGFloat = 26
@@ -43,24 +41,11 @@ struct StatCard: View {
     }
 
     private var valueRow: some View {
-        HStack(alignment: .firstTextBaseline, spacing: Layout.valueSpacing) {
-            Text(verbatim: value)
-                .font(.elmsSans(.bold, Layout.value))
-                .foregroundStyle(Color.ink)
-                .lineLimit(valueLineLimit)
-                .minimumScaleFactor(Layout.valueScale)
-
-            unitText
-        }
-    }
-
-    @ViewBuilder
-    private var unitText: some View {
-        if let unitKey {
-            Text(unitKey)
-                .font(.elmsSans(.medium, 14))
-                .foregroundStyle(Color.textSecondary)
-        }
+        Text(verbatim: value)
+            .font(.elmsSans(.bold, Layout.value))
+            .foregroundStyle(Color.ink)
+            .lineLimit(valueLineLimit)
+            .minimumScaleFactor(Layout.valueScale)
     }
 
     @ViewBuilder
@@ -97,10 +82,9 @@ struct StatCard: View {
             )
 
             StatCard(
-                iconName: "clock",
-                value: "8,5",
-                unitKey: "stats.hours.unit",
-                titleKey: "stats.card.hours"
+                iconName: "chart.pie",
+                value: "75 %",
+                titleKey: "stats.card.occupancy"
             )
         }
     }

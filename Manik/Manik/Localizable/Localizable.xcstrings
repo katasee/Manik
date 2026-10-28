@@ -3562,18 +3562,18 @@
         }
       }
     },
-    "stats.card.hours" : {
+    "stats.card.occupancy" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Hours worked"
+            "value" : "Booked"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Відпрацьовано"
+            "value" : "Заповненість"
           }
         }
       }
@@ -3606,22 +3606,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Візити"
-          }
-        }
-      }
-    },
-    "stats.hours.unit" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "h"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "год"
           }
         }
       }

@@ -22,9 +22,9 @@ Manik is an iOS calendar for nail masters: each master signs up and gets an inde
 (her data under `users/{uid}/`) with her client base, free windows, bookings and personal plans;
 clients never use the app (they write to her in Instagram and she books them). SwiftUI + Firebase
 (Auth + Firestore). It was a two-cabinet booking app (one master / clients) until the 2026-10-09
-pivot; the code moves over PRs M-30…M-38 (`docs/plan.md`, item 9) — since M-30 the client cabinet
-is gone; since M-33.1 the Schedule is a day list of `slots`, and only Статистика still reads the
-old `blocks` model, until M-38. Full product spec —
+pivot; the code moved over PRs M-30…M-38 (`docs/plan.md`, item 9) — M-30 removed the client
+cabinet, M-33.1 made the Schedule a day list of `slots`, and M-38 moved Статистика onto `slots` and
+deleted the old `blocks` model. Full product spec —
 data model, screen flows, out-of-scope list — lives in
 `docs/superpowers/specs/2026-07-15-manik-mvp-design.md`; keep it in sync with any product decision
 that changes scope, not just this file.
@@ -94,6 +94,6 @@ user gets, the key changes as bullets, how it was verified. No attribution line.
 Detailed conventions live in topic files — all still load at launch:
 
 - @.claude/conventions/architecture.md — MVVM + Repository, DI, `@Observable`, feature-folder layout
-- @.claude/conventions/data-layer.md — Block model, `DateFormat`, Firestore encoding, realtime, security rules
+- @.claude/conventions/data-layer.md — `Slot` model, `DateFormat`, Firestore encoding, realtime, security rules
 - @.claude/conventions/code-style.md — argument formatting, localization, fonts
 - @.claude/conventions/firebase.md — Firebase SDK package, `GoogleService-Info.plist`

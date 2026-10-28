@@ -3,11 +3,8 @@
 First approved: 2026-07-15 (two cabinets: master + client).
 Rewritten: 2026-10-09 for the **master-only pivot** (independent cabinets, one per master). The two-cabinet version lives in git history;
 the full pivot design (alternatives, data model detail, open points) is
-`docs/superpowers/specs/2026-10-09-master-only-pivot-design.md`. Until PRs M-31…M-38 land
-(`docs/plan.md`, item 9), the code is partway there: since M-30 there is no client side and every
-account is an independent master; since M-33 the Schedule is a day list of free `slots` read from
-Firestore, and only Статистика still reads the old
-`blocks` until M-38.
+`docs/superpowers/specs/2026-10-09-master-only-pivot-design.md`. PRs M-30…M-38 (`docs/plan.md`,
+item 9) moved the code there: since M-38 every screen reads `slots`, and the old `blocks` are gone.
 
 ## Goal
 
@@ -90,8 +87,12 @@ Three tabs: **Розклад / Клієнтки / Статистика**. "Мо�
   finished month.
 - **Visits** — booked slots that already happened. **Clients** — distinct `clientId` among them.
 - **Free windows** — in the current month the ones still ahead; in a past month the unbooked ones.
+- **Occupancy** — booked windows ÷ all windows of the month (past and future), as a percent;
+  "—" for a month with no windows; no comparison.
 - **Comparison with the previous month** — money (percent) and clients (count), full calendar
-  months; hidden when the previous month earned nothing.
+  months; hidden when the previous month earned nothing or is not fully loaded.
+- **How far back** — the first month the 3-month slot query loads in full; older months come from
+  stored monthly summaries in M-38.1.
 - No "hours worked": visits have no duration.
 
 ## Out of scope

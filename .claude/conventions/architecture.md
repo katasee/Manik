@@ -12,17 +12,17 @@
   genuinely private to that feature; anything referenced from more than one feature belongs in
   `Manik/Manik/Models/` instead — that's where `Service` and `Slot` live, since each is read
   by more than one feature (`Service` by Мої послуги and, from M-34, booking; `Slot` by Розклад
-  now and Заповнити місяць, booking and Статистика later), not just by the screen that created
-  it — `Client` (Клієнтки now, the booking flow in M-34), `UserProfile`, the account model `Root/`
-  reads, and `Block`, which since M-33.1 only Статистика reads (it goes in M-38). `Models/` is the
+  now and Заповнити місяць, booking and Статистика), not just by the screen that created
+  it — `Client` (Клієнтки now, the booking flow in M-34), and `UserProfile`, the account model `Root/`
+  reads. `Models/` is the
   **domain layer** — the M of MVVM — not "files that contain a struct": it also holds derived properties of
   domain types (`Slot/Slot+StartDate.swift`, `Slot/Slot+Past.swift`) and domain
   configuration with no fields at all (`WorkHours.swift`: the Заповнити місяць hour chips, the
   "Свій час" wheel range and minute step, and a new plan's default start and length). **A domain rule that two features must
-  agree on lives here too, even when it is one line.** `Block/Block+Completed.swift`
-  (`isCompleted(now:)` — `confirmed` and already ended) is read by both the master's
-  `StatsCalculator` and the client's `AccountStats` (the client cabinet, removed in M-30 — the
-  extraction rule stands); it started as a private helper inside the
+  agree on lives here too, even when it is one line.** `Block+Completed.swift`
+  (`isCompleted(now:)` — `confirmed` and already ended; `Block` was deleted in M-38) was read by
+  both the master's `StatsCalculator` and the client's `AccountStats` (the client cabinet, removed
+  in M-30 — the extraction rule stands); it started as a private helper inside the
   former and was extracted the moment the latter needed the same answer. Two copies that happen to
   agree today is not the same thing as one predicate that cannot disagree — and the design doc for
   the second consumer had in fact already drifted to a different definition before the extraction
@@ -189,16 +189,16 @@
   annotate the *method* instead — that cascades up through every caller (`actions(dismiss:)` and
   friends) and then into closure-conversion questions. A `Task {}` whose only post-`await` work is
   another `await` needs nothing: the async call hops to its own actor by itself.
-  `Service`/`Block` use `@DocumentID var id: String?` (Firestore assigns it, don't encode it
+  `Service`/`Slot` use `@DocumentID var id: String?` (Firestore assigns it, don't encode it
   yourself). `UserProfile.id` is `uid`, since that collection is keyed by the Firebase Auth uid
   rather than an auto-generated document ID.
 - `Manik/Manik/Services/Repositories/` — protocols only (`AuthRepository`, `ServiceRepository`,
-  `BlockRepository`, `ClientRepository`, `SlotRepository`, `EventTemplateRepository`,
+  `ClientRepository`, `SlotRepository`, `EventTemplateRepository`,
   `EventRepository`, `UserDataRepository`). These files must **not** import Firebase — that's the whole point: ViewModels
   depend on these contracts, not on Firestore/Auth directly, so a fake implementation can stand in
   for SwiftUI previews or tests without touching the network.
 - `Manik/Manik/Services/Firestore/` — concrete implementations (`FirebaseAuthRepository`,
-  `FirestoreServiceRepository`, `FirestoreBlockRepository`, `FirestoreClientRepository`,
+  `FirestoreServiceRepository`, `FirestoreClientRepository`,
   `FirestoreSlotRepository`, `FirestoreEventTemplateRepository`, `FirestoreEventRepository`,
   `FirestoreUserDataRepository`).
   `Firestore.firestore()`/`Auth.auth()`

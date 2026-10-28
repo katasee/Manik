@@ -53,7 +53,7 @@ struct StatsView: View {
                 }
             }
             .task {
-                await viewModel.observeBlocks()
+                await viewModel.observeSlots()
             }
             .task {
                 await viewModel.refreshStats()
@@ -68,7 +68,7 @@ struct StatsView: View {
     private var monthRow: some View {
         MonthHeader(
             title: viewModel.monthTitle,
-            canGoBack: true,
+            canGoBack: viewModel.canGoBack,
             canGoForward: viewModel.canGoForward,
             onPrevious: viewModel.showPreviousMonth,
             onNext: viewModel.showNextMonth
@@ -88,11 +88,11 @@ struct StatsView: View {
                 ) {
                     GridRow {
                         visitsCard
-                        hoursCard
+                        clientsCard
                     }
 
                     GridRow {
-                        clientsCard
+                        occupancyCard
                         slotsCard
                     }
                 }
@@ -121,21 +121,20 @@ struct StatsView: View {
         )
     }
 
-    private var hoursCard: some View {
-        StatCard(
-            iconName: "clock",
-            value: viewModel.stats.hoursLabel,
-            unitKey: "stats.hours.unit",
-            titleKey: "stats.card.hours"
-        )
-    }
-
     private var clientsCard: some View {
         StatCard(
             iconName: "person.2",
             value: viewModel.stats.clientsLabel,
             titleKey: "stats.card.clients",
             trend: viewModel.stats.clientsTrend
+        )
+    }
+
+    private var occupancyCard: some View {
+        StatCard(
+            iconName: "chart.pie",
+            value: viewModel.stats.occupancyLabel,
+            titleKey: "stats.card.occupancy"
         )
     }
 
@@ -167,21 +166,10 @@ struct StatsView: View {
 }
 
 #if DEBUG
-#Preview("Статистика") {
+#Preview {
     StatsView(
         viewModel: StatsViewModel(
-            blockRepository: FakeBlockRepository(blocks: StatsPreviewData.blocks)
-        ),
-        profile: ProfilePreviewData.profile,
-        onSignOut: {},
-        onAccountDeleted: {}
-    )
-}
-
-#Preview("Порожній місяць") {
-    StatsView(
-        viewModel: StatsViewModel(
-            blockRepository: FakeBlockRepository(blocks: StatsPreviewData.emptyMonth)
+            slotRepository: FakeSlotRepository(slots: StatsPreviewData.slots)
         ),
         profile: ProfilePreviewData.profile,
         onSignOut: {},

@@ -2,13 +2,14 @@ import Foundation
 
 struct MonthlyTotals {
     let revenue: Int
-    let previousRevenue: Int
+    let previousRevenue: Int?
     let expected: Int
     let visits: Int
-    let minutes: Int
     let clients: Int
-    let previousClients: Int
+    let previousClients: Int?
     let freeSlots: Int
+    let windows: Int
+    let bookedWindows: Int
     let isMonthFinished: Bool
 }
 
@@ -20,74 +21,79 @@ enum StatsCalculator {
         return calendar.date(from: components) ?? date
     }
 
+    static func earliestMonthStart(now: Date) -> Date {
+        let historyStart = Slot.historyStartDate(now: now)
+        let start = monthStart(containing: historyStart)
+
+        guard start < historyStart else { return start }
+
+        return DateFormat.salonCalendar.date(byAdding: .month, value: 1, to: start) ?? start
+    }
+
     static func totals(
-        blocks: [Block],
+        slots: [Slot],
         monthStart: Date,
         now: Date
     ) -> MonthlyTotals {
         let calendar = DateFormat.salonCalendar
         let monthEnd = calendar.date(byAdding: .month, value: 1, to: monthStart) ?? monthStart
         let previousStart = calendar.date(byAdding: .month, value: -1, to: monthStart) ?? monthStart
+        let hasPrevious = previousStart >= earliestMonthStart(now: now)
 
-        let monthBlocks = blocks.filter { isInside($0, start: monthStart, end: monthEnd) }
-        let previousBlocks = blocks.filter { isInside($0, start: previousStart, end: monthStart) }
+        let monthSlots = slots.filter { isInside($0, start: monthStart, end: monthEnd) }
+        let previousSlots = slots.filter { isInside($0, start: previousStart, end: monthStart) }
 
-        let completed = monthBlocks.filter { $0.isCompleted(now: now) }
-        let previousCompleted = previousBlocks.filter { $0.isCompleted(now: now) }
+        let booked = monthSlots.filter(\.isBooked)
+        let completed = booked.filter { $0.isPast(now: now) }
+        let previousCompleted = previousSlots.filter { $0.isBooked && $0.isPast(now: now) }
 
         let isMonthFinished = monthEnd <= now
 
         return MonthlyTotals(
             revenue: total(of: completed),
-            previousRevenue: total(of: previousCompleted),
-            expected: total(of: monthBlocks.filter { $0.status == .confirmed }),
+            previousRevenue: hasPrevious ? total(of: previousCompleted) : nil,
+            expected: total(of: booked),
             visits: completed.count,
-            minutes: minutes(of: completed),
             clients: clientIds(of: completed).count,
-            previousClients: clientIds(of: previousCompleted).count,
+            previousClients: hasPrevious ? clientIds(of: previousCompleted).count : nil,
             freeSlots: freeSlots(
-                in: monthBlocks,
+                in: monthSlots,
                 isMonthFinished: isMonthFinished,
                 now: now
             ),
+            windows: monthSlots.count,
+            bookedWindows: booked.count,
             isMonthFinished: isMonthFinished
         )
     }
 
     private static func isInside(
-        _ block: Block,
+        _ slot: Slot,
         start: Date,
         end: Date
     ) -> Bool {
-        guard let startsAt = block.startsAt else { return false }
+        guard let startsAt = slot.startsAt else { return false }
 
         return startsAt >= start && startsAt < end
     }
 
-    private static func total(of blocks: [Block]) -> Int {
-        blocks.reduce(0) { $0 + ($1.bookedServicePrice ?? 0) }
+    private static func total(of slots: [Slot]) -> Int {
+        slots.reduce(0) { $0 + ($1.servicePrice ?? 0) }
     }
 
-    private static func clientIds(of blocks: [Block]) -> Set<String> {
-        Set(blocks.compactMap(\.clientId))
-    }
-
-    private static func minutes(of blocks: [Block]) -> Int {
-        blocks.reduce(0) { $0 + max(0, $1.endMinutes - $1.startMinutes) }
+    private static func clientIds(of slots: [Slot]) -> Set<String> {
+        Set(slots.compactMap(\.clientId))
     }
 
     private static func freeSlots(
-        in blocks: [Block],
+        in slots: [Slot],
         isMonthFinished: Bool,
         now: Date
     ) -> Int {
-        blocks.filter { block in
-            guard block.status == .available else { return false }
-            guard isMonthFinished == false else { return true }
-            guard let startsAt = block.startsAt else { return false }
+        slots.count { slot in
+            guard slot.isBooked == false else { return false }
 
-            return startsAt > now
+            return isMonthFinished || slot.isPast(now: now) == false
         }
-        .count
     }
 }
