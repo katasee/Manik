@@ -2246,7 +2246,7 @@ this file is just "what's done, what's next," not a design doc.
     previous ignores the summary), `xcodebuild` after each task, `swiftui-pro` and
     `swift-concurrency-pro` on the plan.
 
-- **Y-40 — Rebrand Manik → YOi** (branch `worktree-rebranding-yoi`; decided in chat on
+- **Y-40 — Rebrand Manik → YOi** (branch `feature/y-40-rebranding-yoi`; decided in chat on
   2026-10-27/28, no design file). The app is for any master who books clients, not only nail
   masters (user).
   - PR numbering: the prefix was "M" for Manik; from this PR on it is "Y" for YOi, and the number
