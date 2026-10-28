@@ -2,7 +2,7 @@ import SwiftUI
 import FirebaseCore
 
 @main
-struct ManikApp: App {
+struct YoiApp: App {
     init() {
         FirebaseApp.configure()
     }
