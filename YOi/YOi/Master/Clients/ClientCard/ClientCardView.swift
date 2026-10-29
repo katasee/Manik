@@ -122,22 +122,22 @@ struct ClientCardView: View {
         }
     }
 
-    @ViewBuilder
     private var contactLabel: some View {
         let shape = RoundedRectangle(cornerRadius: ClientsMetrics.Size.rowCornerRadius)
 
-        if #available(iOS 26, *) {
-            contactTitle
-                .glassEffect(.regular.interactive(), in: shape)
-                .contentShape(shape)
-        } else {
-            contactTitle
-                .cardSurface(padding: 0, cornerRadius: ClientsMetrics.Size.rowCornerRadius)
-                .contentShape(shape)
+        return Group {
+            if #available(iOS 26, *) {
+                contactContent
+                    .glassEffect(.regular.interactive(), in: shape)
+            } else {
+                contactContent
+                    .cardSurface(padding: 0, cornerRadius: ClientsMetrics.Size.rowCornerRadius)
+            }
         }
+        .contentShape(shape)
     }
 
-    private var contactTitle: some View {
+    private var contactContent: some View {
         HStack(spacing: ClientsMetrics.Spacing.contactIconSpacing) {
             Image(systemName: "bubble.left")
                 .font(.elmsSans(.bold, ClientsMetrics.Size.contactIcon))

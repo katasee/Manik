@@ -128,37 +128,14 @@ struct AuthView: View {
     }
 
     private var submitButton: some View {
-        Button(action: handleSubmit) {
-            if #available(iOS 26, *) {
-                submitLabel
-                    .glassEffect(.regular.tint(Color.primaryFill).interactive(), in: .capsule)
-            } else {
-                submitLabel
-                    .background(Color.primaryFill, in: .capsule)
-                    .brandShadow()
-            }
-        }
-        .buttonStyle(.plain)
-        .foregroundStyle(Color.onPrimary)
-        .disabled(viewModel.isLoading || !viewModel.canSubmit)
-        .opacity(viewModel.isLoading || !viewModel.canSubmit ? AuthMetrics.disabledOpacity : 1)
-    }
-
-    private var submitLabel: some View {
-        Group {
-            if viewModel.isLoading {
-                ProgressView()
-                    .tint(Color.onPrimary)
-            } else if viewModel.mode == .signIn {
-                Text("auth.mode.signIn")
-                    .font(.elmsSans(.bold, AuthMetrics.FontSize.submitLabel))
-            } else {
-                Text("auth.action.signUp")
-                    .font(.elmsSans(.bold, AuthMetrics.FontSize.submitLabel))
-            }
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, AuthMetrics.Spacing.submitVerticalPadding)
+        CapsuleButton(
+            titleKey: viewModel.mode == .signIn ? "auth.mode.signIn" : "auth.action.signUp",
+            role: .primary,
+            isLoading: viewModel.isLoading,
+            isEnabled: viewModel.canSubmit,
+            fillsWidth: true,
+            action: handleSubmit
+        )
     }
 }
 

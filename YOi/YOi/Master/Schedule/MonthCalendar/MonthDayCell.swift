@@ -34,7 +34,7 @@ struct MonthDayCell: View {
     private var selectionCircle: some View {
         if #available(iOS 26, *) {
             Color.clear
-                .glassEffect(.regular.tint(Color.primaryFill), in: .circle)
+                .glassEffect(.primary, in: .circle)
         } else {
             Circle()
                 .fill(Color.primaryFill)

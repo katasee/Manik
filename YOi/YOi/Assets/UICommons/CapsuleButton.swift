@@ -74,11 +74,11 @@ struct CapsuleButton: View {
     private var glass: Glass {
         switch role {
         case .primary:
-            .regular.tint(Color.primaryFill).interactive()
+            .primary.interactive()
         case .secondary:
             .regular.interactive()
         case .destructive:
-            .regular.tint(Color.destructiveFill).interactive()
+            .destructive.interactive()
         }
     }
 

@@ -2305,7 +2305,10 @@ this file is just "what's done, what's next," not a design doc.
     `CapsuleButton`, `.selectableSurface` (time chips, `ChoiceChips`, plan time fields, the emoji
     grid — their grids in `GlassEffectContainer` via `.glassEffectGroup()`), the selected day in
     `WeekDayCell` and `MonthDayCell`, the Fill-month tab track, the auth submit button, the card's
-    "Зв'язатися" and `ClientAvatar`. Rules in `code-style.md`, the navigation rule in
+    "Зв'язатися" and `ClientAvatar`. Filled glass goes through `Glass.primary`/`.destructive`
+    (`Glass+Roles.swift`). The auth submit button, a private copy of the primary capsule, is now a
+    `CapsuleButton` (clean-code review): semiBold 16 instead of bold 15, 50pt tall, disabled at
+    0.4 like every other capsule. Rules in `code-style.md`, the navigation rule in
     `architecture.md`.
   - Tried and reverted (user, on a device): glass `RoundIconLabel` arrows in `WeekDayStrip` (the
     32pt grey chevrons stay); a lighter black for glass (85% opacity, then a graphite

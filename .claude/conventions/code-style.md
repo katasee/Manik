@@ -69,7 +69,8 @@ Since Y-42 every control we draw is glass on iOS 26, at its drawing site, with t
 the `else`: `RoundIconLabel`, `CapsuleButton`, `.selectableSurface`, the selected day in
 `WeekDayCell`/`MonthDayCell`, the Fill-month tab track, the auth submit button, the client card's
 "Зв'язатися" and `ClientAvatar`. Unfilled roles are `.regular`; filled ones keep their colour as
-`.regular.tint(Color.primaryFill)` / `.tint(Color.destructiveFill)` — and the "opaque tint" rule
+`Glass.primary` / `Glass.destructive` (`Glass+Roles.swift`: `.regular` tinted with `PrimaryFill` /
+`DestructiveFill`) — one place to change, never an inline `.tint` — and the "opaque tint" rule
 above still bites: in the light theme `PrimaryFill` is near-black, which glass cannot lighten, so
 the black buttons read as plain black and only the dark theme's wine shows the glass. The user
 tried 85% opacity and a graphite `#2A2A2E` tint and kept the plain black. Four more rules, all

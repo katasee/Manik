@@ -73,7 +73,7 @@ struct WeekDayCell: View {
 
         if #available(iOS 26, *) {
             Color.clear
-                .glassEffect(.regular.tint(Color.primaryFill), in: shape)
+                .glassEffect(.primary, in: shape)
         } else {
             shape
                 .fill(Color.primaryFill)

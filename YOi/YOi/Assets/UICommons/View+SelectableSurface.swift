@@ -5,7 +5,7 @@ extension View {
     func selectableSurface<S: InsettableShape>(isSelected: Bool, in shape: S) -> some View {
         if #available(iOS 26, *) {
             glassEffect(
-                isSelected ? .regular.tint(Color.primaryFill).interactive() : .regular.interactive(),
+                isSelected ? .primary.interactive() : .regular.interactive(),
                 in: shape
             )
         } else {
