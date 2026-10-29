@@ -35,7 +35,6 @@ struct ProfileView: View {
         var id: String { rawValue }
     }
 
-    @Environment(\.dismiss) private var dismiss
     @State private var popup: Popup?
 
     let profile: UserProfile
@@ -44,8 +43,6 @@ struct ProfileView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            ScreenHeader(titleKey: "profile.title", onBack: goBack)
-
             ScrollView {
                 VStack(alignment: .leading, spacing: ProfileMetrics.Spacing.sectionSpacing) {
                     profileCard
@@ -60,7 +57,15 @@ struct ProfileView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color.background)
-        .toolbar(.hidden, for: .navigationBar)
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbarRole(.editor)
+        .toolbar {
+            ToolbarItem(placement: .principal) {
+                Text("profile.title")
+                    .font(.elmsSans(.semiBold, 17))
+                    .foregroundStyle(Color.ink)
+            }
+        }
         .fullScreenCover(item: $popup) { popup in
             popupContent(popup)
                 .presentationBackground(.clear)
@@ -171,10 +176,6 @@ struct ProfileView: View {
         withoutPresentationAnimation {
             popup = nil
         }
-    }
-
-    private func goBack() {
-        dismiss()
     }
 }
 

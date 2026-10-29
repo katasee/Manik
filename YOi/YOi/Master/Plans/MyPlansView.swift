@@ -1,8 +1,6 @@
 import SwiftUI
 
 struct MyPlansView: View {
-    @Environment(\.dismiss) private var dismiss
-
     @State private var viewModel: MyPlansViewModel
     @State private var formMode: PlanFormMode?
     @State private var openRowId: String?
@@ -13,15 +11,6 @@ struct MyPlansView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            ScreenHeader(onBack: goBack) {
-                RoundIconButton(
-                    systemImage: "plus",
-                    size: .small,
-                    accessibilityLabel: "plans.action.add",
-                    action: addTemplate
-                )
-            }
-
             LargeTitleHeader(titleKey: "plans.title", subtitle: String(localized: "plans.subtitle"))
 
             sectionHeader
@@ -29,7 +18,13 @@ struct MyPlansView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color.background)
-        .toolbar(.hidden, for: .navigationBar)
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbarRole(.editor)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button("plans.action.add", systemImage: "plus", action: addTemplate)
+            }
+        }
         .task {
             await viewModel.observeTemplates()
         }
@@ -129,9 +124,5 @@ struct MyPlansView: View {
         withoutPresentationAnimation {
             formMode = nil
         }
-    }
-
-    private func goBack() {
-        dismiss()
     }
 }

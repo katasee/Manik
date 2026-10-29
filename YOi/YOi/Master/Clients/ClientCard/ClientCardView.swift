@@ -12,22 +12,19 @@ struct ClientCardView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            ScreenHeader(onBack: goBack) {
-                RoundIconButton(
-                    systemImage: "pencil",
-                    size: .small,
-                    accessibilityLabel: "clients.action.edit",
-                    action: edit
-                )
-            }
-
             if let card = viewModel.card {
                 content(card)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .background(Color.background)
-        .toolbar(.hidden, for: .navigationBar)
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbarRole(.editor)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button("clients.action.edit", systemImage: "pencil", action: edit)
+            }
+        }
         .task {
             await viewModel.observeClient()
         }
@@ -139,10 +136,6 @@ struct ClientCardView: View {
         .frame(maxWidth: .infinity, minHeight: ClientsMetrics.Size.contactMinHeight)
         .cardSurface(padding: 0, cornerRadius: ClientsMetrics.Size.rowCornerRadius)
         .contentShape(.rect(cornerRadius: ClientsMetrics.Size.rowCornerRadius))
-    }
-
-    private func goBack() {
-        dismiss()
     }
 
     private func edit() {

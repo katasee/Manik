@@ -1,8 +1,6 @@
 import SwiftUI
 
 struct MyServicesView: View {
-    @Environment(\.dismiss) private var dismiss
-
     @State private var viewModel: MyServicesViewModel
     @State private var formMode: ServiceFormMode?
     @State private var openRowId: String?
@@ -13,14 +11,21 @@ struct MyServicesView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            ScreenHeader(titleKey: "services.title", onBack: goBack)
             intro
             sectionHeader
             list
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color.background)
-        .toolbar(.hidden, for: .navigationBar)
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbarRole(.editor)
+        .toolbar {
+            ToolbarItem(placement: .principal) {
+                Text("services.title")
+                    .font(.elmsSans(.semiBold, 17))
+                    .foregroundStyle(Color.ink)
+            }
+        }
         .task {
             await viewModel.observeServices()
         }
@@ -145,10 +150,6 @@ struct MyServicesView: View {
         withoutPresentationAnimation {
             formMode = nil
         }
-    }
-
-    private func goBack() {
-        dismiss()
     }
 }
 
