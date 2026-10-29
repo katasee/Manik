@@ -112,6 +112,18 @@
   tab's screen (the Requests badge did this until the tab was removed in M-30). The selected-tab colour is `.tint(Color.ink)` on the `TabView`,
   with each tab's content re-tinted `.tint(Color.accentColor)` so it doesn't leak into carets and
   pickers (see "Accent and tab bar" in `code-style.md`).
+- **A pushed screen shows the system navigation bar; only a tab's root hides it** (Y-42). Hiding
+  the bar with `.toolbar(.hidden, for: .navigationBar)` also disables the edge swipe back — iOS
+  turns the interactive pop gesture off together with the bar — which is why Клієнтська картка,
+  Мої послуги, Мої плани and Профіль had none while they drew their own `ScreenHeader` (deleted in
+  Y-42). A pushed screen uses `.navigationBarTitleDisplayMode(.inline)`, `.toolbarRole(.editor)`
+  (a chevron-only back button: the roots have no title, so iOS would print "Back") and puts its
+  actions in `ToolbarItem(placement: .topBarTrailing)` as a plain `Button(_:systemImage:action:)`
+  — iOS 26 draws it as glass, a `RoundIconButton` there would add a second surface. A title is a
+  `.principal` `Text` in `.elmsSans`, not `.navigationTitle`, which only takes the system font;
+  no `UINavigationBar.appearance()`. On iOS 18 the back button is a flat accent chevron — accepted
+  (user, Y-42) for the swipe and less code. The rejected alternative, a `UINavigationController`
+  extension that re-enables the gesture with the bar hidden, is a hack over system behaviour.
 - **Nested `NavigationLink`s don't work.** Wrapping a whole card in a link and then putting a link
   inside it is unpredictable in SwiftUI — the inner one may never receive taps, or both fire. If a
   card needs more than one destination, don't wrap the card: give each control its own link

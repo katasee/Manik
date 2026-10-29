@@ -2293,6 +2293,28 @@ this file is just "what's done, what's next," not a design doc.
     simulator a new account signed up, verified its email, and wrote `users/{uid}` and
     `monthlyStats` under the new rules.
 
+- **Y-42 — System navigation bar and Liquid Glass** (branch `worktree-nav-bar-liquid-glass`;
+  decided in chat on 2026-10-29, no design file). Closes the backlog item of the same name.
+  - Клієнтська картка, Мої послуги, Мої плани and Профіль show the system navigation bar: edge
+    swipe back works, the back button is a chevron (`.toolbarRole(.editor)`), the card's pencil and
+    Мої плани's "+" are toolbar buttons, titles are a `.principal` `Text` in ElmsSans.
+    `ScreenHeader` is deleted. The user first rejected the system bar for its flat iOS 18 back
+    button, then took it for the swipe.
+  - Liquid Glass on iOS 26 for every control we draw, iOS 18 unchanged: `RoundIconLabel` (all
+    round buttons and the client-row contact menu), the star in `ServiceRow`, Мої послуги's "+",
+    `CapsuleButton`, `.selectableSurface` (time chips, `ChoiceChips`, plan time fields, the emoji
+    grid — their grids in `GlassEffectContainer` via `.glassEffectGroup()`), the selected day in
+    `WeekDayCell` and `MonthDayCell`, the Fill-month tab track, the auth submit button, the card's
+    "Зв'язатися" and `ClientAvatar`. Rules in `code-style.md`, the navigation rule in
+    `architecture.md`.
+  - Tried and reverted (user, on a device): glass `RoundIconLabel` arrows in `WeekDayStrip` (the
+    32pt grey chevrons stay); a lighter black for glass (85% opacity, then a graphite
+    `PrimaryGlass` colorset) — black stays black in the light theme; `glassEffectID` morphing of
+    the selected day and the Fill-month lens inside a container — the numbers disappeared under the
+    glass, then the selection jumped instead of sliding; back on `matchedGeometryEffect`.
+  - Verified: `xcodebuild` after each step, two `swiftui-pro` passes (the plan, then the branch),
+    the user on an iOS 26 device in the dark theme.
+
 ## Screens (in order)
 
 This is the actual work queue, and the only numbered list here. The ordering follows the **data
@@ -2560,29 +2582,7 @@ numbering drifts every time an item is added or closed (it already did once: PR9
   image) from Мої послуги, copied or sent like the schedule — reuse the popup's recipient and
   contacts steps.
 
-- **System navigation bar and Liquid Glass for our buttons** (requested 2026-10-12 after
-  M-32.2b's simulator pass; one PR, one root cause: we draw our own header instead of the system
-  one).
-  - **No swipe back on pushed screens.** `ClientCardView`, `MyServicesView` and `ProfileView` hide
-    the system bar with `.toolbar(.hidden, for: .navigationBar)` to draw `ScreenHeader`, and iOS
-    disables the interactive pop gesture together with the bar. Fix: drop `.toolbar(.hidden)` and
-    `ScreenHeader` on pushed screens, keep the system back button, and put trailing actions (the
-    card's pencil) in `.toolbar { ToolbarItem(placement: .topBarTrailing) }`. The swipe comes
-    back, and on iOS 26 the back button and toolbar items get Liquid Glass with no `#available`,
-    like the `TabView`. Check the iOS 18 look of the system back button (default tint and "Назад"
-    text) and decide whether it needs tinting. `ScreenHeader` may become unused — delete it then.
-    Rejected alternative: a `UINavigationController` extension that re-enables the gesture with the
-    bar hidden — a UIKit hack over system behaviour that keeps the non-glass buttons.
-  - **Round buttons we still draw** — "+" in `LargeTitleHeader`s, the contact button in client
-    rows — are `.raisedSurface(.circle)` and read as a different material next to the glass bar
-    on iOS 26. They all draw through `RoundIconLabel`, so the change is one place:
-    `.glassEffect(.regular.interactive(), in: .circle)` under `if #available(iOS 26, *)`,
-    `.raisedSurface(.circle)` otherwise (deployment target is 18.1). Decide in the same PR whether
-    `CapsuleButton` (and the card's private "Зв'язатися" capsule) follow.
-  - Check light and dark on a device (wine-on-glass contrast already failed once on the tab bar)
-    and record the rules in `architecture.md`/`code-style.md`. Own PR, not mixed into a feature.
-    (The first `#available` in a view already exists: M-36.1's reschedule lens; its rules are in
-    `code-style.md`.)
+- ~~**System navigation bar and Liquid Glass for our buttons**~~ — **done in Y-42** (see its entry under "Done").
 
 - **A big button in Розклад's empty state** (user request, 2026-10-18, during M-34.2, on a
   screenshot of an empty day). Today an empty day shows only "Немає вікон" / "Натисніть +, щоб
@@ -2801,19 +2801,9 @@ numbering drifts every time an item is added or closed (it already did once: PR9
   `.inputFieldStyle()` pads 15/16pt around a `TextField`/`SecureField`, which hit-tests only its
   text frame, so tapping the padding does nothing. Predates M-27 (it was the same with 12pt). A fix
   needs a `FocusState`-aware field, which changes the modifier's API.
-- **Deleting a block rewrites past revenue** (created by M-22). The master can swipe away a completed
-  `confirmed` block in the Schedule, and last month's reported income changes retroactively with no
-  trace. Same shape as the existing "deleting a `confirmed` block has no confirmation step" item, and
-  they should probably be fixed together — but note a confirmation dialog only slows the mistake
-  down; keeping history intact would mean not hard-deleting a block that has already happened.
-- **Stats reads the entire `blocks` collection** (created by M-22). `observeBlocks()` has no date
-  filter, which is exactly what makes every figure on the Stats screen free — no new query, no new
-  index, no rules change. The flip side is that the screen's cost grows with the salon's whole
-  history, and `StatsCalculator` makes six passes over it on every snapshot and every 60-second tick.
-  Fine for one salon today; revisit with a date-bounded query if a season's worth of blocks ever
-  makes it noticeable. Deliberately not pre-optimized.
-- **"Забули пароль?"**: decide tappable-stub vs. real `sendPasswordReset` flow, then implement.
-  (Was tracked as a task in a now-disconnected MCP tool — re-track here instead.)
+- ~~**Deleting a block rewrites past revenue**~~ — **obsolete** (`Block` was deleted in M-38; a slot has no status to rewrite).
+- ~~**Stats reads the entire `blocks` collection**~~ — **obsolete** (`blocks` was deleted in M-38; Статистика reads bounded `slots` and, since M-38.1, `monthlyStats`).
+- ~~**"Забули пароль?"**~~ — **done in M-31** (`Auth/ResetPassword/`, see its entry under "Done").
 - **Accessibility debt (found in PR8 review, deliberately not fixed there)**:
   - `Font.elmsSans(_:_:)` calls `Font.custom(_:size:)` **without `relativeTo:`**, so Dynamic Type
     is effectively off app-wide. Adding it is one line, but the schedule also needs `@ScaledMetric`
