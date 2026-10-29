@@ -62,7 +62,18 @@ struct MyServicesView: View {
             .foregroundStyle(Color.textSecondary)
     }
 
+    @ViewBuilder
     private var addButton: some View {
+        if #available(iOS 26, *) {
+            plainAddButton
+                .glassEffect(.regular.tint(Color.primaryFill).interactive(), in: .circle)
+        } else {
+            plainAddButton
+                .background(Color.primaryFill, in: .circle)
+        }
+    }
+
+    private var plainAddButton: some View {
         Button("services.action.add", systemImage: "plus", action: addService)
             .labelStyle(.iconOnly)
             .font(.elmsSans(.bold, ServicesMetrics.Size.addIcon))
@@ -71,7 +82,6 @@ struct MyServicesView: View {
                 width: ServicesMetrics.Size.addButton,
                 height: ServicesMetrics.Size.addButton
             )
-            .background(Color.primaryFill, in: .circle)
             .contentShape(.circle)
     }
 
