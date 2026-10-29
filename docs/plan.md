@@ -2504,6 +2504,24 @@ something nearby is already being touched. **No numbers on purpose** — cite th
 numbering drifts every time an item is added or closed (it already did once: PR9's entry pointed at
 "step 9" for what was item 10).
 
+- **Gender-neutral wording for the master** (requested 2026-10-29). Men use the app too, so the
+  Ukrainian UI must not address the master in the feminine. Known: the verify-email button
+  `auth.verify.check` "Я підтвердила" (`Auth/VerifyEmail/`) — reword to a neutral
+  form ("Підтверджено", "Готово", "Перевірити"). Related, decide in the same pass: the reschedule
+  message `schedule.reschedule.message %@ %@` ("Перенесла запис на …") is sent in the master's
+  own voice, so it is feminine too — a neutral form ("Запис перенесено на …") or the editable
+  template from "Editor for the texts sent to clients". Grep the whole String Catalog for other
+  feminine past-tense verbs (`-ла`) addressed to the master. Clients ("Клієнтки") are out of
+  scope here — a separate decision.
+
+- **Sign-in / sign-up button reacts only on its text** (found 2026-10-29). `AuthView.submitButton`
+  is a `.buttonStyle(.plain)` `Button` whose capsule fill is a `.background` *outside* the button,
+  and a plain button hit-tests only its opaque content — so the transparent `maxWidth: .infinity`
+  frame around the label is dead and only a tap on the words works. Fix: `.contentShape(.capsule)`
+  on the label (as `CapsuleButton` does), or replace it with `CapsuleButton` itself. Check the
+  other Auth buttons (`ModeSwapPrompt`, the "Забули пароль?" link, VerifyEmail's sign-out) in the
+  same pass.
+
 - **Hide the tab bar on pushed screens** (requested 2026-10-28). A screen pushed inside a tab —
   Клієнтки's `ClientCardView` (also pushed from Розклад), Статистика's `StatsRoute` destinations
   (Profile, Мої послуги, …) — keeps the system tab bar today. Candidate fix:
