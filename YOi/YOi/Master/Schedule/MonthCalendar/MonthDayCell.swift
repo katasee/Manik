@@ -13,9 +13,7 @@ struct MonthDayCell: View {
                     .frame(width: ScheduleMetrics.Size.daySelection, height: ScheduleMetrics.Size.daySelection)
                     .background {
                         if day.isSelected {
-                            Circle()
-                                .fill(Color.primaryFill)
-                                .brandShadow()
+                            selectionCircle
                         }
                     }
 
@@ -30,6 +28,18 @@ struct MonthDayCell: View {
         .disabled(day.isEnabled == false)
         .accessibilityAddTraits(day.isSelected ? .isSelected : [])
         .accessibilityValue(day.hasSlots ? Text("schedule.day.hasSlots") : Text(verbatim: ""))
+    }
+
+    @ViewBuilder
+    private var selectionCircle: some View {
+        if #available(iOS 26, *) {
+            Color.clear
+                .glassEffect(.regular.tint(Color.primaryFill), in: .circle)
+        } else {
+            Circle()
+                .fill(Color.primaryFill)
+                .brandShadow()
+        }
     }
 
     private var dotColor: Color {

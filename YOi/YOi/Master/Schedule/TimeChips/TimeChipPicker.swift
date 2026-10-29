@@ -25,6 +25,7 @@ struct TimeChipPicker: View {
                         }
                     }
                 }
+                .glassEffectGroup()
             }
 
             CapsuleButton(

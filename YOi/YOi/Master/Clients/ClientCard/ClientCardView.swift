@@ -122,7 +122,22 @@ struct ClientCardView: View {
         }
     }
 
+    @ViewBuilder
     private var contactLabel: some View {
+        let shape = RoundedRectangle(cornerRadius: ClientsMetrics.Size.rowCornerRadius)
+
+        if #available(iOS 26, *) {
+            contactTitle
+                .glassEffect(.regular.interactive(), in: shape)
+                .contentShape(shape)
+        } else {
+            contactTitle
+                .cardSurface(padding: 0, cornerRadius: ClientsMetrics.Size.rowCornerRadius)
+                .contentShape(shape)
+        }
+    }
+
+    private var contactTitle: some View {
         HStack(spacing: ClientsMetrics.Spacing.contactIconSpacing) {
             Image(systemName: "bubble.left")
                 .font(.elmsSans(.bold, ClientsMetrics.Size.contactIcon))
@@ -134,8 +149,6 @@ struct ClientCardView: View {
         }
         .foregroundStyle(Color.ink)
         .frame(maxWidth: .infinity, minHeight: ClientsMetrics.Size.contactMinHeight)
-        .cardSurface(padding: 0, cornerRadius: ClientsMetrics.Size.rowCornerRadius)
-        .contentShape(.rect(cornerRadius: ClientsMetrics.Size.rowCornerRadius))
     }
 
     private func edit() {
