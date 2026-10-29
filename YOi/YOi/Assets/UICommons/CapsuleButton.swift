@@ -38,18 +38,48 @@ struct CapsuleButton: View {
     }
 
     var body: some View {
-        Button(action: action) {
-            label
-                .frame(maxWidth: fillsWidth ? .infinity : nil, minHeight: Layout.minHeight)
-                .padding(.horizontal, Layout.horizontalPadding)
-                .background { background }
-                .contentShape(.capsule)
+        styledButton
+            .accessibilityLabel(Text(titleKey))
+            .foregroundStyle(labelColor)
+            .disabled(isDisabled)
+            .opacity(isDisabled ? Layout.disabledOpacity : 1)
+    }
+
+    @ViewBuilder
+    private var styledButton: some View {
+        if #available(iOS 26, *) {
+            Button(action: action) {
+                sizedLabel
+                    .glassEffect(glass, in: .capsule)
+                    .contentShape(.capsule)
+            }
+            .buttonStyle(.plain)
+        } else {
+            Button(action: action) {
+                sizedLabel
+                    .background { background }
+                    .contentShape(.capsule)
+            }
+            .buttonStyle(PressableButtonStyle())
         }
-        .buttonStyle(PressableButtonStyle())
-        .accessibilityLabel(Text(titleKey))
-        .foregroundStyle(labelColor)
-        .disabled(isDisabled)
-        .opacity(isDisabled ? Layout.disabledOpacity : 1)
+    }
+
+    private var sizedLabel: some View {
+        label
+            .frame(maxWidth: fillsWidth ? .infinity : nil, minHeight: Layout.minHeight)
+            .padding(.horizontal, Layout.horizontalPadding)
+    }
+
+    @available(iOS 26, *)
+    private var glass: Glass {
+        switch role {
+        case .primary:
+            .regular.tint(Color.primaryFill).interactive()
+        case .secondary:
+            .regular.interactive()
+        case .destructive:
+            .regular.tint(Color.destructiveFill).interactive()
+        }
     }
 
     @ViewBuilder
