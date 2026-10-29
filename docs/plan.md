@@ -2275,6 +2275,24 @@ this file is just "what's done, what's next," not a design doc.
     `CFBundleDisplayName = YOi` and `CFBundleIdentifier = katriGin.mani`; `GoogleService-Info.plist`
     and the four fonts are in the bundle; `git grep -i manik` lists only the kept names above.
 
+- **Y-41 — New Firebase project and bundle ID** (branch `feature/y-41-firebase-yoi`; decided in
+  chat on 2026-10-28/29, no design file). Closes item 11, the bundle ID mismatch.
+  - A fresh Firebase project instead of fixing the old one (user): the only user was a test
+    account, so nothing was migrated. Project `yoi-fb372` — a project ID is global and permanent,
+    `yoi` was taken and Firebase added the suffix. Project name, app nickname and the email
+    templates' Sender name are "YOi"; Email/Password on, "Email link" off; Firestore `(default)`
+    in `europe-central2` (Warsaw), production mode, `firestore.rules` published by hand.
+    Google Analytics off (nothing in the app uses it, and it adds App Store privacy duties).
+  - Bundle ID `app.yoi.katrigin` (user). `app.yoi` was tried first and registered in Firebase,
+    but Apple refused it — bundle IDs are unique across all developers, and Firebase does not
+    check that. Register the bundle ID in Xcode before Firebase next time.
+  - The gitignored `GoogleService-Info.plist` is the new one (`BUNDLE_ID = app.yoi.katrigin`,
+    `PROJECT_ID = yoi-fb372`); copy it into the main checkout after merging. The old project
+    `manik-5a2b8` stays until the new one has been used for a while, then is deleted by hand.
+  - Verified: `xcodebuild -scheme YOi`, built `CFBundleIdentifier = app.yoi.katrigin`; on the
+    simulator a new account signed up, verified its email, and wrote `users/{uid}` and
+    `monthlyStats` under the new rules.
+
 ## Screens (in order)
 
 This is the actual work queue, and the only numbered list here. The ordering follows the **data
@@ -2469,7 +2487,7 @@ those items are referred to by name, so the list can grow without renumbering an
        summary; paging back reaches the oldest stored month; a month never stored shows "no data".
        Needs a `MonthlySummaryRepository` (+ Firestore, fake), a `monthlyStats` rule and the name
        in `FirestoreUserDataRepository.collections`.
-   11. **Fix the Firebase bundle ID mismatch** — next (user, 2026-10-28). Every launch logs
+   11. ~~**Fix the Firebase bundle ID mismatch**~~ — **done as Y-41** (under "Done"). Was: every launch logged
        `[FirebaseCore][I-COR000008] The project's Bundle ID is inconsistent with ... the Bundle ID in
        'GoogleService-Info.plist'`: the target's `PRODUCT_BUNDLE_IDENTIFIER` is `katriGin.mani` (a
        missing `k`, there since "Add firebase sdk", 11422e0), while the registered Firebase iOS app
@@ -2716,7 +2734,8 @@ numbering drifts every time an item is added or closed (it already did once: PR9
   screen; it's a pure file move (Swift has no intra-module imports, so nothing else changes).
 - ~~**Deploy `firestore.rules`**~~ — **done (2026-08-08, after PR12)**: the file was edited by PR12
   (`hasValidServiceFormat()`, and `services`' `write` split into `create, update` / `delete`) and
-  published to the Console for project `manik-5a2b8`. Deployment stays manual — Console
+  published to the Console for project `manik-5a2b8` (the old project; since Y-41 the rules live
+  in `yoi-fb372`). Deployment stays manual — Console
   copy-paste, no CLI/CI hookup — so re-verify after any future edit to the file.
   - The `price` audit that came with it is **also done**: at the time the `services` collection held
     a single document, written by a post-PR12 build (it already carried `isActive`), with
