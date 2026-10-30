@@ -23,6 +23,7 @@ struct PlanEmojiGrid: View {
             }
             .scrollTargetLayout()
             .padding(PlansMetrics.Spacing.gridShadowInset)
+            .glassEffectGroup()
         }
         .frame(height: PlansMetrics.Size.gridVisibleHeight)
         .scrollIndicators(.hidden)

@@ -21,17 +21,26 @@ struct ServiceRow: View {
 
     private var icon: some View {
         Button(action: onToggleActive) {
-            Image(systemName: service.isOffered ? "star.fill" : "star")
-                .font(.elmsSans(.regular, ServicesMetrics.Size.rowIconGlyph))
-                .foregroundStyle(Color.ink)
-                .frame(
-                    width: ServicesMetrics.Size.rowIcon,
-                    height: ServicesMetrics.Size.rowIcon
-                )
-                .raisedSurface(.circle)
-                .contentShape(.circle)
+            if #available(iOS 26, *) {
+                star
+                    .glassEffect(.regular.interactive(), in: .circle)
+            } else {
+                star
+                    .raisedSurface(.circle)
+            }
         }
         .buttonStyle(.plain)
+    }
+
+    private var star: some View {
+        Image(systemName: service.isOffered ? "star.fill" : "star")
+            .font(.elmsSans(.regular, ServicesMetrics.Size.rowIconGlyph))
+            .foregroundStyle(Color.ink)
+            .frame(
+                width: ServicesMetrics.Size.rowIcon,
+                height: ServicesMetrics.Size.rowIcon
+            )
+            .contentShape(.circle)
     }
 
     private var details: some View {

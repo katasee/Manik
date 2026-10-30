@@ -12,22 +12,19 @@ struct ClientCardView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            ScreenHeader(onBack: goBack) {
-                RoundIconButton(
-                    systemImage: "pencil",
-                    size: .small,
-                    accessibilityLabel: "clients.action.edit",
-                    action: edit
-                )
-            }
-
             if let card = viewModel.card {
                 content(card)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .background(Color.background)
-        .toolbar(.hidden, for: .navigationBar)
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbarRole(.editor)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button("clients.action.edit", systemImage: "pencil", action: edit)
+            }
+        }
         .task {
             await viewModel.observeClient()
         }
@@ -126,6 +123,21 @@ struct ClientCardView: View {
     }
 
     private var contactLabel: some View {
+        let shape = RoundedRectangle(cornerRadius: ClientsMetrics.Size.rowCornerRadius)
+
+        return Group {
+            if #available(iOS 26, *) {
+                contactContent
+                    .glassEffect(.regular.interactive(), in: shape)
+            } else {
+                contactContent
+                    .cardSurface(padding: 0, cornerRadius: ClientsMetrics.Size.rowCornerRadius)
+            }
+        }
+        .contentShape(shape)
+    }
+
+    private var contactContent: some View {
         HStack(spacing: ClientsMetrics.Spacing.contactIconSpacing) {
             Image(systemName: "bubble.left")
                 .font(.elmsSans(.bold, ClientsMetrics.Size.contactIcon))
@@ -137,12 +149,6 @@ struct ClientCardView: View {
         }
         .foregroundStyle(Color.ink)
         .frame(maxWidth: .infinity, minHeight: ClientsMetrics.Size.contactMinHeight)
-        .cardSurface(padding: 0, cornerRadius: ClientsMetrics.Size.rowCornerRadius)
-        .contentShape(.rect(cornerRadius: ClientsMetrics.Size.rowCornerRadius))
-    }
-
-    private func goBack() {
-        dismiss()
     }
 
     private func edit() {

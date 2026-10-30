@@ -60,14 +60,24 @@ struct WeekDayCell: View {
 
     @ViewBuilder
     private var selectedFill: some View {
-        let fill = RoundedRectangle(cornerRadius: Layout.cellCornerRadius)
-            .fill(Color.primaryFill)
-            .brandShadow()
-
         if let namespace {
-            fill.matchedGeometryEffect(id: "selectedDay", in: namespace)
+            selectedShape.matchedGeometryEffect(id: "selectedDay", in: namespace)
         } else {
-            fill
+            selectedShape
+        }
+    }
+
+    @ViewBuilder
+    private var selectedShape: some View {
+        let shape = RoundedRectangle(cornerRadius: Layout.cellCornerRadius)
+
+        if #available(iOS 26, *) {
+            Color.clear
+                .glassEffect(.primary, in: shape)
+        } else {
+            shape
+                .fill(Color.primaryFill)
+                .brandShadow()
         }
     }
 

@@ -128,28 +128,14 @@ struct AuthView: View {
     }
 
     private var submitButton: some View {
-        Button(action: handleSubmit) {
-            Group {
-                if viewModel.isLoading {
-                    ProgressView()
-                        .tint(Color.onPrimary)
-                } else if viewModel.mode == .signIn {
-                    Text("auth.mode.signIn")
-                        .font(.elmsSans(.bold, AuthMetrics.FontSize.submitLabel))
-                } else {
-                    Text("auth.action.signUp")
-                        .font(.elmsSans(.bold, AuthMetrics.FontSize.submitLabel))
-                }
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, AuthMetrics.Spacing.submitVerticalPadding)
-        }
-        .buttonStyle(.plain)
-        .foregroundStyle(Color.onPrimary)
-        .background(Color.primaryFill, in: .capsule)
-        .brandShadow()
-        .disabled(viewModel.isLoading || !viewModel.canSubmit)
-        .opacity(viewModel.isLoading || !viewModel.canSubmit ? AuthMetrics.disabledOpacity : 1)
+        CapsuleButton(
+            titleKey: viewModel.mode == .signIn ? "auth.mode.signIn" : "auth.action.signUp",
+            role: .primary,
+            isLoading: viewModel.isLoading,
+            isEnabled: viewModel.canSubmit,
+            fillsWidth: true,
+            action: handleSubmit
+        )
     }
 }
 

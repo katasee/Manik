@@ -9,11 +9,20 @@ struct ClientAvatar: View {
     }
 
     var body: some View {
+        if #available(iOS 26, *) {
+            letter
+                .glassEffect(.regular.tint(Color.wineSoft), in: .circle)
+        } else {
+            letter
+                .background(Color.wineSoft, in: .circle)
+        }
+    }
+
+    private var letter: some View {
         Text(verbatim: initial)
             .font(.elmsSans(.semiBold, size * Layout.glyphRatio))
             .foregroundStyle(Color.wine)
             .frame(width: size, height: size)
-            .background(Color.wineSoft, in: .circle)
             .accessibilityHidden(true)
     }
 }

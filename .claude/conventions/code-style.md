@@ -50,7 +50,7 @@ A raised control that can be *selected* swaps its surface for a `PrimaryFill` fi
 `.brandShadow()` (the selected day in `WeekDayStrip`); write that as an explicit `if`/`else` in
 `.background`, not as a fill stacked over a raised one — for a plain chip or field that is
 `.selectableSurface(isSelected:in:)` (`Assets/UICommons/`, M-37.3), which holds exactly that
-`if`/`else`. `Hairline` is for dividers and outlines
+`if`/`else` (on iOS 26 it is glass instead — see "Liquid Glass on our own views"). `Hairline` is for dividers and outlines
 only — never a fill (the client avatar, removed in M-30, shaded with a `Raised` → `Shadow` gradient instead) — and
 `Stroke` is for the dashed outline of a free window (`FreeSlotRow`). Shadows sit on the surface's background shape,
 never on the whole content — `.shadow` on a view with children shadows each child. A horizontal `ScrollView` of raised chips
@@ -65,6 +65,34 @@ text refracts and blurs it — put it behind the content; over a flat card there
 refract, so glass reads only by its rim and highlight; and an opaque `.tint` hides the glass
 entirely (the "black" lens was just a black pill). Keep it untinted unless a device pass says
 otherwise.
+Since Y-42 every control we draw is glass on iOS 26, at its drawing site, with today's surface in
+the `else`: `RoundIconLabel`, `CapsuleButton`, `.selectableSurface`, the selected day in
+`WeekDayCell`/`MonthDayCell`, the auth submit button, the client card's
+"Зв'язатися" and `ClientAvatar`. Unfilled roles are `.regular`; filled ones keep their colour as
+`Glass.primary` / `Glass.destructive` (`Glass+Roles.swift`: `.regular` tinted with `PrimaryFill` /
+`DestructiveFill`) — one place to change, never an inline `.tint` — and the "opaque tint" rule
+above still bites: in the light theme `PrimaryFill` is near-black, which glass cannot lighten, so
+the black buttons read as plain black and only the dark theme's wine shows the glass. The user
+tried 85% opacity and a graphite `#2A2A2E` tint and kept the plain black. Four more rules, all
+found on a device:
+- **Glass goes on the view that is touched, not in `.background { }`.** `.interactive()` reacts only
+  on the view that receives the touch, so a tappable surface puts `.glassEffect` on its label; a
+  glass button also drops `PressableButtonStyle` for `.plain`, because interactive glass is the
+  press feedback and the scale + 0.75 opacity on top doubled it and washed the glass out. Markers
+  (a selected day) are not interactive and may keep glass in a `.background`.
+- **Glass in a `.background` must not sit inside a `GlassEffectContainer`.** The container draws
+  all its glass in one layer above the content, so a tinted `Color.clear` glass background covered
+  the week strip's numbers. Inside a container, glass goes on the view that carries the content —
+  the chips do (`.selectableSurface` applies it to the chip itself), and their grids are wrapped
+  in `.glassEffectGroup()` (`View+GlassEffectGroup.swift`, a no-op on 18).
+- **A moving selection stays on `matchedGeometryEffect`.** `glassEffectID` in a container was tried
+  for a tab-bar-like morph of the selected day and the Fill-month lens and gave a jump instead of a
+  slide; it was reverted. A real morph is its own task, checked on a device after each step.
+- **Glass never sits on glass.** Glass cannot refract glass: the Fill-month lens on a glass track
+  all but vanished on an iOS 26 device (clearer glass than 27's), so the track stays
+  `.raisedSurface` and only the lens is glass.
+- **Content stays flat.** Cards, rows, input fields and popups keep `.cardSurface`/
+  `.raisedSurface`: glass is the control layer, and text on glass reads worse.
 
 User-facing strings never sit as bare literals in a View — they go in
 `YOi/YOi/Localizable.xcstrings` (String Catalog) under a `feature.kind.name` key

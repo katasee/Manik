@@ -31,6 +31,7 @@ struct ChoiceChips: View {
                 .accessibilityAddTraits(chip.isSelected ? .isSelected : [])
             }
         }
+        .glassEffectGroup()
     }
 }
 

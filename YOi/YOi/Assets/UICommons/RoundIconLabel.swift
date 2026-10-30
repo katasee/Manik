@@ -5,11 +5,20 @@ struct RoundIconLabel: View {
     var size: RoundIconButton.Size = .regular
 
     var body: some View {
+        if #available(iOS 26, *) {
+            glyph
+                .glassEffect(.regular.interactive(), in: .circle)
+        } else {
+            glyph
+                .raisedSurface(.circle)
+        }
+    }
+
+    private var glyph: some View {
         Image(systemName: systemImage)
             .font(.elmsSans(.medium, size.glyph))
             .foregroundStyle(Color.accentColor)
             .frame(width: size.diameter, height: size.diameter)
-            .raisedSurface(.circle)
     }
 }
 
