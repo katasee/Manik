@@ -67,7 +67,7 @@ entirely (the "black" lens was just a black pill). Keep it untinted unless a dev
 otherwise.
 Since Y-42 every control we draw is glass on iOS 26, at its drawing site, with today's surface in
 the `else`: `RoundIconLabel`, `CapsuleButton`, `.selectableSurface`, the selected day in
-`WeekDayCell`/`MonthDayCell`, the Fill-month tab track, the auth submit button, the client card's
+`WeekDayCell`/`MonthDayCell`, the auth submit button, the client card's
 "Зв'язатися" and `ClientAvatar`. Unfilled roles are `.regular`; filled ones keep their colour as
 `Glass.primary` / `Glass.destructive` (`Glass+Roles.swift`: `.regular` tinted with `PrimaryFill` /
 `DestructiveFill`) — one place to change, never an inline `.tint` — and the "opaque tint" rule
@@ -88,6 +88,9 @@ found on a device:
 - **A moving selection stays on `matchedGeometryEffect`.** `glassEffectID` in a container was tried
   for a tab-bar-like morph of the selected day and the Fill-month lens and gave a jump instead of a
   slide; it was reverted. A real morph is its own task, checked on a device after each step.
+- **Glass never sits on glass.** Glass cannot refract glass: the Fill-month lens on a glass track
+  all but vanished on an iOS 26 device (clearer glass than 27's), so the track stays
+  `.raisedSurface` and only the lens is glass.
 - **Content stays flat.** Cards, rows, input fields and popups keep `.cardSurface`/
   `.raisedSurface`: glass is the control layer, and text on glass reads worse.
 

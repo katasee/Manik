@@ -34,16 +34,6 @@ struct FillMonthTabs: View {
     @Namespace private var lens
 
     var body: some View {
-        if #available(iOS 26, *) {
-            track
-                .glassEffect(.regular, in: .capsule)
-        } else {
-            track
-                .raisedSurface(.capsule)
-        }
-    }
-
-    private var track: some View {
         HStack(spacing: ScheduleMetrics.Spacing.tabTrackPadding) {
             ForEach(FillMonthTab.allCases) { tab in
                 Button {
@@ -66,6 +56,7 @@ struct FillMonthTabs: View {
             }
         }
         .padding(ScheduleMetrics.Spacing.tabTrackPadding)
+        .raisedSurface(.capsule)
     }
 
     private func select(_ tab: FillMonthTab) {

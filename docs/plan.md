@@ -2304,7 +2304,7 @@ this file is just "what's done, what's next," not a design doc.
     round buttons and the client-row contact menu), the star in `ServiceRow`, Мої послуги's "+",
     `CapsuleButton`, `.selectableSurface` (time chips, `ChoiceChips`, plan time fields, the emoji
     grid — their grids in `GlassEffectContainer` via `.glassEffectGroup()`), the selected day in
-    `WeekDayCell` and `MonthDayCell`, the Fill-month tab track, the auth submit button, the card's
+    `WeekDayCell` and `MonthDayCell`, the auth submit button, the card's
     "Зв'язатися" and `ClientAvatar`. Filled glass goes through `Glass.primary`/`.destructive`
     (`Glass+Roles.swift`). The auth submit button, a private copy of the primary capsule, is now a
     `CapsuleButton` (clean-code review): semiBold 16 instead of bold 15, 50pt tall, disabled at
@@ -2314,7 +2314,9 @@ this file is just "what's done, what's next," not a design doc.
     32pt grey chevrons stay); a lighter black for glass (85% opacity, then a graphite
     `PrimaryGlass` colorset) — black stays black in the light theme; `glassEffectID` morphing of
     the selected day and the Fill-month lens inside a container — the numbers disappeared under the
-    glass, then the selection jumped instead of sliding; back on `matchedGeometryEffect`.
+    glass, then the selection jumped instead of sliding; back on `matchedGeometryEffect`; a glass
+    Fill-month tab track — the glass lens on it nearly vanished on iOS 26, the track is raised
+    again.
   - Verified: `xcodebuild` after each step, two `swiftui-pro` passes (the plan, then the branch),
     the user on an iOS 26 device in the dark theme.
 
