@@ -2549,13 +2549,13 @@ numbering drifts every time an item is added or closed (it already did once: PR9
   other Auth buttons (`ModeSwapPrompt`, the "Забули пароль?" link, VerifyEmail's sign-out) in the
   same pass.
 
-- **Hide the tab bar on pushed screens** (requested 2026-10-28). A screen pushed inside a tab —
-  Клієнтки's `ClientCardView` (also pushed from Розклад), Статистика's `StatsRoute` destinations
-  (Profile, Мої послуги, …) — keeps the system tab bar today. Candidate fix:
-  `.toolbar(.hidden, for: .tabBar)` on each destination. Check against the HIG before doing it:
-  the Tab bars page asks to keep the bar visible while people navigate within the app and to hide
-  it only for modal views, so this may be a deliberate departure, not a HIG fix. On iOS 26,
-  `.tabBarMinimizeBehavior(.onScrollDown)` is the lighter alternative.
+- **Clients with the same name look identical when booking** (found 2026-10-30). Two clients
+  named "Катя" show up as two identical rows in the "Записати" client picker (`ClientPicker` →
+  `BookClientOption` builds only `title` + `initial` from `ClientItem`), so the master cannot tell
+  which one is being booked. Candidate fix: a secondary line on `BookClientRow` with what tells
+  them apart — the Instagram handle, else the phone (`PhoneFormat.display`), else the last visit
+  (`lastBookedAt`). Check the same collision in Клієнтки's list (`ClientRow`) and the "Надіслати
+  графік" recipient step in the same pass.
 
 - **One generic fake store** (found in M-38.1). `FakeSlotRepository`, `FakeClientRepository` and
   `FakeMonthlySummaryRepository` each repeat the same `Mutex` state, observer dictionary and
@@ -2589,13 +2589,20 @@ numbering drifts every time an item is added or closed (it already did once: PR9
 
 - ~~**System navigation bar and Liquid Glass for our buttons**~~ — **done in Y-42** (see its entry under "Done").
 
-- **A big button in Розклад's empty state** (user request, 2026-10-18, during M-34.2, on a
-  screenshot of an empty day). Today an empty day shows only "Немає вікон" / "Натисніть +, щоб
-  додати вільні вікна" and the action is the small "+" in the header. Put a large button in the
-  middle of the screen instead of (or under) that hint. Open when picked up: whether it opens the
-  same "+" choice (Заповнити місяць today; "Своя справа" joins it in M-37) or Заповнити місяць
-  directly, whether the hint text stays, and whether the loading-failed state gets it too (it
-  shouldn't — nothing can be added there).
+- **Quick add for the day on screen** (user request, 2026-10-18 on an empty day; widened on
+  2026-10-30/31). Розклад gets an "add to this day" button that is **always there**: in the
+  middle of an empty day (instead of, or under, the "Немає вікон" hint) and under the last row of
+  a day that already has windows or plans, inside the scrolling list. It opens a quick popup for
+  **that one day only**, with three choices:
+  - **one free window** — a start time;
+  - **a window already booked** — a start time, then the client and service as in "Записати"
+    (`BookClient`), saved as one booked slot;
+  - **a plan** ("Своя справа") — a template and start/end, as in `AddPlanSection`.
+  The header "+" stays as it is — the multi-day flow (Заповнити місяць / Своя справа over a month
+  calendar); the new button is the fast path for one day. Hidden on past days and in the
+  loading-failed state (nothing can be added there). Reuse `TimeChips`, `ClientPicker` and the plan
+  sections rather than new controls; check the conflict warnings (M-37.7) still apply to a window
+  added this way. Likely two PRs (UI, then logic).
 
 - **Swift 6 language mode: make the models `Sendable`** (found 2026-10-16 in M-33.2's
   `swift-concurrency-pro` review). The project builds in Swift 5 mode (`SWIFT_VERSION = 5.0`), and a
