@@ -2320,6 +2320,26 @@ this file is just "what's done, what's next," not a design doc.
   - Verified: `xcodebuild` after each step, two `swiftui-pro` passes (the plan, then the branch),
     the user on an iOS 26 device in the dark theme.
 
+- **Y-43 — Release prep for TestFlight** (branch `feature/y-43-release-prep`; decided in chat on
+  2026-10-31, no design file). P0 items 1–3 of the release step (queue item 12).
+  - `YOi/YOi/PrivacyInfo.xcprivacy`: no tracking, `UserDefaults` with reason `CA92.1` — the only
+    required-reason API the app itself calls (`@AppStorage` for the appearance).
+  - `INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO`; iPhone orientations are portrait only.
+  - Verified: `xcodebuild`; the built app has the manifest, `ITSAppUsesNonExemptEncryption =
+    false` and `UISupportedInterfaceOrientations~iphone` = portrait.
+
+- **Y-44 — Gender-neutral wording** (branch `feature/y-44-gender-neutral-wording`; decided in chat
+  on 2026-10-31). Closes the backlog item of the same name, P1 item 2 of the release step.
+  - Only two Ukrainian strings addressed the master in the feminine. `auth.verify.check` "Я
+    підтвердила" → "Пошту підтверджено"; `schedule.reschedule.message %@ %@` "Перенесла запис на
+    …" → "Запис перенесено на %1$@, %2$@. До зустрічі", which now matches the English. An
+    impersonal form rather than "підтвердив(ла)": it reads naturally for anyone. The editable
+    template ("Editor for the texts sent to clients") stays in the backlog.
+  - Catalog only, no Swift change. Out of scope: "Клієнтки", and Firebase's fixed Ukrainian reset
+    email ("запитувала").
+  - Verified: `xcodebuild`; a grep of the catalog and of Swift literals finds no other feminine
+    form addressed to the master.
+
 ## Screens (in order)
 
 This is the actual work queue, and the only numbered list here. The ordering follows the **data
@@ -2527,7 +2547,7 @@ those items are referred to by name, so the list can grow without renumbering an
        done, the focus is now shipping it). Three stages, in order; a stage's items can go in any
        order inside it.
        - **P0 — first internal TestFlight build** (one small code PR, then App Store Connect):
-         1. `PrivacyInfo.xcprivacy` for the app target: `UserDefaults` accessed with reason
+         1. ~~Done in Y-43~~ (items 1–3). `PrivacyInfo.xcprivacy` for the app target: `UserDefaults` accessed with reason
             `CA92.1` (`@AppStorage("appearance")`), no tracking, no tracking domains. Firebase
             ships its own manifests; the app's own use still needs one, or the upload is refused
             (ITMS-91053).
@@ -2541,7 +2561,7 @@ those items are referred to by name, so the list can grow without renumbering an
          App Review):
          1. ~~Own email sender~~ — **done 2026-10-31** in the Console, no code: see the struck
             backlog item "Verification emails don't reach ukr.net".
-         2. Gender-neutral wording — backlog item of that name.
+         2. ~~Gender-neutral wording~~ — **done as Y-44** (under "Done").
          3. Privacy policy page (uk + en; no own domain — user, 2026-10-31 — so on a free host
             still to be picked): data collected (the master's email and
             name, her work data, her clients' names, phones and Instagram entered by her), Firebase
@@ -2571,15 +2591,7 @@ something nearby is already being touched. **No numbers on purpose** — cite th
 numbering drifts every time an item is added or closed (it already did once: PR9's entry pointed at
 "step 9" for what was item 10).
 
-- **Gender-neutral wording for the master** (requested 2026-10-29). Men use the app too, so the
-  Ukrainian UI must not address the master in the feminine. Known: the verify-email button
-  `auth.verify.check` "Я підтвердила" (`Auth/VerifyEmail/`) — reword to a neutral
-  form ("Підтверджено", "Готово", "Перевірити"). Related, decide in the same pass: the reschedule
-  message `schedule.reschedule.message %@ %@` ("Перенесла запис на …") is sent in the master's
-  own voice, so it is feminine too — a neutral form ("Запис перенесено на …") or the editable
-  template from "Editor for the texts sent to clients". Grep the whole String Catalog for other
-  feminine past-tense verbs (`-ла`) addressed to the master. Clients ("Клієнтки") are out of
-  scope here — a separate decision.
+- ~~**Gender-neutral wording for the master**~~ — **done as Y-44** (under "Done").
 
 - **Sign-in / sign-up button reacts only on its text** (found 2026-10-29). `AuthView.submitButton`
   is a `.buttonStyle(.plain)` `Button` whose capsule fill is a `.background` *outside* the button,
