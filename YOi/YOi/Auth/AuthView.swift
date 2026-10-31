@@ -4,6 +4,7 @@ struct AuthView: View {
     @State private var viewModel = AuthViewModel()
     @FocusState private var focusedField: AuthFocusField?
     @State private var isShowingReset = false
+    @Environment(\.openURL) private var openURL
     var onAuthenticated: () async -> Void
 
     var body: some View {
@@ -54,6 +55,11 @@ struct AuthView: View {
                 submitButton
                     .padding(.top, AuthMetrics.Spacing.submitTop)
 
+                if viewModel.mode == .signUp {
+                    consentButton
+                        .padding(.top, AuthMetrics.Spacing.consentTop)
+                }
+
                 ModeSwapPrompt(mode: $viewModel.mode)
                     .padding(.top, AuthMetrics.Spacing.swapTop)
             }
@@ -91,6 +97,34 @@ struct AuthView: View {
         }
         .buttonStyle(.plain)
         .frame(maxWidth: .infinity, alignment: .trailing)
+    }
+
+    private var consentButton: some View {
+        Button(action: openPrivacyPolicy) {
+            Text(consentText)
+                .font(.elmsSans(.regular, AuthMetrics.FontSize.swap))
+                .foregroundStyle(Color.textSecondary)
+                .multilineTextAlignment(.leading)
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(
+                    maxWidth: .infinity,
+                    minHeight: AuthMetrics.swapTapHeight,
+                    alignment: .leading
+                )
+                .contentShape(.rect)
+        }
+        .buttonStyle(.plain)
+    }
+
+    private var consentText: AttributedString {
+        var policyName = AttributedString(localized: "auth.consent.link")
+        policyName.foregroundColor = Color.wine
+        policyName.underlineStyle = .single
+        return AttributedString(localized: "auth.consent \(policyName)")
+    }
+
+    private func openPrivacyPolicy() {
+        openURL(AppLinks.privacyPolicy)
     }
 
     private func showReset() {

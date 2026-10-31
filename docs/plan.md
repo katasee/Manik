@@ -2340,6 +2340,24 @@ this file is just "what's done, what's next," not a design doc.
   - Verified: `xcodebuild`; a grep of the catalog and of Swift literals finds no other feminine
     form addressed to the master.
 
+- **Y-45 — Privacy policy** (branch `feature/y-45-privacy-policy`; decided in chat on
+  2026-10-31). P1 item 3 of the release step.
+  - A separate public repo `katasee/yoi-site` on GitHub Pages (not Pages on `YOi`, whose `docs/`
+    would publish this file, and which may go private): `https://katasee.github.io/yoi-site/privacy/`
+    (English first, Ukrainian below) and `https://katasee.github.io/yoi-site/support/` (email +
+    FAQ — the App Store Support URL). Contact `yoi.app.support@gmail.com`.
+  - The policy speaks as YOi; the controller line names the person, "Anton Kotalov, Poland" — no
+    JDG, NIP or address (user). The master is the controller of her clients' data, YOi stores it
+    for her. The data list must stay in step with the App Privacy label (P2 item 1).
+  - App: `AppLinks.privacyPolicy` (`Utilities/`, read by two features). Profile gets an "Про
+    застосунок" section with a "Політика конфіденційності" row (`openURL`, Safari). Sign-up mode
+    shows "Реєструючись, ви погоджуєтесь з Політикою конфіденційності" under the button: the whole
+    line is a 44pt `Button` opening the policy (an inline `.link` in 14pt text would be a far
+    smaller target), the policy name wine and underlined through an `AttributedString`
+    interpolated into one `auth.consent %@` format, so each language keeps its word order.
+  - Verified: `xcodebuild`; all three site pages return 200; in the simulator the Profile row and
+    the consent line both open the policy, the consent line hides on "Увійти".
+
 ## Screens (in order)
 
 This is the actual work queue, and the only numbered list here. The ordering follows the **data
@@ -2562,7 +2580,7 @@ those items are referred to by name, so the list can grow without renumbering an
          1. ~~Own email sender~~ — **done 2026-10-31** in the Console, no code: see the struck
             backlog item "Verification emails don't reach ukr.net".
          2. ~~Gender-neutral wording~~ — **done as Y-44** (under "Done").
-         3. Privacy policy page (uk + en; no own domain — user, 2026-10-31 — so on a free host
+         3. ~~Privacy policy page~~ — **done as Y-45** (under "Done"). Was (uk + en; no own domain — user, 2026-10-31 — so on a free host
             still to be picked): data collected (the master's email and
             name, her work data, her clients' names, phones and Instagram entered by her), Firebase
             in `europe-central2` as processor, no ads or analytics, deletion via "Видалити акаунт",
@@ -2573,7 +2591,8 @@ those items are referred to by name, so the list can grow without renumbering an
             (other user content — services, bookings, plans, the client base); all App
             Functionality, linked to the user, no tracking. Must agree with the policy.
          2. Metadata: name, subtitle, description, keywords, category (Business or Productivity),
-            age rating questionnaire, Support URL (required), copyright.
+            age rating questionnaire, Support URL (required — `https://katasee.github.io/yoi-site/support/`,
+            Y-45), Privacy Policy URL (`…/privacy/`), copyright.
          3. Screenshots, at least 6.9" iPhone, from demo data, never real clients.
          4. Availability: phones are Poland-only (`+48`, `PhoneFormat`) — limit the countries or
             say so in the description.
