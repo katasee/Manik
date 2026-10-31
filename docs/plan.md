@@ -2523,6 +2523,46 @@ those items are referred to by name, so the list can grow without renumbering an
        YOi bundle ID — the rebrand (2026-10-28) renamed everything else but left the bundle ID
        for this step (user). Then check that Auth (email verification links) and Firestore still
        work. Settle it before the first App Store submission: the bundle ID cannot change after.
+   12. **Release the MVP to the App Store** (decided in chat on 2026-10-31; the MVP feature set is
+       done, the focus is now shipping it). Three stages, in order; a stage's items can go in any
+       order inside it.
+       - **P0 — first internal TestFlight build** (one small code PR, then App Store Connect):
+         1. `PrivacyInfo.xcprivacy` for the app target: `UserDefaults` accessed with reason
+            `CA92.1` (`@AppStorage("appearance")`), no tracking, no tracking domains. Firebase
+            ships its own manifests; the app's own use still needs one, or the upload is refused
+            (ITMS-91053).
+         2. `INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO` (HTTPS only), so App Store Connect
+            stops asking about export compliance on every build.
+         3. iPhone portrait only: `UISupportedInterfaceOrientations_iPhone` allows both landscapes
+            today and no screen was ever laid out for them.
+         4. App record in App Store Connect for `app.yoi.katrigin`, Archive → Upload, internal
+            testing on the user's own device. Internal testing has no review.
+       - **P1 — external TestFlight** (masters invited by link; the first build goes through Beta
+         App Review):
+         1. ~~Own email sender~~ — **done 2026-10-31** in the Console, no code: see the struck
+            backlog item "Verification emails don't reach ukr.net".
+         2. Gender-neutral wording — backlog item of that name.
+         3. Privacy policy page (uk + en; no own domain — user, 2026-10-31 — so on a free host
+            still to be picked): data collected (the master's email and
+            name, her work data, her clients' names, phones and Instagram entered by her), Firebase
+            in `europe-central2` as processor, no ads or analytics, deletion via "Видалити акаунт",
+            GDPR rights and a contact email. A row in Profile opening it.
+         4. A demo account with a verified email and sample data for the reviewer.
+       - **P2 — App Store submission** (App Store Connect, mostly no code):
+         1. App Privacy label: Contact Info (email, name), Identifiers (user ID), User Content
+            (other user content — services, bookings, plans, the client base); all App
+            Functionality, linked to the user, no tracking. Must agree with the policy.
+         2. Metadata: name, subtitle, description, keywords, category (Business or Productivity),
+            age rating questionnaire, Support URL (required), copyright.
+         3. Screenshots, at least 6.9" iPhone, from demo data, never real clients.
+         4. Availability: phones are Poland-only (`+48`, `PhoneFormat`) — limit the countries or
+            say so in the description.
+         5. Final device pass on iOS 18 and 26, light and dark, plus the beta masters' feedback.
+       - **Not blocking, pick up if the beta asks for it:** "Error handling pass over the whole
+         app", "Clients with the same name look identical when booking", the one key missing a
+         translation in the String Catalog (228 of 229). "Sign-in / sign-up button reacts only on
+         its text" is probably closed by Y-42 (the button is a `CapsuleButton` now) — check on a
+         device and strike it. Everything else in the backlog waits until after the release.
 
 ## Backlog and tech debt (unordered)
 
@@ -2617,23 +2657,21 @@ numbering drifts every time an item is added or closed (it already did once: PR9
   `Element: Sendable`, decide `@preconcurrency import FirebaseFirestore` vs. fixing each capture,
   then switch `SWIFT_VERSION` to 6 and build clean.
 
-- **Verification emails don't reach ukr.net — own sender before release** (found 2026-10-10 during
-  M-31's manual pass). With Firebase's default sender (`noreply@<project>.firebaseapp.com`) the
-  verification email arrives at Gmail within a minute but never at `@ukr.net` — not in Inbox, Spam
-  or search, after waiting and after "Надіслати ще раз" reported success (Firebase accepted the
-  send; delivery fails afterwards). Not a code problem, and not a blanket ukr.net block of
-  `firebaseapp.com`: the same mailbox did receive another product's Firebase verification email in
-  Dec 2024. The app cannot detect delivery — Firebase only confirms the send. Fix in the Console,
-  not in code, **before release** (Polish/Ukrainian masters use ukr.net, i.ua, meta.ua):
-  - quick: Authentication → Templates → **SMTP settings** through a dedicated Gmail
-    (`smtp.gmail.com:587`, STARTTLS, an app password; ~500 emails/day) — also the cheapest test of
-    whether the sender is the cause;
-  - proper: a domain we own — **Customize domain** with the DNS records (SPF/DKIM) Firebase shows,
-    or an email service (Brevo, SendGrid) on that domain. The domain must be ours; an arbitrary
-    name such as `yoi.app` cannot be verified.
-  - In the app, worth adding regardless: a "Не прийшов лист? Перевірте «Спам» або спробуйте іншу
-    пошту" hint on the verify-email screen, and surfacing a failed first send (sign-up sends it
-    with `try?`, so a rejected send is invisible).
+- ~~**Verification emails don't reach ukr.net — own sender before release**~~ — **done
+  2026-10-31, Console only.** With Firebase's default sender (`noreply@<project>.firebaseapp.com`)
+  the verification email reached Gmail but never `@ukr.net` (found 2026-10-10 in M-31's manual
+  pass; Firebase accepted the send, delivery failed afterwards). No own domain (user: none bought,
+  none planned), so the fix is Gmail SMTP: a dedicated `yoi.app.support@gmail.com` (2-step
+  verification + an app password), Authentication → Templates → **SMTP settings**
+  (`smtp.gmail.com:587`, STARTTLS), Sender name `YOi` on the templates, and the Google Auth
+  Platform **Branding** app name set to `YOi` — that is where `%APP_NAME%` comes from (it showed
+  the project id `yoi-fb372` before). Verified on ukr.net: verification and password reset both
+  land in Inbox from `YOi <yoi.app.support@gmail.com>`. The template's own "From" field still
+  shows `firebaseapp.com`; SMTP overrides it. Limits to remember: ~500 emails/day through Gmail,
+  and the links in the emails stay on `firebaseapp.com`. Firebase's Ukrainian reset template
+  says "запитувала" (fixed text, not editable). No code change (user): the "check Spam" hint is
+  moot now that mail lands in Inbox, and a failed first send (sign-up's `try?`) is covered by
+  "Надіслати ще раз", whose error the verify-email screen already shows.
 - ~~**Three accessibility items left open on the account screen**~~ — **superseded by the pivot** (the client account is removed in M-30). (two from M-23's review, one from
   M-24's). None blocks a PR, all are one line each: the contact rows' SF Symbols are announced by
   VoiceOver ("phone. Телефон. +48 600 123 456") and want `.accessibilityHidden(true)`, since the
