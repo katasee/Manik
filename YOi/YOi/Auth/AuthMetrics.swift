@@ -20,6 +20,7 @@ enum AuthMetrics {
         static let taglineBottom: CGFloat = 28
         static let errorTop: CGFloat = 12
         static let submitTop: CGFloat = 12
+        static let consentTop: CGFloat = 12
         static let swapTop: CGFloat = 8
         static let swapSpacing: CGFloat = 4
         static let verifyIconBottom: CGFloat = 20

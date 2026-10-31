@@ -36,6 +36,7 @@ struct ProfileView: View {
     }
 
     @State private var popup: Popup?
+    @Environment(\.openURL) private var openURL
 
     let profile: UserProfile
     let onSignOut: () -> Void
@@ -48,6 +49,7 @@ struct ProfileView: View {
                     profileCard
                     themeSection
                     accountSection
+                    aboutSection
                 }
                 .padding(.horizontal, ProfileMetrics.Spacing.horizontalPadding)
                 .padding(.top, ProfileMetrics.Spacing.contentTopPadding)
@@ -139,6 +141,21 @@ struct ProfileView: View {
         }
     }
 
+    private var aboutSection: some View {
+        VStack(alignment: .leading, spacing: ProfileMetrics.Spacing.sectionLabelSpacing) {
+            SectionLabel(titleKey: "profile.section.about")
+
+            ProfileActionRow(
+                titleKey: "profile.action.privacy",
+                systemImage: "hand.raised",
+                action: openPrivacyPolicy
+            )
+            .padding(.horizontal, ProfileMetrics.Spacing.cardPadding)
+            .padding(.vertical, ProfileMetrics.Spacing.listVerticalPadding)
+            .cardSurface(padding: 0, cornerRadius: ProfileMetrics.Size.cardCornerRadius)
+        }
+    }
+
     private var divider: some View {
         Color.hairline
             .frame(height: ProfileMetrics.Size.dividerHeight)
@@ -156,6 +173,10 @@ struct ProfileView: View {
                 onDismiss: hidePopup
             )
         }
+    }
+
+    private func openPrivacyPolicy() {
+        openURL(AppLinks.privacyPolicy)
     }
 
     private func showChangePassword() {

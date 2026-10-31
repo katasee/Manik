@@ -423,6 +423,38 @@
         }
       }
     },
+    "auth.consent %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "By signing up, you agree to the %@"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Реєструючись, ви погоджуєтесь з %@"
+          }
+        }
+      }
+    },
+    "auth.consent.link" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Privacy Policy"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Політикою конфіденційності"
+          }
+        }
+      }
+    },
     "auth.error.emailAlreadyInUse" : {
       "localizations" : {
         "en" : {
@@ -1953,6 +1985,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Профіль"
+          }
+        }
+      }
+    },
+    "profile.action.privacy" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Privacy Policy"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Політика конфіденційності"
+          }
+        }
+      }
+    },
+    "profile.section.about" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "About"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Про застосунок"
           }
         }
       }
